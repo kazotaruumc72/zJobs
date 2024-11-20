@@ -108,11 +108,12 @@ public class Config {
 
     private ProgressBarConfig loadProgressBarConfig(FileConfiguration configuration, String path) {
         String icon = configuration.getString(path + ".icon", "|");
+        String notCompletedIcon = configuration.getString(path + ".not-completed-icon", icon);
         String progressColor = configuration.getString(path + ".progress-color", "&a");
         String color = configuration.getString(path + ".color", "&7");
         int size = configuration.getInt(path + ".size", 10);
 
-        return new ProgressBarConfig(icon.charAt(0), progressColor, color, size);
+        return new ProgressBarConfig(icon, notCompletedIcon, progressColor, color, size);
     }
 
 }

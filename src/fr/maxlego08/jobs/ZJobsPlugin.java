@@ -88,6 +88,7 @@ public class ZJobsPlugin extends ZPlugin {
         }
 
         if (isEnable(Plugins.BLOCKTRACKER)) {
+            getLogger().info("Using BlockTracker");
             this.blockHook = new BlockTrackerHook();
         }
 
