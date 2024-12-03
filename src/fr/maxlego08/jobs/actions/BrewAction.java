@@ -33,7 +33,7 @@ public class BrewAction extends ZJobAction<PotionType> {
             var contents = event.getContents();
             var ingredient = contents.getIngredient();
 
-            if (result.size() >= 1) {
+            if (!result.isEmpty()) {
                 ItemStack itemStack = result.get(0);
 
                 if (this.potionMaterial == itemStack.getType()) {

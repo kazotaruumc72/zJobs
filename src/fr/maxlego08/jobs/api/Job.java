@@ -34,4 +34,6 @@ public interface Job {
     boolean canLeave();
 
     boolean canJoin();
+
+    int getCustomModelData();
 }

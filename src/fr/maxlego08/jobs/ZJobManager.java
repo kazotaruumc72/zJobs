@@ -47,6 +47,11 @@ public class ZJobManager extends ZUtils implements JobManager {
     private void registerPlaceholders() {
         LocalPlaceholder placeholder = LocalPlaceholder.getInstance();
 
+        placeholder.register("current_jobs_model_data", (player) -> {
+            var job = targetJobs.get(player);
+            return job == null ? "0" : String.valueOf(job.getCustomModelData());
+        });
+
         placeholder.register("points", (player) -> {
             var optional = getPlayerJobs(player.getUniqueId());
             return optional.map(PlayerJobs::getPoints).orElse(0L).toString();

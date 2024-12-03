@@ -45,7 +45,7 @@ public class JobListener implements Listener {
     public JobListener(ZJobsPlugin plugin) {
         this.plugin = plugin;
         this.jobManager = plugin.getJobManager();
-        this.playerKey = new NamespacedKey(plugin, "job_player_uuid");
+        this.playerKey = new NamespacedKey(plugin, "player-uuid");
     }
 
     @EventHandler
@@ -58,7 +58,7 @@ public class JobListener implements Listener {
         this.jobManager.playerQuit(event.getPlayer());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Block block = event.getBlock();
         Player player = event.getPlayer();
@@ -109,7 +109,7 @@ public class JobListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onAnimalTame(EntityDeathEvent event) {
+    public void onDeath(EntityDeathEvent event) {
 
         LivingEntity entity = event.getEntity();
         if (entity.getKiller() != null) {

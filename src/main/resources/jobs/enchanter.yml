@@ -51,22 +51,22 @@ actions:
     money: 2
 
   - type: ENCHANT
-    minimumCost: 30
+    minimum-cost: 30
     experience: 50
     money: 5
 
   - type: ENCHANT
-    minimumCost: 24
+    minimum-cost: 24
     experience: 25
     money: 4
 
   - type: ENCHANT
-    minimumCost: 12
+    minimum-cost: 12
     experience: 10
     money: 3
 
   - type: ENCHANT
-    minimumCost: 3
+    minimum-cost: 3
     experience: 5
     money: 2
 

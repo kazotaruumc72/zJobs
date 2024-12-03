@@ -1,6 +1,5 @@
 package fr.maxlego08.jobs.api.players;
 
-import com.sun.source.doctree.SeeTree;
 import fr.maxlego08.jobs.api.Job;
 import fr.maxlego08.jobs.api.actions.ActionInfo;
 import fr.maxlego08.jobs.api.enums.JobActionType;

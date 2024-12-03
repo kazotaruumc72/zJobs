@@ -1,6 +1,5 @@
 package fr.maxlego08.jobs;
 
-import com.google.gson.JsonIOException;
 import fr.maxlego08.jobs.actions.BrewAction;
 import fr.maxlego08.jobs.actions.EnchantmentAction;
 import fr.maxlego08.jobs.actions.EntityAction;
@@ -47,6 +46,7 @@ public class JobLoader implements Loader<Job> {
         int maxPrestiges = configuration.getInt("max-prestiges", 100);
         boolean canJoin = configuration.getBoolean("can-join", true);
         boolean canLeave = configuration.getBoolean("can-leave", true);
+        int customModelData = configuration.getInt("custom-model-data", 0);
         String name = configuration.getString("name");
         String formula = configuration.getString("formula", "baseExperience * (1 + 0.05 * level + 0.005 * level^2) * (1 + 0.3 * (prestige / maxPrestiges))");
         List<JobAction<?>> jobActions = loadActions(configuration);
@@ -60,7 +60,7 @@ public class JobLoader implements Loader<Job> {
             jobRewards.add(new ZJobReward(level, prestige, actions));
         });
 
-        return new ZJob(name, file.getName().replace(".yml", ""), baseExperience, maxLevels, maxPrestiges, formula, jobActions, jobRewards, canJoin, canLeave);
+        return new ZJob(name, file.getName().replace(".yml", ""), baseExperience, maxLevels, maxPrestiges, formula, jobActions, jobRewards, canJoin, canLeave, customModelData);
     }
 
     private List<JobAction<?>> loadActions(YamlConfiguration configuration) {
@@ -85,7 +85,7 @@ public class JobLoader implements Loader<Job> {
                         Tag<Material> tag = TagRegistry.getTag(accessor.getString("tag").toUpperCase());
                         jobActions.add(new TagAction(tag, experience, money, jobActionType, displayMaterial == null ? Material.PAPER : displayMaterial));
                     } else {
-                        plugin.getLogger().severe("Impossible to find the tag or material for BLOCK BREAK in file " + file.getAbsolutePath());
+                        plugin.getLogger().severe("Impossible to find the tag or material for " + jobActionType + " in file " + file.getAbsolutePath());
                     }
 
                 } else if (jobActionType.isEntityType()) {
@@ -101,8 +101,8 @@ public class JobLoader implements Loader<Job> {
 
                     Material material = materialName == null ? null : Material.valueOf(materialName.toUpperCase());
                     Enchantment enchantment = enchantmentName == null ? null : enchantments.getEnchantments(enchantmentName).map(MenuEnchantment::getEnchantment).orElse(null);
-                    int minimumLevel = accessor.getInt("minimumLevel", 0);
-                    int minimumCost = accessor.getInt("minimumCost", 0);
+                    int minimumLevel = accessor.getInt("minimum-level", 0);
+                    int minimumCost = accessor.getInt("minimum-cost", 0);
 
                     jobActions.add(new EnchantmentAction(material, experience, money, enchantment, minimumLevel, minimumCost, displayMaterial));
 
