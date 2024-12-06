@@ -180,7 +180,6 @@ public class ZJobsPlugin extends ZPlugin {
             }
             default -> this.currencyProvider = currencies.createProvider();
         }
-        System.out.println(this.currencyProvider);
     }
 
     private void files(File folder, Consumer<File> consumer) {
