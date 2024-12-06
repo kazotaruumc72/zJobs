@@ -1,13 +1,10 @@
 package fr.maxlego08.jobs;
 
 import fr.maxlego08.jobs.api.JobManager;
-import fr.maxlego08.jobs.api.economy.EconomyProvider;
 import fr.maxlego08.jobs.api.hooks.BlockHook;
 import fr.maxlego08.jobs.api.storage.StorageManager;
 import fr.maxlego08.jobs.command.commands.CommandJobs;
 import fr.maxlego08.jobs.component.PaperComponent;
-import fr.maxlego08.jobs.economy.EmptyProvider;
-import fr.maxlego08.jobs.economy.VaultProvider;
 import fr.maxlego08.jobs.hooks.BlockTrackerHook;
 import fr.maxlego08.jobs.hooks.EmptyHook;
 import fr.maxlego08.jobs.placeholder.LocalPlaceholder;
@@ -25,6 +22,8 @@ import fr.maxlego08.menu.api.InventoryManager;
 import fr.maxlego08.menu.api.scheduler.ZScheduler;
 import fr.maxlego08.menu.button.loader.NoneLoader;
 import fr.maxlego08.menu.exceptions.InventoryException;
+import fr.traqueur.currencies.Currencies;
+import fr.traqueur.currencies.CurrencyProvider;
 import org.bukkit.plugin.ServicePriority;
 
 import java.io.File;
@@ -51,8 +50,8 @@ public class ZJobsPlugin extends ZPlugin {
     private final Set<String> knowRewards = new HashSet<>();
     private InventoryManager inventoryManager;
     private ButtonManager buttonManager;
-    private EconomyProvider economyProvider = new EmptyProvider();
     private BlockHook blockHook = new EmptyHook();
+    private CurrencyProvider currencyProvider;
 
     @Override
     public void onEnable() {
@@ -83,16 +82,13 @@ public class ZJobsPlugin extends ZPlugin {
 
         this.storageManager.load();
 
-        if (isEnable(Plugins.VAULT)) {
-            this.economyProvider = new VaultProvider(this);
-        }
-
         if (isEnable(Plugins.BLOCKTRACKER)) {
             getLogger().info("Using BlockTracker");
             this.blockHook = new BlockTrackerHook();
         }
 
         this.loadInventories();
+        this.loadCurrencyProvider();
 
         this.postEnable();
     }
@@ -142,10 +138,6 @@ public class ZJobsPlugin extends ZPlugin {
         return paperComponent;
     }
 
-    public EconomyProvider getEconomyProvider() {
-        return economyProvider;
-    }
-
     public BlockHook getBlockHook() {
         return blockHook;
     }
@@ -180,6 +172,17 @@ public class ZJobsPlugin extends ZPlugin {
         });
     }
 
+    private void loadCurrencyProvider() {
+        Currencies currencies = Currencies.valueOf(getConfig().getString("default-economy", Currencies.VAULT.name()));
+        switch (currencies) {
+            case ZESSENTIALS, ECOBITS, COINSENGINE -> {
+                this.currencyProvider = currencies.createProvider(getConfig().getString("currency-name", "money"));
+            }
+            default -> this.currencyProvider = currencies.createProvider();
+        }
+        System.out.println(this.currencyProvider);
+    }
+
     private void files(File folder, Consumer<File> consumer) {
         try (Stream<Path> s = Files.walk(Paths.get(folder.getPath()))) {
             s.skip(1).map(Path::toFile).filter(File::isFile).filter(e -> e.getName().endsWith(".yml")).forEach(consumer);
@@ -190,5 +193,9 @@ public class ZJobsPlugin extends ZPlugin {
 
     public Set<String> getKnowRewards() {
         return knowRewards;
+    }
+
+    public CurrencyProvider getCurrencyProvider() {
+        return currencyProvider;
     }
 }

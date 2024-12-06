@@ -31,6 +31,7 @@ public class Config {
     public static ProgressBarConfig progressBarLevel;
     public static ProgressBarConfig progressBarPrestige;
     public static ProgressBarConfig progressBarExperience;
+    public static String moneyReason = "Job money";
 
     /**
      * static Singleton instance.
@@ -100,6 +101,7 @@ public class Config {
         }
 
         disabledWorlds = configuration.getStringList("disabled-worlds");
+        moneyReason = configuration.getString("money-reason", "Job Money");
 
         progressBarLevel = loadProgressBarConfig(configuration, "progress-bar-level");
         progressBarPrestige = loadProgressBarConfig(configuration, "progress-bar-prestige");

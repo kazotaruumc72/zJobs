@@ -24,6 +24,7 @@ import fr.maxlego08.menu.inventory.inventories.InventoryDefault;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -243,7 +244,7 @@ public class ZPlayerJobs implements PlayerJobs {
         if (this.updateMoney <= 0) return;
 
         var offlinePlayer = Bukkit.getOfflinePlayer(this.uniqueId);
-        this.plugin.getEconomyProvider().depositMoney(offlinePlayer, this.updateMoney);
+        this.plugin.getCurrencyProvider().deposit(offlinePlayer, BigDecimal.valueOf(this.updateMoney), Config.moneyReason);
 
         this.updateMoney = 0;
     }

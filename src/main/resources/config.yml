@@ -58,6 +58,8 @@ jobs-limit-permissions:
     limit: 3
 
 default-economy: "VAULT"
+currency-name: "money"
+money-reason: "Job money"
 
 events:
   JobsExpGainEvent: true

@@ -76,6 +76,10 @@
               <shadedPattern>fr.maxlego08.jobs.zcore.utils.sarah</shadedPattern>
             </relocation>
             <relocation>
+              <pattern>fr.traqueur.currencies</pattern>
+              <shadedPattern>fr.maxlego08.jobs.zcore.utils.currencies</shadedPattern>
+            </relocation>
+            <relocation>
               <pattern>net.objecthunter.exp4j</pattern>
               <shadedPattern>fr.maxlego08.jobs.zcore.utils.exp4j</shadedPattern>
             </relocation>
