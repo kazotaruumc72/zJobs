@@ -175,7 +175,7 @@ public class ZJobsPlugin extends ZPlugin {
     private void loadCurrencyProvider() {
         Currencies currencies = Currencies.valueOf(getConfig().getString("default-economy", Currencies.VAULT.name()));
         switch (currencies) {
-            case ZESSENTIALS, ECOBITS, COINSENGINE -> {
+            case ZESSENTIALS, ECOBITS, COINSENGINE, REDISECONOMY -> {
                 this.currencyProvider = currencies.createProvider(getConfig().getString("currency-name", "money"));
             }
             default -> this.currencyProvider = currencies.createProvider();
