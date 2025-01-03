@@ -25,7 +25,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -36,7 +38,7 @@ public class ZPlayerJobs implements PlayerJobs {
     private final UUID uniqueId;
     private final List<PlayerJob> jobs;
     private final Set<String> rewards;
-    private JobBossBar jobBossBar;
+    private Map<Job, JobBossBar> jobBossBars = new HashMap<>();
     private long points;
     private double updateMoney;
 
@@ -180,8 +182,9 @@ public class ZPlayerJobs implements PlayerJobs {
 
             processReward(player, playerJob, job, playerJob.getLevel(), playerJob.getLevel() - 1, playerJob.getPrestige(), playerJob.getPrestige() - 1);
 
-            if (this.jobBossBar != null) {
-                this.jobBossBar.updateMaxExperience(job.getExperience(playerJob.getLevel(), playerJob.getPrestige()));
+            var jobBossBar = this.jobBossBars.get(job);
+            if (jobBossBar != null) {
+                jobBossBar.updateMaxExperience(job.getExperience(playerJob.getLevel(), playerJob.getPrestige()));
             }
             this.updateBossBar(player, playerJob, job);
 
@@ -228,14 +231,17 @@ public class ZPlayerJobs implements PlayerJobs {
     private void updateBossBar(Player player, PlayerJob playerJob, Job job) {
         if (player == null) return;
 
-        if (this.jobBossBar == null || this.jobBossBar.isExpired()) {
+        var jobBossBar = this.jobBossBars.get(job);
+        if (jobBossBar == null || jobBossBar.isExpired()) {
 
-            this.jobBossBar = new JobBossBar(plugin, player, playerJob.getExperience(), job.getExperience(playerJob.getLevel(), playerJob.getPrestige()), playerJob.getLevel(), playerJob.getPrestige(), job.getName());
-            this.jobBossBar.resetTimer();
+            jobBossBar = new JobBossBar(plugin, player, playerJob.getExperience(), job.getExperience(playerJob.getLevel(), playerJob.getPrestige()), playerJob.getLevel(), playerJob.getPrestige(), job.getName());
+            jobBossBar.resetTimer();
+            this.jobBossBars.put(job, jobBossBar);
         } else {
 
-            this.jobBossBar.resetTimer();
-            this.plugin.getScheduler().runTaskAsynchronously(() -> this.jobBossBar.updateExperience(playerJob.getExperience(), playerJob.getLevel(), playerJob.getPrestige()));
+            jobBossBar.resetTimer();
+            JobBossBar finalJobBossBar = jobBossBar;
+            this.plugin.getScheduler().runTaskAsynchronously(() -> finalJobBossBar.updateExperience(playerJob.getExperience(), playerJob.getLevel(), playerJob.getPrestige()));
         }
     }
 

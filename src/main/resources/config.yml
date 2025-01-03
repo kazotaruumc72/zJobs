@@ -89,3 +89,8 @@ progress-bar-experience:
   progress-color: "#0ff216"
   color: "#828282"
   size: 30
+
+force-block-check:
+  - SUGAR_CANE
+  - KELP
+  - BAMBOO

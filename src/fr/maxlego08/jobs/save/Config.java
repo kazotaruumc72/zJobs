@@ -7,6 +7,7 @@ import fr.maxlego08.jobs.api.event.JobEvent;
 import fr.maxlego08.jobs.api.utils.ProgressBarConfig;
 import fr.maxlego08.menu.api.utils.TypedMapAccessor;
 import net.kyori.adventure.bossbar.BossBar;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.permissions.Permissible;
 
@@ -32,6 +33,7 @@ public class Config {
     public static ProgressBarConfig progressBarPrestige;
     public static ProgressBarConfig progressBarExperience;
     public static String moneyReason = "Job money";
+    public static List<Material> forceBlockCheck = List.of(Material.SUGAR_CANE);
 
     /**
      * static Singleton instance.
@@ -106,6 +108,7 @@ public class Config {
         progressBarLevel = loadProgressBarConfig(configuration, "progress-bar-level");
         progressBarPrestige = loadProgressBarConfig(configuration, "progress-bar-prestige");
         progressBarExperience = loadProgressBarConfig(configuration, "progress-bar-experience");
+        forceBlockCheck = configuration.getStringList("force-block-check").stream().map(Material::matchMaterial).toList();
     }
 
     private ProgressBarConfig loadProgressBarConfig(FileConfiguration configuration, String path) {

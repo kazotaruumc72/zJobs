@@ -2,6 +2,7 @@ package fr.maxlego08.jobs;
 
 import fr.maxlego08.jobs.api.JobManager;
 import fr.maxlego08.jobs.api.enums.JobActionType;
+import fr.maxlego08.jobs.save.Config;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -71,6 +72,11 @@ public class JobListener implements Listener {
             this.jobManager.action(player, material, JobActionType.BLOCK_BREAK);
 
         } else if (block.getBlockData() instanceof Ageable ageable && ((material == Material.SUGAR_CANE || material == Material.KELP || material == Material.BAMBOO) || ageable.getAge() == ageable.getMaximumAge())) {
+
+            if (Config.forceBlockCheck.contains(material)) {
+
+                if (this.plugin.getBlockHook().isTracked(block)) return;
+            }
 
             this.jobManager.action(player, material, JobActionType.FARMING);
         }
