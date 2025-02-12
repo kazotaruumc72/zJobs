@@ -203,6 +203,7 @@ public class ZPlayerJobs implements PlayerJobs {
         if (player == null) return;
 
         Placeholders placeholders = new Placeholders();
+        placeholders.register("name", job.getName());
         placeholders.register("level", String.valueOf(newLevel));
         placeholders.register("previous-level", String.valueOf(oldLevel));
         placeholders.register("prestige", String.valueOf(newPrestige));
