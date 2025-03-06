@@ -157,7 +157,7 @@
         <dependency>
             <groupId>com.github.Maxlego08</groupId>
             <artifactId>Sarah</artifactId>
-            <version>1.12</version>
+            <version>1.15</version>
         </dependency>
         <dependency>
             <groupId>com.github.MilkBowl</groupId>

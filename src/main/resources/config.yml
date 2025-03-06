@@ -94,3 +94,5 @@ force-block-check:
   - SUGAR_CANE
   - KELP
   - BAMBOO
+
+update-jobs-ticks: 200

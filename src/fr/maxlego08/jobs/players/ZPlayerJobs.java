@@ -38,7 +38,7 @@ public class ZPlayerJobs implements PlayerJobs {
     private final UUID uniqueId;
     private final List<PlayerJob> jobs;
     private final Set<String> rewards;
-    private Map<Job, JobBossBar> jobBossBars = new HashMap<>();
+    private final Map<Job, JobBossBar> jobBossBars = new HashMap<>();
     private long points;
     private double updateMoney;
 

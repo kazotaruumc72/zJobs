@@ -89,7 +89,7 @@ public class ZStorageManager implements StorageManager {
 
         MigrationManager.execute(connection, JULogger.from(this.plugin.getLogger()));
 
-        startUpdateTask();
+        startUpdateTask(configuration.getLong("update-jobs-ticks", 200));
     }
 
     @Override
@@ -157,8 +157,8 @@ public class ZStorageManager implements StorageManager {
         });
     }
 
-    private void startUpdateTask() {
-        this.plugin.getScheduler().runTaskTimerAsynchronously(100L, 100L, this::update);
+    private void startUpdateTask(long ticks) {
+        this.plugin.getScheduler().runTaskTimerAsynchronously(ticks, ticks, this::update);
     }
 
     private void update() {
