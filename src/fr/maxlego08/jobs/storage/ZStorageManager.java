@@ -14,6 +14,7 @@ import fr.maxlego08.jobs.migrations.CreatePlayerPointsMigration;
 import fr.maxlego08.jobs.migrations.CreatePlayerRewardMigration;
 import fr.maxlego08.jobs.players.ZPlayerJob;
 import fr.maxlego08.jobs.players.ZPlayerJobs;
+import fr.maxlego08.jobs.zcore.utils.GlobalDatabaseConfiguration;
 import fr.maxlego08.sarah.DatabaseConfiguration;
 import fr.maxlego08.sarah.DatabaseConnection;
 import fr.maxlego08.sarah.HikariDatabaseConnection;
@@ -53,15 +54,7 @@ public class ZStorageManager implements StorageManager {
         FileConfiguration configuration = plugin.getConfig();
         StorageType storageType = StorageType.valueOf(configuration.getString("storage-type", "SQLITE").toUpperCase());
 
-        String tablePrefix = configuration.getString("database-configuration.table-prefix");
-        String host = configuration.getString("database-configuration.host");
-        int port = configuration.getInt("database-configuration.port");
-        String user = configuration.getString("database-configuration.user");
-        String password = configuration.getString("database-configuration.password");
-        String database = configuration.getString("database-configuration.database");
-        boolean debug = configuration.getBoolean("database-configuration.debug");
-
-        DatabaseConfiguration databaseConfiguration = new DatabaseConfiguration(tablePrefix, user, password, port, host, database, debug, storageType == StorageType.SQLITE ? DatabaseType.SQLITE : DatabaseType.MYSQL);
+        DatabaseConfiguration databaseConfiguration = getDatabaseConfiguration(configuration, storageType);
         DatabaseConnection connection = switch (storageType) {
             case MYSQL -> new MySqlConnection(databaseConfiguration);
             case SQLITE -> new SqliteConnection(databaseConfiguration, this.plugin.getDataFolder());
@@ -90,6 +83,19 @@ public class ZStorageManager implements StorageManager {
         MigrationManager.execute(connection, JULogger.from(this.plugin.getLogger()));
 
         startUpdateTask(configuration.getLong("update-jobs-ticks", 200));
+    }
+
+    private DatabaseConfiguration getDatabaseConfiguration(FileConfiguration configuration, StorageType storageType) {
+        GlobalDatabaseConfiguration globalDatabaseConfiguration = new GlobalDatabaseConfiguration(configuration);
+        String tablePrefix = globalDatabaseConfiguration.getTablePrefix();
+        String host = globalDatabaseConfiguration.getHost();
+        int port = globalDatabaseConfiguration.getPort();
+        String user = globalDatabaseConfiguration.getUser();
+        String password = globalDatabaseConfiguration.getPassword();
+        String database = globalDatabaseConfiguration.getDatabase();
+        boolean debug = globalDatabaseConfiguration.isDebug();
+
+        return new DatabaseConfiguration(tablePrefix, user, password, port, host, database, debug, storageType == StorageType.SQLITE ? DatabaseType.SQLITE : DatabaseType.MYSQL);
     }
 
     @Override
