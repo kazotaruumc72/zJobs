@@ -5,6 +5,7 @@ import fr.maxlego08.jobs.actions.EnchantmentAction;
 import fr.maxlego08.jobs.actions.EntityAction;
 import fr.maxlego08.jobs.actions.MaterialAction;
 import fr.maxlego08.jobs.actions.TagAction;
+import fr.maxlego08.jobs.actions.ZJobAction;
 import fr.maxlego08.jobs.api.Job;
 import fr.maxlego08.jobs.api.JobAction;
 import fr.maxlego08.jobs.api.JobReward;
@@ -75,48 +76,38 @@ public class JobLoader implements Loader<Job> {
                 JobActionType jobActionType = JobActionType.valueOf(accessor.getString("type").toUpperCase());
                 String displayMaterialName = accessor.getString("display-material", null);
                 Material displayMaterial = displayMaterialName == null ? null : Material.valueOf(displayMaterialName.toUpperCase());
+                String displayName = accessor.getString("display-name", "Name not found");
+                JobAction<?> jobAction = null;
 
                 if (jobActionType.isMaterial()) {
 
                     if (accessor.contains("material")) {
                         Material material = Material.valueOf(accessor.getString("material").toUpperCase());
-                        jobActions.add(new MaterialAction(material, experience, money, jobActionType, displayMaterial == null ? material : displayMaterial));
+                        jobAction = new MaterialAction(material, experience, money, jobActionType, displayMaterial == null ? material : displayMaterial);
                     } else if (accessor.contains("tag")) {
                         Tag<Material> tag = TagRegistry.getTag(accessor.getString("tag").toUpperCase());
-                        jobActions.add(new TagAction(tag, experience, money, jobActionType, displayMaterial == null ? Material.PAPER : displayMaterial));
+                        jobAction = new TagAction(tag, experience, money, jobActionType, displayMaterial == null ? Material.PAPER : displayMaterial);
                     } else {
-                        plugin.getLogger().severe("Impossible to find the tag or material for " + jobActionType + " in file " + file.getAbsolutePath());
+                        this.plugin.getLogger().severe("Impossible to find the tag or material for " + jobActionType + " in file " + file.getAbsolutePath());
                     }
 
                 } else if (jobActionType.isEntityType()) {
 
                     EntityType entityType = EntityType.valueOf(accessor.getString("entity").toUpperCase());
-                    jobActions.add(new EntityAction(entityType, experience, money, jobActionType, displayMaterial == null ? EntityTypeToEggConverter.getSpawnEgg(entityType) : displayMaterial));
+                    jobAction = new EntityAction(entityType, experience, money, jobActionType, displayMaterial == null ? EntityTypeToEggConverter.getSpawnEgg(entityType) : displayMaterial);
 
                 } else if (jobActionType == JobActionType.ENCHANT) {
 
-                    Enchantments enchantments = plugin.getInventoryManager().getEnchantments();
-                    String enchantmentName = accessor.getString("enchantment");
-                    String materialName = accessor.getString("material", null);
-
-                    Material material = materialName == null ? null : Material.valueOf(materialName.toUpperCase());
-                    Enchantment enchantment = enchantmentName == null ? null : enchantments.getEnchantments(enchantmentName).map(MenuEnchantment::getEnchantment).orElse(null);
-                    int minimumLevel = accessor.getInt("minimum-level", 0);
-                    int minimumCost = accessor.getInt("minimum-cost", 0);
-
-                    jobActions.add(new EnchantmentAction(material, experience, money, enchantment, minimumLevel, minimumCost, displayMaterial));
+                    jobAction = loadEnchantAction(accessor, experience, money, displayMaterial);
 
                 } else if (jobActionType == JobActionType.BREW) {
 
-                    String potionName = accessor.getString("potion-type", null);
-                    String potionMaterialName = accessor.getString("potion-material", "POTION");
-                    String ingredientName = accessor.getString("ingredient", null);
+                    jobAction = loadBrewAction(accessor, experience, money, displayMaterial);
+                }
 
-                    PotionType potionType = potionName == null ? null : PotionType.valueOf(potionName.toUpperCase());
-                    Material material = ingredientName == null ? null : Material.valueOf(ingredientName.toUpperCase());
-                    Material potionMaterial = Material.valueOf(potionMaterialName.toUpperCase());
-
-                    jobActions.add(new BrewAction(potionType, experience, money, potionMaterial, material, displayMaterial == null ? potionMaterial : displayMaterial));
+                if (jobAction != null) {
+                    ((ZJobAction<?>) jobAction).setDisplayName(displayName);
+                    jobActions.add(jobAction);
                 }
 
             } catch (Exception exception) {
@@ -129,5 +120,49 @@ public class JobLoader implements Loader<Job> {
     @Override
     public void save(Job object, YamlConfiguration configuration, String path) {
 
+    }
+
+
+    /**
+     * Load an enchantment job action from configuration.
+     *
+     * @param accessor        accessor for the configuration
+     * @param experience      the experience given when the job action is done
+     * @param money           the money given when the job action is done
+     * @param displayMaterial the material to display in the GUI
+     * @return the job action
+     */
+    private JobAction<?> loadEnchantAction(TypedMapAccessor accessor, double experience, double money, Material displayMaterial) {
+        Enchantments enchantments = plugin.getInventoryManager().getEnchantments();
+        String enchantmentName = accessor.getString("enchantment");
+        String materialName = accessor.getString("material", null);
+
+        Material material = materialName == null ? null : Material.valueOf(materialName.toUpperCase());
+        Enchantment enchantment = enchantmentName == null ? null : enchantments.getEnchantments(enchantmentName).map(MenuEnchantment::getEnchantment).orElse(null);
+        int minimumLevel = accessor.getInt("minimum-level", 0);
+        int minimumCost = accessor.getInt("minimum-cost", 0);
+
+        return new EnchantmentAction(material, experience, money, enchantment, minimumLevel, minimumCost, displayMaterial);
+    }
+
+    /**
+     * Load a {@link JobAction} of type {@link JobActionType#BREW} from the given configuration accessor.
+     *
+     * @param accessor        the configuration accessor
+     * @param experience      the base experience given when brewing the potion
+     * @param money           the base money given when brewing the potion
+     * @param displayMaterial the display material of the item, if not set, the material of the potion is used
+     * @return a new {@link JobAction} of type {@link JobActionType#BREW}
+     */
+    private JobAction<?> loadBrewAction(TypedMapAccessor accessor, double experience, double money, Material displayMaterial) {
+        String potionName = accessor.getString("potion-type", null);
+        String potionMaterialName = accessor.getString("potion-material", "POTION");
+        String ingredientName = accessor.getString("ingredient", null);
+
+        PotionType potionType = potionName == null ? null : PotionType.valueOf(potionName.toUpperCase());
+        Material material = ingredientName == null ? null : Material.valueOf(ingredientName.toUpperCase());
+        Material potionMaterial = Material.valueOf(potionMaterialName.toUpperCase());
+
+        return new BrewAction(potionType, experience, money, potionMaterial, material, displayMaterial == null ? potionMaterial : displayMaterial);
     }
 }

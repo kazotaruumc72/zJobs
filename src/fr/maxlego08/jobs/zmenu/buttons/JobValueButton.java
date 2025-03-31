@@ -54,6 +54,7 @@ public class JobValueButton extends ZButton implements PaginateButton {
             placeholders.register("experience", format(jobAction.getExperience()));
             placeholders.register("money", format(jobAction.getMoney()));
             placeholders.register("material", jobAction.getDisplayMaterial().name());
+            placeholders.register("name", jobAction.getDisplayName());
             ItemStack itemStack = getItemStack().build(player, false, placeholders);
             jobAction.applyItemStack(itemStack);
 

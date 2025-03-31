@@ -115,7 +115,6 @@ public class MessageLoader extends YamlUtils implements Savable {
         }
 
         YamlConfiguration configuration = getConfig(file);
-        this.save(null);
 
         loadMessages(configuration);
     }

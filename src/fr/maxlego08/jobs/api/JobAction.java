@@ -19,4 +19,6 @@ public interface JobAction<T> {
     void applyItemStack(ItemStack itemStack);
 
     Material getDisplayMaterial();
+
+    String getDisplayName();
 }

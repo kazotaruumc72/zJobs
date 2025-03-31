@@ -10,6 +10,7 @@ public abstract class ZJobAction<T> implements JobAction<T> {
     private final double experience;
     private final double money;
     private final Material displayMaterial;
+    private String displayName;
 
     public ZJobAction(T target, double experience, double money, Material displayMaterial) {
         this.target = target;
@@ -50,5 +51,14 @@ public abstract class ZJobAction<T> implements JobAction<T> {
     @Override
     public Material getDisplayMaterial() {
         return this.displayMaterial == null ? Material.STONE : this.displayMaterial;
+    }
+
+    @Override
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 }
