@@ -136,10 +136,14 @@ public class ZPlayerJobs implements PlayerJobs {
             var actionInfo = type.toAction(target);
             var result = this.boosts.processBoost(job, action);
 
+            if (result.hasBoost()) {
+                this.plugin.getStorageManager().update(uniqueId, result.boost(), false);
+            }
+
             if (result.money() > 0) {
 
                 var event = new JobMoneyGainEvent(player, this, playerJob, job, actionInfo, result.money());
-                if (Config.isEnable(event) && !event.callEvent()) return;
+                if (Config.isEnable(event) && !event.callEvent()) continue;
                 this.updateMoney += event.getMoney();
             }
 

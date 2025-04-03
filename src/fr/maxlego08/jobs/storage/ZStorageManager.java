@@ -9,6 +9,8 @@ import fr.maxlego08.jobs.api.players.PlayerJobs;
 import fr.maxlego08.jobs.api.storage.StorageManager;
 import fr.maxlego08.jobs.api.storage.StorageType;
 import fr.maxlego08.jobs.boost.ZBoost;
+import fr.maxlego08.jobs.boost.ZPlayerBoosts;
+import fr.maxlego08.jobs.dto.PlayerBoostDTO;
 import fr.maxlego08.jobs.dto.PlayerJobDTO;
 import fr.maxlego08.jobs.dto.PlayerPointsDTO;
 import fr.maxlego08.jobs.dto.PlayerRewardDTO;
@@ -25,17 +27,19 @@ import fr.maxlego08.sarah.HikariDatabaseConnection;
 import fr.maxlego08.sarah.MigrationManager;
 import fr.maxlego08.sarah.MySqlConnection;
 import fr.maxlego08.sarah.RequestHelper;
+import fr.maxlego08.sarah.SchemaBuilder;
 import fr.maxlego08.sarah.SqliteConnection;
 import fr.maxlego08.sarah.database.DatabaseType;
+import fr.maxlego08.sarah.database.Schema;
 import fr.maxlego08.sarah.logger.JULogger;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,8 +51,7 @@ import java.util.stream.Collectors;
 public class ZStorageManager implements StorageManager {
 
     private final JobsPlugin plugin;
-    private final Map<UUID, Map<String, PlayerJob>> pendingUpdates = new ConcurrentHashMap<>();
-    private final Map<UUID, Map<String, Long>> lastUpdateTime = new ConcurrentHashMap<>();
+    private final Map<UUID, PendingUpdate> pendingUpdates = new ConcurrentHashMap<>();
     private RequestHelper requestHelper;
 
     public ZStorageManager(JobsPlugin plugin) {
@@ -110,10 +113,12 @@ public class ZStorageManager implements StorageManager {
     public PlayerJobs loadPlayerJobs(UUID uniqueId) {
         List<PlayerJobDTO> playerJobDTOS = this.requestHelper.select(Tables.JOBS, PlayerJobDTO.class, table -> table.where("unique_id", uniqueId));
 
-        long points = getPoints(uniqueId);
-        Set<String> integers = getRewards(uniqueId);
+        var points = getPoints(uniqueId);
+        var rewards = getRewards(uniqueId);
+        var boosts = getBoosts(uniqueId);
+        var playerBoosts = new ZPlayerBoosts(this.plugin, boosts);
 
-        return new ZPlayerJobs(this.plugin, uniqueId, playerJobDTOS.stream().map(ZPlayerJob::new).collect(Collectors.toList()), points, integers);
+        return new ZPlayerJobs(this.plugin, uniqueId, playerJobDTOS.stream().map(ZPlayerJob::new).collect(Collectors.toList()), points, rewards, playerBoosts);
     }
 
     @Override
@@ -124,19 +129,21 @@ public class ZStorageManager implements StorageManager {
             return;
         }
 
-        long currentTime = System.currentTimeMillis();
+        var pendingUpdate = pendingUpdates.computeIfAbsent(uniqueId, k -> new PendingUpdate());
+        pendingUpdate.setJob(playerJob.getJobId(), playerJob);
+    }
 
-        Map<String, Long> jobLastUpdateTimes = lastUpdateTime.computeIfAbsent(uniqueId, k -> new ConcurrentHashMap<>());
-        long lastTime = jobLastUpdateTimes.getOrDefault(playerJob.getJobId(), 0L);
-
-        if (currentTime - lastTime < 5000) {
-            Map<String, PlayerJob> jobs = pendingUpdates.computeIfAbsent(uniqueId, k -> new ConcurrentHashMap<>());
-            jobs.put(playerJob.getJobId(), playerJob);
+    public void update(UUID uniqueId, Boost boost, boolean force) {
+        if (force) {
+            this.requestHelper.update(Tables.BOOSTS, table -> {
+                table.where("id", boost.getId());
+                table.bigInt("remaining_boost", boost.getRemainingBoost());
+            });
             return;
         }
 
-        executeUpsert(uniqueId, playerJob);
-        jobLastUpdateTimes.put(playerJob.getJobId(), currentTime);
+        var pendingUpdate = pendingUpdates.computeIfAbsent(uniqueId, k -> new PendingUpdate());
+        pendingUpdate.getBoosts().add(boost);
     }
 
     @Override
@@ -160,15 +167,17 @@ public class ZStorageManager implements StorageManager {
     }
 
     private void executeUpsert(UUID uniqueId, PlayerJob playerJob) {
-        this.plugin.getScheduler().runTaskAsynchronously(() -> {
-            this.requestHelper.upsert(Tables.JOBS, table -> {
-                table.uuid("unique_id", uniqueId).primary();
-                table.string("job_id", playerJob.getJobId()).primary();
-                table.bigInt("level", playerJob.getLevel());
-                table.bigInt("prestige", playerJob.getPrestige());
-                table.decimal("experience", playerJob.getExperience());
-            });
-        });
+        this.plugin.getScheduler().runTaskAsynchronously(() -> this.requestHelper.upsert(Tables.JOBS, this.toPlayerJobTable(uniqueId, playerJob)));
+    }
+
+    private Consumer<Schema> toPlayerJobTable(UUID uniqueId, PlayerJob playerJob) {
+        return table -> {
+            table.uuid("unique_id", uniqueId).primary();
+            table.string("job_id", playerJob.getJobId()).primary();
+            table.bigInt("level", playerJob.getLevel());
+            table.bigInt("prestige", playerJob.getPrestige());
+            table.decimal("experience", playerJob.getExperience());
+        };
     }
 
     private void startUpdateTask(long ticks) {
@@ -178,40 +187,36 @@ public class ZStorageManager implements StorageManager {
     private void update() {
         this.plugin.getJobManager().updateJobEconomies();
 
-        long currentTime = System.currentTimeMillis();
+        List<Schema> updateJobs = new ArrayList<>();
+        List<Schema> updateBoots = new ArrayList<>();
 
-        this.pendingUpdates.forEach((uniqueId, jobsMap) -> {
+        this.pendingUpdates.forEach((uniqueId, pendingUpdate) -> {
+            pendingUpdate.getJobs().values().forEach(playerJob -> updateJobs.add(SchemaBuilder.upsert(Tables.JOBS, this.toPlayerJobTable(uniqueId, playerJob))));
+            pendingUpdate.getBoosts().forEach(boost -> updateBoots.add(SchemaBuilder.update(Tables.BOOSTS, table -> {
+                table.bigInt("remaining_boost", boost.getRemainingBoost());
+                table.where("id", boost.getId());
+            })));
+        });
+        this.pendingUpdates.clear();
 
-            Map<String, Long> jobLastUpdateTimes = lastUpdateTime.getOrDefault(uniqueId, new ConcurrentHashMap<>());
-            Iterator<Map.Entry<String, PlayerJob>> iterator = jobsMap.entrySet().iterator();
-
-            while (iterator.hasNext()) {
-                Map.Entry<String, PlayerJob> entry = iterator.next();
-                String jobId = entry.getKey();
-                PlayerJob playerJob = entry.getValue();
-
-                long lastTime = jobLastUpdateTimes.getOrDefault(jobId, 0L);
-
-                if (currentTime - lastTime >= 5000) {
-                    executeUpsert(uniqueId, playerJob);
-                    jobLastUpdateTimes.put(jobId, currentTime);
-                    iterator.remove();
-                }
-            }
+        this.plugin.getScheduler().runTaskAsynchronously(() -> {
+            this.requestHelper.upsertMultiple(updateJobs);
+            this.requestHelper.updateMultiple(updateBoots);
         });
     }
 
     @Override
     public void deleteJob(UUID uniqueId, String jobId) {
         this.plugin.getScheduler().runTaskAsynchronously(() -> {
+
             this.requestHelper.delete(Tables.JOBS, table -> {
                 table.where("unique_id", uniqueId).primary();
                 table.where("job_id", jobId);
             });
 
-            Map<String, PlayerJob> jobs = this.pendingUpdates.get(uniqueId);
-            if (jobs != null) {
-                jobs.remove(jobId);
+            var pendingUpdate = this.pendingUpdates.get(uniqueId);
+            if (pendingUpdate != null) {
+                pendingUpdate.remove(jobId);
             }
         });
     }
@@ -221,6 +226,7 @@ public class ZStorageManager implements StorageManager {
         List<PlayerPointsDTO> playerPointsDTOS = this.requestHelper.select(Tables.POINTS, PlayerPointsDTO.class, table -> table.where("unique_id", uniqueId));
         return playerPointsDTOS.isEmpty() ? 0 : playerPointsDTOS.get(0).points();
     }
+
 
     public RequestHelper getRequestHelper() {
         return requestHelper;
@@ -239,6 +245,11 @@ public class ZStorageManager implements StorageManager {
     }
 
     @Override
+    public List<Boost> getBoosts(UUID uniqueId) {
+        return this.requestHelper.select(Tables.BOOSTS, PlayerBoostDTO.class, table -> table.where("unique_id", uniqueId)).stream().map(ZBoost::new).collect(Collectors.toList());
+    }
+
+    @Override
     public void createBoost(@NotNull UUID uniqueId, @Nullable String jobName, @Nullable JobActionType actionType, double experienceBoost, double moneyBoost, int amount, Consumer<Boost> consumer, Runnable errorRunnable) {
         this.plugin.getScheduler().runTaskAsynchronously(() -> this.requestHelper.insert(Tables.BOOSTS, table -> {
             table.uuid("unique_id", uniqueId).primary();
@@ -247,6 +258,7 @@ public class ZStorageManager implements StorageManager {
             table.bigInt("remaining_boost", amount);
             table.decimal("experience_boost", experienceBoost);
             table.decimal("money_boost", moneyBoost);
-        }, id -> consumer.accept(new ZBoost(id, jobName, actionType, experienceBoost, moneyBoost, amount))));
+        }, id -> consumer.accept(new ZBoost(id, jobName, actionType, experienceBoost, moneyBoost, amount)), errorRunnable));
     }
+
 }

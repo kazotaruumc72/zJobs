@@ -2,6 +2,7 @@ package fr.maxlego08.jobs.command.commands.admin;
 
 import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.command.VCommand;
+import fr.maxlego08.jobs.command.commands.admin.boost.CommandJobsAdminBoost;
 import fr.maxlego08.jobs.command.commands.admin.experience.CommandJobsAdminExperience;
 import fr.maxlego08.jobs.command.commands.admin.level.CommandJobsAdminLevel;
 import fr.maxlego08.jobs.command.commands.admin.points.CommandJobsAdminPoints;
@@ -24,6 +25,7 @@ public class CommandJobsAdmin extends VCommand {
         this.addSubCommand(new CommandJobsAdminPoints(plugin));
         this.addSubCommand(new CommandJobsAdminInfo(plugin));
         this.addSubCommand(new CommandJobsAdminReward(plugin));
+        this.addSubCommand(new CommandJobsAdminBoost(plugin));
     }
 
     @Override

@@ -4,6 +4,7 @@ import fr.maxlego08.jobs.api.Job;
 import fr.maxlego08.jobs.api.JobAction;
 import fr.maxlego08.jobs.api.boost.Boost;
 import fr.maxlego08.jobs.api.enums.JobActionType;
+import fr.maxlego08.jobs.dto.PlayerBoostDTO;
 
 public class ZBoost implements Boost {
 
@@ -13,6 +14,15 @@ public class ZBoost implements Boost {
     private final double experienceBoost;
     private final double moneyBoost;
     private int remainingBoost;
+
+    public ZBoost(PlayerBoostDTO dto) {
+        this.id = dto.id();
+        this.jobName = dto.job_id();
+        this.actionType = dto.action_type() == null ? null : JobActionType.valueOf(dto.action_type());
+        this.experienceBoost = dto.experience_boost();
+        this.moneyBoost = dto.money_boost();
+        this.remainingBoost = dto.remaining_boost();
+    }
 
     public ZBoost(int id, String jobName, JobActionType actionType, double experienceBoost, double moneyBoost) {
         this.id = id;

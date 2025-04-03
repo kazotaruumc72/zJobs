@@ -14,10 +14,16 @@ import java.util.List;
 public class ZPlayerBoosts implements PlayerBoosts {
 
     private final JobsPlugin plugin;
-    private final List<Boost> boosts = new ArrayList<>();
+    private final List<Boost> boosts;
 
     public ZPlayerBoosts(JobsPlugin plugin) {
         this.plugin = plugin;
+        this.boosts = new ArrayList<>();
+    }
+
+    public ZPlayerBoosts(JobsPlugin plugin, List<Boost> boosts) {
+        this.plugin = plugin;
+        this.boosts = boosts;
     }
 
     @Override
@@ -35,8 +41,6 @@ public class ZPlayerBoosts implements PlayerBoosts {
 
         var boost = optional.get();
         boost.removeRemainingBoost(1);
-
-        // ToDo, update storage
 
         return new BoostResult(jobAction.getExperience() * boost.getExperienceBoost(), jobAction.getMoney() * boost.getMoneyBoost(), boost);
     }
