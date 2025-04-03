@@ -134,10 +134,19 @@ public class ZPlayerJobs implements PlayerJobs {
             elapsedTime.endDisplay();
 
             var actionInfo = type.toAction(target);
-            var result = this.boosts.processBoost(job, action);
+            var result = this.boosts.processBoost(job, action, target);
 
             if (result.hasBoost()) {
-                this.plugin.getStorageManager().update(uniqueId, result.boost(), false);
+
+                var storage = this.plugin.getStorageManager();
+                var boost = result.boost();
+                if (boost.isEmpty()) {
+                    this.boosts.delete(result.boost().getId());
+                    storage.deleteBoost(uniqueId, boost.getId());
+                    storage.insertBoostLog(uniqueId, boost);
+                } else {
+                    storage.update(uniqueId, result.boost(), false);
+                }
             }
 
             if (result.money() > 0) {

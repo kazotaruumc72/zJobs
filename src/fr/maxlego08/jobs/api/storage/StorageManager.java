@@ -5,7 +5,6 @@ import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.api.players.PlayerJob;
 import fr.maxlego08.jobs.api.players.PlayerJobs;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
@@ -36,5 +35,9 @@ public interface StorageManager {
 
     List<Boost> getBoosts(UUID uniqueId);
 
-    void createBoost(@NotNull UUID uniqueId, @Nullable String jobName, @Nullable JobActionType actionType, double experienceBoost, double moneyBoost, int amount, Consumer<Boost> consumer, Runnable errorRunnable);
+    void createBoost(@NotNull UUID uniqueId, List<String> jobs, List<JobActionType> actions, List<String> targets, double moneyBoost, double experienceBoost, int amount, Consumer<Boost> consumer, Runnable errorRunnable);
+
+    void deleteBoost(@NotNull UUID uniqueId, int boostId);
+
+    void insertBoostLog(UUID uniqueId, Boost boost);
 }

@@ -14,6 +14,7 @@ public class CommandJobsAdminBoost extends VCommand {
         this.addSubCommand("boost", "b");
         this.setDescription(Message.DESCRIPTION_ADMIN_BOOST);
         this.addSubCommand(new CommandJobsAdminBoostCreate(plugin));
+        this.addSubCommand(new CommandJobsAdminBoostRemove(plugin));
     }
 
     @Override

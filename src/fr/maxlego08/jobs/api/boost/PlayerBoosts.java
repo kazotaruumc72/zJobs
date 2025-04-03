@@ -9,7 +9,11 @@ public interface PlayerBoosts {
 
     List<Boost> getBoosts();
 
-    BoostResult processBoost(Job job, JobAction<?> jobAction);
+    BoostResult processBoost(Job job, JobAction<?> jobAction, Object element);
 
     void addBoost(Boost boost);
+
+    boolean contains(int boostId);
+
+    void delete(int boostId);
 }

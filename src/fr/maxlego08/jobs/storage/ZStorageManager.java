@@ -15,6 +15,7 @@ import fr.maxlego08.jobs.dto.PlayerJobDTO;
 import fr.maxlego08.jobs.dto.PlayerPointsDTO;
 import fr.maxlego08.jobs.dto.PlayerRewardDTO;
 import fr.maxlego08.jobs.migrations.CreateJobPlayerMigration;
+import fr.maxlego08.jobs.migrations.CreatePlayerBoostLogMigration;
 import fr.maxlego08.jobs.migrations.CreatePlayerBoostMigration;
 import fr.maxlego08.jobs.migrations.CreatePlayerPointsMigration;
 import fr.maxlego08.jobs.migrations.CreatePlayerRewardMigration;
@@ -35,10 +36,10 @@ import fr.maxlego08.sarah.logger.JULogger;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +91,7 @@ public class ZStorageManager implements StorageManager {
         MigrationManager.registerMigration(new CreatePlayerPointsMigration());
         MigrationManager.registerMigration(new CreatePlayerRewardMigration());
         MigrationManager.registerMigration(new CreatePlayerBoostMigration());
+        MigrationManager.registerMigration(new CreatePlayerBoostLogMigration());
 
         MigrationManager.execute(connection, JULogger.from(this.plugin.getLogger()));
 
@@ -246,19 +248,44 @@ public class ZStorageManager implements StorageManager {
 
     @Override
     public List<Boost> getBoosts(UUID uniqueId) {
-        return this.requestHelper.select(Tables.BOOSTS, PlayerBoostDTO.class, table -> table.where("unique_id", uniqueId)).stream().map(ZBoost::new).collect(Collectors.toList());
+        return this.requestHelper.select(Tables.BOOSTS, PlayerBoostDTO.class, table -> table.where("unique_id", uniqueId).where("remaining_boost", ">", 0)).stream().map(ZBoost::new).collect(Collectors.toList());
     }
 
     @Override
-    public void createBoost(@NotNull UUID uniqueId, @Nullable String jobName, @Nullable JobActionType actionType, double experienceBoost, double moneyBoost, int amount, Consumer<Boost> consumer, Runnable errorRunnable) {
+    public void createBoost(@NotNull UUID uniqueId, List<String> jobs, List<JobActionType> actions, List<String> targets, double moneyBoost, double experienceBoost, int amount, Consumer<Boost> consumer, Runnable errorRunnable) {
         this.plugin.getScheduler().runTaskAsynchronously(() -> this.requestHelper.insert(Tables.BOOSTS, table -> {
             table.uuid("unique_id", uniqueId).primary();
-            if (jobName != null) table.string("job_id", jobName);
-            if (actionType != null) table.string("action_type", actionType.name());
+            if (!jobs.isEmpty()) table.string("jobs", String.join(",", jobs));
+            if (!actions.isEmpty()) {
+                table.string("actions", actions.stream().map(JobActionType::name).collect(Collectors.joining(",")));
+            }
+            if (!targets.isEmpty()) table.string("targets", String.join(",", targets));
+            table.bigInt("boost_amount", amount);
             table.bigInt("remaining_boost", amount);
             table.decimal("experience_boost", experienceBoost);
             table.decimal("money_boost", moneyBoost);
-        }, id -> consumer.accept(new ZBoost(id, jobName, actionType, experienceBoost, moneyBoost, amount)), errorRunnable));
+        }, id -> consumer.accept(new ZBoost(id, jobs, actions, targets, amount, experienceBoost, moneyBoost)), errorRunnable));
     }
 
+    @Override
+    public void deleteBoost(@NotNull UUID uniqueId, int boostId) {
+        this.plugin.getScheduler().runTaskAsynchronously(() -> this.requestHelper.delete(Tables.BOOSTS, table -> table.where("id", boostId)));
+    }
+
+    @Override
+    public void insertBoostLog(UUID uniqueId, Boost boost) {
+        this.plugin.getScheduler().runTaskAsynchronously(() -> this.requestHelper.insert(Tables.BOOST_LOGS, table -> {
+            table.uuid("unique_id", uniqueId).primary();
+            if (!boost.getJobs().isEmpty()) table.string("jobs", String.join(",", boost.getJobs()));
+            if (!boost.getActions().isEmpty()) {
+                table.string("actions", boost.getActions().stream().map(JobActionType::name).collect(Collectors.joining(",")));
+            }
+            if (!boost.getTargets().isEmpty()) table.string("targets", String.join(",", boost.getTargets()));
+            table.bigInt("boost_amount", boost.getBoostAmount());
+            table.decimal("experience_boost", boost.getExperienceBoost());
+            table.decimal("money_boost", boost.getMoneyBoost());
+            table.object("started_at", boost.getCreatedAt());
+            table.object("finished_at", new Date());
+        }));
+    }
 }

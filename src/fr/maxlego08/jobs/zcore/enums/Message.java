@@ -118,7 +118,15 @@ public enum Message {
     ADMIN_REWARD_REMOVE("&aYou just set the reward &f%reward% &ato &cfalse &afor &f%player%&a."),
 
     BOOST_CREATE_ERROR("&cUnable to create the boost."),
-    BOOST_CREATE_SUCCESS("&aYou just created the boost &f%amount% &afor &f%player%&a. &8(&7experience: &f%experience%&8, &7money: &f%money%&8)"),;
+    BOOST_CREATE_SUCCESS("&aYou just created the boost &f%amount% &afor &f%player%&a. &8(&7experience: &f%experience%&8, &7money: &f%money%&8)"),
+    BOOST_REMOVE_ERROR("&cThe boost id &f%id%&c doesn't exist for the player &f%player%&c."),
+    BOOST_REMOVE_SUCCESS("&aYou just removed the boost &f%id%&a for the player &f%player%&a."),
+
+    BOOST_SHOW_EMPTY("&f%player% &chas no boost."),
+    BOOST_SHOW_ALL("every"),
+    BOOST_SHOW_LINE("%%"),
+
+    ;
 
     private List<String> messages;
     private String message;

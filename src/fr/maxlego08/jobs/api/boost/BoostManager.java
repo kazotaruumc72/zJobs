@@ -4,9 +4,11 @@ import fr.maxlego08.jobs.api.enums.JobActionType;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 
+import java.util.List;
+
 public interface BoostManager {
 
-    void giveBoost(CommandSender sender, OfflinePlayer offlinePlayer, String jobName, JobActionType actionType, double experienceBoost, double moneyBoost, int amount);
+    void createBoost(CommandSender sender, OfflinePlayer offlinePlayer, List<String> jobs, List<JobActionType> actions, List<String> targets, double moneyBoost, int amount, double experienceBoost);
 
-    void loadBoostItems();
+    void removeBoost(CommandSender sender, OfflinePlayer offlinePlayer, int boostId);
 }

@@ -32,9 +32,9 @@ public class ZPlayerBoosts implements PlayerBoosts {
     }
 
     @Override
-    public BoostResult processBoost(Job job, JobAction<?> jobAction) {
+    public BoostResult processBoost(Job job, JobAction<?> jobAction, Object element) {
 
-        var optional = this.boosts.stream().filter(boost -> boost.canProcess(job, jobAction)).max(Comparator.comparingDouble(Boost::getExperienceBoost));
+        var optional = this.boosts.stream().filter(boost -> boost.canProcess(job, jobAction, element)).max(Comparator.comparingDouble(Boost::getExperienceBoost));
         if (optional.isEmpty()) {
             return new BoostResult(jobAction.getExperience(), jobAction.getMoney(), null);
         }
@@ -48,5 +48,15 @@ public class ZPlayerBoosts implements PlayerBoosts {
     @Override
     public void addBoost(Boost boost) {
         this.boosts.add(boost);
+    }
+
+    @Override
+    public boolean contains(int boostId) {
+        return this.boosts.stream().anyMatch(boost -> boost.getId() == boostId);
+    }
+
+    @Override
+    public void delete(int boostId) {
+        this.boosts.removeIf(boost -> boost.getId() == boostId);
     }
 }

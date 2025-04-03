@@ -80,7 +80,6 @@ public class JobsPlugin extends ZPlugin {
         this.addListener(new JobListener(this));
 
         this.jobManager.loadJobs();
-        this.boostManager.loadBoostItems();
         Config.getInstance().loadConfiguration(getConfig(), this);
         this.loadFiles();
 
@@ -125,7 +124,6 @@ public class JobsPlugin extends ZPlugin {
         this.reloadConfig();
         this.knowRewards.clear();
         this.jobManager.loadJobs();
-        this.boostManager.loadBoostItems();
         Config.getInstance().loadConfiguration(getConfig(), this);
         this.loadInventories();
         super.reloadFiles();
