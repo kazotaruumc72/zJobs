@@ -6,6 +6,7 @@ import fr.maxlego08.jobs.api.boost.Boost;
 import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.dto.PlayerBoostDTO;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -25,9 +26,9 @@ public class ZBoost implements Boost {
     public ZBoost(PlayerBoostDTO dto) {
         this.id = dto.id();
         this.createdAt = dto.created_at();
-        this.jobs = Arrays.stream(dto.jobs().split(",")).toList();
-        this.targets = Arrays.stream(dto.targets().split(",")).toList();
-        this.actions = Arrays.stream(dto.actions().split(",")).map(JobActionType::valueOf).toList();
+        this.jobs = dto.jobs() == null ? new ArrayList<>() : Arrays.stream(dto.jobs().split(",")).toList();
+        this.targets = dto.targets() == null ? new ArrayList<>() : Arrays.stream(dto.targets().split(",")).toList();
+        this.actions = dto.actions() == null ? new ArrayList<>() : Arrays.stream(dto.actions().split(",")).map(JobActionType::valueOf).toList();
         this.boostAmount = dto.boost_amount();
         this.experienceBoost = dto.experience_boost();
         this.moneyBoost = dto.money_boost();
@@ -96,9 +97,11 @@ public class ZBoost implements Boost {
 
         if (remainingBoost <= 0) return false;
 
-        if (!jobs.isEmpty() && jobs.stream().noneMatch(jobName -> job.getFileName().equalsIgnoreCase(jobName))) return false;
+        if (!jobs.isEmpty() && jobs.stream().noneMatch(jobName -> job.getFileName().equalsIgnoreCase(jobName)))
+            return false;
 
-        if (!actions.isEmpty() && actions.stream().noneMatch(actionType -> action.getType() == actionType)) return false;
+        if (!actions.isEmpty() && actions.stream().noneMatch(actionType -> action.getType() == actionType))
+            return false;
 
         return element == null || targets.isEmpty() || targets.stream().anyMatch(target -> target.equalsIgnoreCase(element.toString()));
     }
