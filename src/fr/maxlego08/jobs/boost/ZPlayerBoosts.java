@@ -59,4 +59,9 @@ public class ZPlayerBoosts implements PlayerBoosts {
     public void delete(int boostId) {
         this.boosts.removeIf(boost -> boost.getId() == boostId);
     }
+
+    @Override
+    public boolean isEmpty() {
+        return this.boosts.isEmpty();
+    }
 }

@@ -118,13 +118,20 @@ public enum Message {
     ADMIN_REWARD_REMOVE("&aYou just set the reward &f%reward% &ato &cfalse &afor &f%player%&a."),
 
     BOOST_CREATE_ERROR("&cUnable to create the boost."),
-    BOOST_CREATE_SUCCESS("&aYou just created the boost &f%amount% &afor &f%player%&a. &8(&7experience: &f%experience%&8, &7money: &f%money%&8)"),
+    BOOST_CREATE_SUCCESS("&aYou just created the boost &f%amount% &afor &f%player%&a. &8(&7experience: &fx%experience%&8, &7money: &fx%money%&8)"),
     BOOST_REMOVE_ERROR("&cThe boost id &f%id%&c doesn't exist for the player &f%player%&c."),
     BOOST_REMOVE_SUCCESS("&aYou just removed the boost &f%id%&a for the player &f%player%&a."),
 
     BOOST_SHOW_EMPTY("&f%player% &chas no boost."),
-    BOOST_SHOW_ALL("every"),
-    BOOST_SHOW_LINE("%%"),
+    BOOST_SHOW_ALL_JOBS("#ff3535every jobs"),
+    BOOST_SHOW_ALL_ACTIONS("#ff3535every actions"),
+    BOOST_SHOW_ALL_TARGET("#ff3535every targets"),
+    BOOST_SHOW_HEADER("#ff94d7%player% #77ff77has #edacfc%amount% #77ff77boost%s%."),
+    BOOST_SHOW_INFO(
+            "&7Boost id &f%id% &8- &7#edacfc%remaining%&8/#ff94d7%amount%",
+            "&7Experience&8: &fx%experience% &8- &7Money&8: &fx%money%",
+            "&7Jobs: #77ff77%jobs%, Actions: #77ff77%actions%, Targets: #77ff77%targets%"
+    ),
 
     ;
 

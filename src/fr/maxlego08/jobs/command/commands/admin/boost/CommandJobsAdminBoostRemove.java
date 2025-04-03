@@ -20,7 +20,7 @@ public class CommandJobsAdminBoostRemove extends VCommand {
         this.setDescription(Message.DESCRIPTION_ADMIN_BOOST_REMOVE);
         this.addRequireArg("player");
         this.addRequireArg("boost id", (sender, args) -> {
-            String playerName = args[1];
+            String playerName = args[4];
             var player = plugin.getServer().getPlayer(playerName);
             if (player == null) return new ArrayList<>();
             var optional = plugin.getJobManager().getPlayerJobs(player.getUniqueId());

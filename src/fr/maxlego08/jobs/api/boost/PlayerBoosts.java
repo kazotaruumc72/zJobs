@@ -16,4 +16,6 @@ public interface PlayerBoosts {
     boolean contains(int boostId);
 
     void delete(int boostId);
+
+    boolean isEmpty();
 }

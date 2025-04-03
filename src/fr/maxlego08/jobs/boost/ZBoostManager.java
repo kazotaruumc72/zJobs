@@ -1,6 +1,7 @@
 package fr.maxlego08.jobs.boost;
 
 import fr.maxlego08.jobs.JobsPlugin;
+import fr.maxlego08.jobs.api.boost.Boost;
 import fr.maxlego08.jobs.api.boost.BoostManager;
 import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.zcore.enums.Message;
@@ -9,6 +10,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ZBoostManager extends ZUtils implements BoostManager {
 
@@ -52,6 +54,36 @@ public class ZBoostManager extends ZUtils implements BoostManager {
             storageManager.deleteBoost(offlinePlayer.getUniqueId(), boostId);
 
             message(sender, Message.BOOST_REMOVE_SUCCESS, "%player%", offlinePlayer.getName(), "%id%", boostId);
+        });
+    }
+
+    @Override
+    public void showBoosts(CommandSender sender, OfflinePlayer offlinePlayer) {
+
+        var jobManager = this.plugin.getJobManager();
+
+        jobManager.loadOfflinePlayer(offlinePlayer.getUniqueId(), playerJobs -> {
+
+            if (playerJobs.getBoosts().isEmpty()) {
+                message(sender, Message.BOOST_SHOW_EMPTY, "%player%", offlinePlayer.getName());
+                return;
+            }
+
+            var boosts = playerJobs.getBoosts().getBoosts();
+            message(sender, Message.BOOST_SHOW_HEADER, "%player%", offlinePlayer.getName(), "%amount%", boosts.size(), "%s%", boosts.size() <= 1 ? "" : "s");
+            for (Boost boost : boosts) {
+                message(sender, Message.BOOST_SHOW_INFO,
+                        "%player%", offlinePlayer.getName(),
+                        "%id%", boost.getId(),
+                        "%amount%", boost.getBoostAmount(),
+                        "%remaining%", boost.getRemainingBoost(),
+                        "%experience%", format(boost.getExperienceBoost()),
+                        "%money%", format(boost.getMoneyBoost()),
+                        "%jobs%", boost.getJobs().isEmpty() ? Message.BOOST_SHOW_ALL_JOBS.msg() : String.join(", ", boost.getJobs()),
+                        "%actions%", boost.getActions().isEmpty() ? Message.BOOST_SHOW_ALL_ACTIONS.msg() : boost.getActions().stream().map(JobActionType::name).collect(Collectors.joining(", ")),
+                        "%targets%", boost.getTargets().isEmpty() ? Message.BOOST_SHOW_ALL_TARGET.msg() : String.join(", ", boost.getTargets())
+                );
+            }
         });
     }
 }
