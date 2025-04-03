@@ -1,10 +1,12 @@
 package fr.maxlego08.jobs.players;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.api.Job;
 import fr.maxlego08.jobs.api.JobManager;
 import fr.maxlego08.jobs.api.JobReward;
 import fr.maxlego08.jobs.api.actions.ActionInfo;
+import fr.maxlego08.jobs.api.boost.Boost;
+import fr.maxlego08.jobs.api.boost.PlayerBoosts;
 import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.api.event.events.JobExpGainEvent;
 import fr.maxlego08.jobs.api.event.events.JobLevelEvent;
@@ -14,6 +16,7 @@ import fr.maxlego08.jobs.api.event.events.JobRewardEvent;
 import fr.maxlego08.jobs.api.players.PlayerJob;
 import fr.maxlego08.jobs.api.players.PlayerJobs;
 import fr.maxlego08.jobs.api.storage.StorageManager;
+import fr.maxlego08.jobs.boost.ZPlayerBoosts;
 import fr.maxlego08.jobs.bossbar.JobBossBar;
 import fr.maxlego08.jobs.save.Config;
 import fr.maxlego08.jobs.zcore.utils.ElapsedTime;
@@ -34,21 +37,26 @@ import java.util.UUID;
 
 public class ZPlayerJobs implements PlayerJobs {
 
-    private final ZJobsPlugin plugin;
+    private final JobsPlugin plugin;
     private final UUID uniqueId;
     private final List<PlayerJob> jobs;
     private final Set<String> rewards;
     private final Map<Job, JobBossBar> jobBossBars = new HashMap<>();
+    private final PlayerBoosts boosts;
     private long points;
     private double updateMoney;
 
-
-    public ZPlayerJobs(ZJobsPlugin plugin, UUID uniqueId, List<PlayerJob> jobs, long points, Set<String> rewards) {
+    public ZPlayerJobs(JobsPlugin plugin, UUID uniqueId, List<PlayerJob> jobs, long points, Set<String> rewards, PlayerBoosts boosts) {
         this.plugin = plugin;
         this.uniqueId = uniqueId;
         this.jobs = jobs;
         this.points = points;
         this.rewards = rewards;
+        this.boosts = boosts;
+    }
+
+    public ZPlayerJobs(JobsPlugin plugin, UUID uniqueId, List<PlayerJob> jobs, long points, Set<String> rewards) {
+        this(plugin, uniqueId, jobs, points, rewards, new ZPlayerBoosts(plugin));
     }
 
     @Override
@@ -126,15 +134,16 @@ public class ZPlayerJobs implements PlayerJobs {
             elapsedTime.endDisplay();
 
             var actionInfo = type.toAction(target);
-            if (action.getMoney() > 0) {
+            var result = this.boosts.processBoost(job, action);
 
-                var event = new JobMoneyGainEvent(player, this, playerJob, job, actionInfo, action.getMoney());
+            if (result.money() > 0) {
+
+                var event = new JobMoneyGainEvent(player, this, playerJob, job, actionInfo, result.money());
                 if (Config.isEnable(event) && !event.callEvent()) return;
                 this.updateMoney += event.getMoney();
-
             }
 
-            this.process(player, playerJob, job, action.getExperience(), true, actionInfo);
+            this.process(player, playerJob, job, result.experience(), true, actionInfo);
         }
     }
 
@@ -279,5 +288,15 @@ public class ZPlayerJobs implements PlayerJobs {
     @Override
     public Set<String> getRewards() {
         return this.rewards;
+    }
+
+    @Override
+    public PlayerBoosts getBoosts() {
+        return this.boosts;
+    }
+
+    @Override
+    public void addBoost(Boost boost) {
+        this.boosts.addBoost(boost);
     }
 }

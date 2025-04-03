@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.command;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.save.Config;
 import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.enums.Permission;
@@ -26,7 +26,7 @@ import java.util.Optional;
  */
 public abstract class VCommand extends Arguments {
 
-    protected final ZJobsPlugin plugin;
+    protected final JobsPlugin plugin;
     /**
      * List of sub-commands for this command.
      */
@@ -70,7 +70,7 @@ public abstract class VCommand extends Arguments {
      *
      * @param plugin the plugin instance.
      */
-    public VCommand(ZJobsPlugin plugin) {
+    public VCommand(JobsPlugin plugin) {
         super();
         this.plugin = plugin;
     }
@@ -492,7 +492,7 @@ public abstract class VCommand extends Arguments {
      * @param args          the arguments of the command.
      * @return the command type.
      */
-    public CommandType prePerform(ZJobsPlugin plugin, CommandSender commandSender, String[] args) {
+    public CommandType prePerform(JobsPlugin plugin, CommandSender commandSender, String[] args) {
 
         // Update the number of arguments according to the number of parents
         this.parentCount = this.parentCount(0);
@@ -539,7 +539,7 @@ public abstract class VCommand extends Arguments {
      * @param plugin the plugin instance.
      * @return the command type.
      */
-    protected abstract CommandType perform(ZJobsPlugin plugin);
+    protected abstract CommandType perform(JobsPlugin plugin);
 
     /**
      * Checks if there are any sub-commands with the same name as this command.
@@ -576,7 +576,7 @@ public abstract class VCommand extends Arguments {
      * @param args   the arguments of the command.
      * @return the list of tab completions.
      */
-    public List<String> toTab(ZJobsPlugin plugin, CommandSender sender, String[] args) {
+    public List<String> toTab(JobsPlugin plugin, CommandSender sender, String[] args) {
 
         this.parentCount = this.parentCount(0);
 

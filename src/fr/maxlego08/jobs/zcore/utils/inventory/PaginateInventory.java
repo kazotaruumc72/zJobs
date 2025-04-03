@@ -3,7 +3,7 @@ package fr.maxlego08.jobs.zcore.utils.inventory;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.exceptions.InventoryOpenException;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -45,7 +45,7 @@ public abstract class PaginateInventory<T> extends VInventory {
 	}
 
 	@Override
-	public InventoryResult openInventory(ZJobsPlugin plugin, Player player, int page, Object... args)
+	public InventoryResult openInventory(JobsPlugin plugin, Player player, int page, Object... args)
 			throws InventoryOpenException {
 
 		if (defaultSlot > inventorySize || nextSlot > inventorySize || previousSlot > inventorySize

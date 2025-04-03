@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.command.commands;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.command.VCommand;
 import fr.maxlego08.jobs.command.commands.admin.CommandJobsAdmin;
 import fr.maxlego08.jobs.zcore.enums.Permission;
@@ -9,7 +9,7 @@ import org.bukkit.command.ConsoleCommandSender;
 
 public class CommandJobs extends VCommand {
 
-    public CommandJobs(ZJobsPlugin plugin) {
+    public CommandJobs(JobsPlugin plugin) {
         super(plugin);
         this.setPermission(Permission.ZJOBS_USE);
         this.addSubCommand(new CommandJobsReload(plugin));
@@ -20,7 +20,7 @@ public class CommandJobs extends VCommand {
     }
 
     @Override
-    protected CommandType perform(ZJobsPlugin plugin) {
+    protected CommandType perform(JobsPlugin plugin) {
         if (sender instanceof ConsoleCommandSender) {
             syntaxMessage();
         } else {

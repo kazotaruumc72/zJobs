@@ -31,10 +31,10 @@ import java.util.Map;
 
 public class JobLoader implements Loader<Job> {
 
-    private final ZJobsPlugin plugin;
+    private final JobsPlugin plugin;
     private final File file;
 
-    public JobLoader(ZJobsPlugin plugin, File file) {
+    public JobLoader(JobsPlugin plugin, File file) {
         this.plugin = plugin;
         this.file = file;
     }

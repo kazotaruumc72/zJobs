@@ -8,7 +8,6 @@ import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.api.players.PlayerJob;
 import fr.maxlego08.jobs.api.players.PlayerJobs;
 import fr.maxlego08.jobs.api.storage.StorageManager;
-import fr.maxlego08.jobs.placeholder.LocalPlaceholder;
 import fr.maxlego08.jobs.players.ZPlayerJobs;
 import fr.maxlego08.jobs.save.Config;
 import fr.maxlego08.jobs.zcore.enums.Message;
@@ -34,12 +33,12 @@ import java.util.function.Consumer;
 
 public class ZJobManager extends ZUtils implements JobManager {
 
-    private final ZJobsPlugin plugin;
+    private final JobsPlugin plugin;
     private final List<Job> jobs = new ArrayList<>();
     private final Map<UUID, PlayerJobs> players = new HashMap<>();
     private final Map<Player, Job> targetJobs = new HashMap<>();
 
-    public ZJobManager(ZJobsPlugin plugin) {
+    public ZJobManager(JobsPlugin plugin) {
         this.plugin = plugin;
         this.registerPlaceholders();
     }
@@ -143,6 +142,11 @@ public class ZJobManager extends ZUtils implements JobManager {
     }
 
     @Override
+    public PlayerJobs getOrCreatePlayerJobs(UUID uniqueId) {
+        return this.players.computeIfAbsent(uniqueId, uuid -> new ZPlayerJobs(this.plugin, uuid, new ArrayList<>(), 0, new HashSet<>()));
+    }
+
+    @Override
     public List<String> getJobsName() {
         return this.jobs.stream().map(Job::getFileName).toList();
     }
@@ -171,7 +175,7 @@ public class ZJobManager extends ZUtils implements JobManager {
             return;
         }
 
-        PlayerJobs playerJobs = this.players.computeIfAbsent(player.getUniqueId(), uuid -> new ZPlayerJobs(this.plugin, uuid, new ArrayList<>(), 0, new HashSet<>()));
+        PlayerJobs playerJobs = getOrCreatePlayerJobs(player.getUniqueId());
         if (playerJobs.hasJob(job)) {
             message(player, Message.JOIN_ERROR_ALREADY, "%name%", name);
             return;

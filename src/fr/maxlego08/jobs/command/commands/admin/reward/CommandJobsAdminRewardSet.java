@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.command.commands.admin.reward;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.command.VCommand;
 import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.enums.Permission;
@@ -11,7 +11,7 @@ import java.util.Arrays;
 
 public class CommandJobsAdminRewardSet extends VCommand {
 
-    public CommandJobsAdminRewardSet(ZJobsPlugin plugin) {
+    public CommandJobsAdminRewardSet(JobsPlugin plugin) {
         super(plugin);
         this.setPermission(Permission.ZJOBS_ADMIN_REWARD_SET);
         this.addSubCommand("set");
@@ -22,7 +22,7 @@ public class CommandJobsAdminRewardSet extends VCommand {
     }
 
     @Override
-    protected CommandType perform(ZJobsPlugin plugin) {
+    protected CommandType perform(JobsPlugin plugin) {
 
         OfflinePlayer offlinePlayer = this.argAsOfflinePlayer(0);
         String rewardId = this.argAsString(1);

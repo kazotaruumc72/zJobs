@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.zmenu.loader;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.zmenu.actions.AddPointsAction;
 import fr.maxlego08.menu.api.loader.ActionLoader;
 import fr.maxlego08.menu.api.requirement.Action;
@@ -10,9 +10,9 @@ import java.io.File;
 
 public class AddPointLoader implements ActionLoader {
 
-    private final ZJobsPlugin plugin;
+    private final JobsPlugin plugin;
 
-    public AddPointLoader(ZJobsPlugin plugin) {
+    public AddPointLoader(JobsPlugin plugin) {
         this.plugin = plugin;
     }
 

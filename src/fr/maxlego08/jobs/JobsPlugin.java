@@ -1,8 +1,10 @@
 package fr.maxlego08.jobs;
 
 import fr.maxlego08.jobs.api.JobManager;
+import fr.maxlego08.jobs.api.boost.BoostManager;
 import fr.maxlego08.jobs.api.hooks.BlockHook;
 import fr.maxlego08.jobs.api.storage.StorageManager;
+import fr.maxlego08.jobs.boost.ZBoostManager;
 import fr.maxlego08.jobs.command.commands.CommandJobs;
 import fr.maxlego08.jobs.component.PaperComponent;
 import fr.maxlego08.jobs.hooks.BlockTrackerHook;
@@ -37,14 +39,15 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
- * System to create your plugins very simply Projet:
+ * System to create your plugins very simple Projet:
  * <a href="https://github.com/Maxlego08/TemplatePlugin">https://github.com/Maxlego08/TemplatePlugin</a>
  *
  * @author Maxlego08
  */
-public class ZJobsPlugin extends ZPlugin {
+public class JobsPlugin extends ZPlugin {
 
     private final JobManager jobManager = new ZJobManager(this);
+    private final BoostManager boostManager = new ZBoostManager(this);
     private final StorageManager storageManager = new ZStorageManager(this);
     private final PaperComponent paperComponent = new PaperComponent();
     private final Set<String> knowRewards = new HashSet<>();
@@ -77,6 +80,7 @@ public class ZJobsPlugin extends ZPlugin {
         this.addListener(new JobListener(this));
 
         this.jobManager.loadJobs();
+        this.boostManager.loadBoostItems();
         Config.getInstance().loadConfiguration(getConfig(), this);
         this.loadFiles();
 
@@ -121,6 +125,7 @@ public class ZJobsPlugin extends ZPlugin {
         this.reloadConfig();
         this.knowRewards.clear();
         this.jobManager.loadJobs();
+        this.boostManager.loadBoostItems();
         Config.getInstance().loadConfiguration(getConfig(), this);
         this.loadInventories();
         super.reloadFiles();
@@ -196,5 +201,9 @@ public class ZJobsPlugin extends ZPlugin {
 
     public CurrencyProvider getCurrencyProvider() {
         return currencyProvider;
+    }
+
+    public BoostManager getBoostManager() {
+        return boostManager;
     }
 }

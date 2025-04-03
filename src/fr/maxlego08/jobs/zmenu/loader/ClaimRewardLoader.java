@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.zmenu.loader;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.zmenu.actions.ClaimRewardAction;
 import fr.maxlego08.menu.api.loader.ActionLoader;
 import fr.maxlego08.menu.api.requirement.Action;
@@ -10,9 +10,9 @@ import java.io.File;
 
 public class ClaimRewardLoader implements ActionLoader {
 
-    private final ZJobsPlugin plugin;
+    private final JobsPlugin plugin;
 
-    public ClaimRewardLoader(ZJobsPlugin plugin) {
+    public ClaimRewardLoader(JobsPlugin plugin) {
         this.plugin = plugin;
     }
 

@@ -1,6 +1,6 @@
 name: zJobs
 author: Maxlego08
-main: fr.maxlego08.jobs.ZJobsPlugin
+main: fr.maxlego08.jobs.JobsPlugin
 website: https://groupez.dev
 description: Make your own jobs
 version: ${project.version}

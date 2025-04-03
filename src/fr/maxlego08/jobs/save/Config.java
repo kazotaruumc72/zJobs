@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.save;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.api.Job;
 import fr.maxlego08.jobs.api.JobManager;
 import fr.maxlego08.jobs.api.event.JobEvent;
@@ -76,7 +76,7 @@ public class Config {
         return eventInformations.getOrDefault(event.getClass().getSimpleName(), true);
     }
 
-    public void loadConfiguration(FileConfiguration configuration, ZJobsPlugin plugin) {
+    public void loadConfiguration(FileConfiguration configuration, JobsPlugin plugin) {
 
         JobManager jobManager = plugin.getJobManager();
 

@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.zmenu.actions;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.menu.api.button.Button;
 import fr.maxlego08.menu.api.requirement.Action;
 import fr.maxlego08.menu.api.utils.Placeholders;
@@ -9,10 +9,10 @@ import org.bukkit.entity.Player;
 
 public class ClaimRewardAction extends Action {
 
-    private final ZJobsPlugin plugin;
+    private final JobsPlugin plugin;
     private final String reward;
 
-    public ClaimRewardAction(ZJobsPlugin plugin, String reward) {
+    public ClaimRewardAction(JobsPlugin plugin, String reward) {
         this.plugin = plugin;
         this.reward = reward;
     }

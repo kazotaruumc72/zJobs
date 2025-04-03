@@ -3,7 +3,7 @@ package fr.maxlego08.jobs.inventory;
 import java.util.HashMap;
 import java.util.Map;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.exceptions.InventoryOpenException;
 import fr.maxlego08.jobs.zcore.utils.ZUtils;
 import fr.maxlego08.jobs.zcore.utils.builder.ItemBuilder;
@@ -21,7 +21,7 @@ import fr.maxlego08.jobs.zcore.utils.inventory.InventoryResult;
 public abstract class VInventory extends ZUtils implements Cloneable {
 
 	protected int id;
-	protected ZJobsPlugin plugin;
+	protected JobsPlugin plugin;
 	protected Map<Integer, ItemButton> items = new HashMap<Integer, ItemButton>();
 	protected Player player;
 	protected int page;
@@ -206,7 +206,7 @@ public abstract class VInventory extends ZUtils implements Cloneable {
 		return guiName;
 	}
 
-	protected InventoryResult preOpenInventory(ZJobsPlugin main, Player player, int page, Object... args)
+	protected InventoryResult preOpenInventory(JobsPlugin main, Player player, int page, Object... args)
 			throws InventoryOpenException {
 
 		this.page = page;
@@ -217,7 +217,7 @@ public abstract class VInventory extends ZUtils implements Cloneable {
 		return openInventory(main, player, page, args);
 	}
 
-	public abstract InventoryResult openInventory(ZJobsPlugin main, Player player, int page, Object... args)
+	public abstract InventoryResult openInventory(JobsPlugin main, Player player, int page, Object... args)
 			throws InventoryOpenException;
 
 	/**
@@ -226,7 +226,7 @@ public abstract class VInventory extends ZUtils implements Cloneable {
 	 * @param plugin
 	 * @param player
 	 */
-	protected void onClose(InventoryCloseEvent event, ZJobsPlugin plugin, Player player) {
+	protected void onClose(InventoryCloseEvent event, JobsPlugin plugin, Player player) {
 	}
 
 	/**
@@ -235,7 +235,7 @@ public abstract class VInventory extends ZUtils implements Cloneable {
 	 * @param plugin
 	 * @param player
 	 */
-	protected void onDrag(InventoryDragEvent event, ZJobsPlugin plugin, Player player) {
+	protected void onDrag(InventoryDragEvent event, JobsPlugin plugin, Player player) {
 	}
 
 	@Override

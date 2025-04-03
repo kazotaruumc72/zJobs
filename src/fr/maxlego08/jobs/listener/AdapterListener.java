@@ -1,7 +1,7 @@
 package fr.maxlego08.jobs.listener;
 
 import fr.maxlego08.jobs.zcore.utils.ZUtils;
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -27,9 +27,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 @SuppressWarnings("deprecation")
 public class AdapterListener extends ZUtils implements Listener {
 
-    private final ZJobsPlugin plugin;
+    private final JobsPlugin plugin;
 
-    public AdapterListener(ZJobsPlugin plugin) {
+    public AdapterListener(JobsPlugin plugin) {
         this.plugin = plugin;
     }
 

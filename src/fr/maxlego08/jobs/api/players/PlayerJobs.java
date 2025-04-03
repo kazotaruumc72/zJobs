@@ -2,6 +2,8 @@ package fr.maxlego08.jobs.api.players;
 
 import fr.maxlego08.jobs.api.Job;
 import fr.maxlego08.jobs.api.actions.ActionInfo;
+import fr.maxlego08.jobs.api.boost.Boost;
+import fr.maxlego08.jobs.api.boost.PlayerBoosts;
 import fr.maxlego08.jobs.api.enums.JobActionType;
 import org.bukkit.entity.Player;
 
@@ -139,4 +141,18 @@ public interface PlayerJobs {
      * @return the rewards of the player.
      */
     Set<String> getRewards();
+
+    /**
+     * Gets the boosts of the player.
+     *
+     * @return the boosts of the player.
+     */
+    PlayerBoosts getBoosts();
+
+    /**
+     * Add a boost to the player's current boosts.
+     *
+     * @param boost the boost to add.
+     */
+    void addBoost(Boost boost);
 }

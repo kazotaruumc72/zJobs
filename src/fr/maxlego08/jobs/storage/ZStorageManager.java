@@ -1,15 +1,19 @@
 package fr.maxlego08.jobs.storage;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.api.Tables;
+import fr.maxlego08.jobs.api.boost.Boost;
+import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.api.players.PlayerJob;
 import fr.maxlego08.jobs.api.players.PlayerJobs;
 import fr.maxlego08.jobs.api.storage.StorageManager;
 import fr.maxlego08.jobs.api.storage.StorageType;
+import fr.maxlego08.jobs.boost.ZBoost;
 import fr.maxlego08.jobs.dto.PlayerJobDTO;
 import fr.maxlego08.jobs.dto.PlayerPointsDTO;
 import fr.maxlego08.jobs.dto.PlayerRewardDTO;
 import fr.maxlego08.jobs.migrations.CreateJobPlayerMigration;
+import fr.maxlego08.jobs.migrations.CreatePlayerBoostMigration;
 import fr.maxlego08.jobs.migrations.CreatePlayerPointsMigration;
 import fr.maxlego08.jobs.migrations.CreatePlayerRewardMigration;
 import fr.maxlego08.jobs.players.ZPlayerJob;
@@ -26,6 +30,8 @@ import fr.maxlego08.sarah.database.DatabaseType;
 import fr.maxlego08.sarah.logger.JULogger;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -35,16 +41,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class ZStorageManager implements StorageManager {
 
-    private final ZJobsPlugin plugin;
+    private final JobsPlugin plugin;
     private final Map<UUID, Map<String, PlayerJob>> pendingUpdates = new ConcurrentHashMap<>();
     private final Map<UUID, Map<String, Long>> lastUpdateTime = new ConcurrentHashMap<>();
     private RequestHelper requestHelper;
 
-    public ZStorageManager(ZJobsPlugin plugin) {
+    public ZStorageManager(JobsPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -79,6 +86,7 @@ public class ZStorageManager implements StorageManager {
         MigrationManager.registerMigration(new CreateJobPlayerMigration());
         MigrationManager.registerMigration(new CreatePlayerPointsMigration());
         MigrationManager.registerMigration(new CreatePlayerRewardMigration());
+        MigrationManager.registerMigration(new CreatePlayerBoostMigration());
 
         MigrationManager.execute(connection, JULogger.from(this.plugin.getLogger()));
 
@@ -226,7 +234,19 @@ public class ZStorageManager implements StorageManager {
     @Override
     public Set<String> getRewards(UUID uniqueId) {
         List<PlayerRewardDTO> playerRewardDTOS = this.requestHelper.select(Tables.REWARDS, PlayerRewardDTO.class, table -> table.where("unique_id", uniqueId));
-        var reward = playerRewardDTOS.isEmpty() ? "" : playerRewardDTOS.get(0).content();
-        return reward.length() == 0 ? new HashSet<>() : Arrays.stream(reward.split(",")).collect(Collectors.toSet());
+        var reward = playerRewardDTOS.isEmpty() ? "" : playerRewardDTOS.getFirst().content();
+        return reward.isEmpty() ? new HashSet<>() : Arrays.stream(reward.split(",")).collect(Collectors.toSet());
+    }
+
+    @Override
+    public void createBoost(@NotNull UUID uniqueId, @Nullable String jobName, @Nullable JobActionType actionType, double experienceBoost, double moneyBoost, int amount, Consumer<Boost> consumer, Runnable errorRunnable) {
+        this.plugin.getScheduler().runTaskAsynchronously(() -> this.requestHelper.insert(Tables.BOOSTS, table -> {
+            table.uuid("unique_id", uniqueId).primary();
+            if (jobName != null) table.string("job_id", jobName);
+            if (actionType != null) table.string("action_type", actionType.name());
+            table.bigInt("remaining_boost", amount);
+            table.decimal("experience_boost", experienceBoost);
+            table.decimal("money_boost", moneyBoost);
+        }, id -> consumer.accept(new ZBoost(id, jobName, actionType, experienceBoost, moneyBoost, amount))));
     }
 }

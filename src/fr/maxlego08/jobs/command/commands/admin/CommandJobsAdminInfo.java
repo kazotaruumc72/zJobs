@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.command.commands.admin;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.command.VCommand;
 import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.enums.Permission;
@@ -11,7 +11,7 @@ import org.bukkit.block.data.Ageable;
 
 public class CommandJobsAdminInfo extends VCommand {
 
-    public CommandJobsAdminInfo(ZJobsPlugin plugin) {
+    public CommandJobsAdminInfo(JobsPlugin plugin) {
         super(plugin);
         this.setPermission(Permission.ZJOBS_ADMIN_BLOCK_INFO);
         this.addSubCommand("blockinfo", "bi");
@@ -20,7 +20,7 @@ public class CommandJobsAdminInfo extends VCommand {
     }
 
     @Override
-    protected CommandType perform(ZJobsPlugin plugin) {
+    protected CommandType perform(JobsPlugin plugin) {
 
         Block block = this.player.getTargetBlock(null, 64);
         if (block.getType().isAir()) {

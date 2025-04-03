@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.exceptions.InventoryAlreadyExistException;
 import fr.maxlego08.jobs.exceptions.InventoryOpenException;
 import fr.maxlego08.jobs.listener.ListenerAdapter;
@@ -28,12 +28,12 @@ public class ZInventoryManager extends ListenerAdapter {
 
 	private final Map<Integer, VInventory> inventories = new HashMap<>();
 	private final Map<UUID, VInventory> playerInventories = new HashMap<>();
-	private final ZJobsPlugin plugin;
+	private final JobsPlugin plugin;
 
 	/**
 	 * @param plugin
 	 */
-	public ZInventoryManager(ZJobsPlugin plugin) {
+	public ZInventoryManager(JobsPlugin plugin) {
 		super();
 		this.plugin = plugin;
 	}

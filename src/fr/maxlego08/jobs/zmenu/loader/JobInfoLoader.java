@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.zmenu.loader;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.api.Job;
 import fr.maxlego08.jobs.api.JobManager;
 import fr.maxlego08.jobs.zmenu.buttons.JobInfoButton;
@@ -11,9 +11,9 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
 public class JobInfoLoader implements ButtonLoader {
-    private final ZJobsPlugin plugin;
+    private final JobsPlugin plugin;
 
-    public JobInfoLoader(ZJobsPlugin plugin) {
+    public JobInfoLoader(JobsPlugin plugin) {
         this.plugin = plugin;
     }
 

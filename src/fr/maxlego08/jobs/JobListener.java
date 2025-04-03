@@ -39,11 +39,11 @@ import java.util.UUID;
 
 public class JobListener implements Listener {
 
-    private final ZJobsPlugin plugin;
+    private final JobsPlugin plugin;
     private final JobManager jobManager;
     private final NamespacedKey playerKey;
 
-    public JobListener(ZJobsPlugin plugin) {
+    public JobListener(JobsPlugin plugin) {
         this.plugin = plugin;
         this.jobManager = plugin.getJobManager();
         this.playerKey = new NamespacedKey(plugin, "player-uuid");

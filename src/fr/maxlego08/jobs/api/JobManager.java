@@ -29,6 +29,8 @@ public interface JobManager {
 
     Optional<PlayerJobs> getPlayerJobs(UUID uuid);
 
+    PlayerJobs getOrCreatePlayerJobs(UUID uuid);
+
     List<String> getJobsName();
 
     List<String> getJobsName(CommandSender sender);

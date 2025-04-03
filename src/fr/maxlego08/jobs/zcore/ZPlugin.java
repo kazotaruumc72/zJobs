@@ -9,7 +9,7 @@ import fr.maxlego08.jobs.listener.ListenerAdapter;
 import fr.maxlego08.jobs.zcore.enums.EnumInventory;
 import fr.maxlego08.jobs.zcore.logger.Logger;
 import fr.maxlego08.jobs.zcore.utils.storage.Savable;
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.exceptions.ListenerNullException;
 import fr.maxlego08.jobs.inventory.VInventory;
 import fr.maxlego08.jobs.inventory.ZInventoryManager;
@@ -51,7 +51,7 @@ public abstract class ZPlugin extends JavaPlugin {
 
     protected void preEnable() {
 
-        LocalPlaceholder.getInstance().setPlugin((ZJobsPlugin) this);
+        LocalPlaceholder.getInstance().setPlugin((JobsPlugin) this);
         Placeholder.getPlaceholder();
 
         this.enableTime = System.currentTimeMillis();
@@ -64,11 +64,11 @@ public abstract class ZPlugin extends JavaPlugin {
         this.gson = getGsonBuilder().create();
         this.persist = new Persist(this);
 
-        this.commandManager = new CommandManager((ZJobsPlugin) this);
-        this.inventoryManager = new ZInventoryManager((ZJobsPlugin) this);
+        this.commandManager = new CommandManager((JobsPlugin) this);
+        this.inventoryManager = new ZInventoryManager((JobsPlugin) this);
 
         /* Add Listener */
-        this.addListener(new AdapterListener((ZJobsPlugin) this));
+        this.addListener(new AdapterListener((JobsPlugin) this));
         this.addListener(this.inventoryManager);
     }
 

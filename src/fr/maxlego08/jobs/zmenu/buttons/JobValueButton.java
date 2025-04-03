@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.zmenu.buttons;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.api.JobAction;
 import fr.maxlego08.jobs.zcore.utils.inventory.Pagination;
 import fr.maxlego08.menu.api.button.PaginateButton;
@@ -17,10 +17,10 @@ import java.util.function.ToDoubleFunction;
 
 public class JobValueButton extends ZButton implements PaginateButton {
 
-    private final ZJobsPlugin plugin;
+    private final JobsPlugin plugin;
 
     public JobValueButton(Plugin plugin) {
-        this.plugin = (ZJobsPlugin) plugin;
+        this.plugin = (JobsPlugin) plugin;
     }
 
     @Override

@@ -3,7 +3,7 @@ package fr.maxlego08.jobs.zcore.utils;
 import com.google.common.base.Strings;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.zcore.enums.EnumInventory;
 import fr.maxlego08.jobs.zcore.enums.Permission;
 import fr.maxlego08.jobs.zcore.utils.builder.CooldownBuilder;
@@ -399,7 +399,7 @@ public abstract class ZUtils extends MessageUtils {
      * @param player    the player for whom the inventory is created.
      * @param inventory the type of inventory to create.
      */
-    protected void createInventory(ZJobsPlugin plugin, Player player, EnumInventory inventory) {
+    protected void createInventory(JobsPlugin plugin, Player player, EnumInventory inventory) {
         createInventory(plugin, player, inventory, 1);
     }
 
@@ -411,7 +411,7 @@ public abstract class ZUtils extends MessageUtils {
      * @param inventory the type of inventory to create.
      * @param page      the page number of the inventory.
      */
-    protected void createInventory(ZJobsPlugin plugin, Player player, EnumInventory inventory, int page) {
+    protected void createInventory(JobsPlugin plugin, Player player, EnumInventory inventory, int page) {
         createInventory(plugin, player, inventory, page, new Object() {
         });
     }
@@ -425,7 +425,7 @@ public abstract class ZUtils extends MessageUtils {
      * @param page      the page number of the inventory.
      * @param objects   additional objects to be used in creating the inventory.
      */
-    protected void createInventory(ZJobsPlugin plugin, Player player, EnumInventory inventory, int page, Object... objects) {
+    protected void createInventory(JobsPlugin plugin, Player player, EnumInventory inventory, int page, Object... objects) {
         plugin.getZInventoryManager().createInventory(inventory, player, page, objects);
     }
 
@@ -438,7 +438,7 @@ public abstract class ZUtils extends MessageUtils {
      * @param page      the page number of the inventory.
      * @param objects   additional objects to be used in creating the inventory.
      */
-    protected void createInventory(ZJobsPlugin plugin, Player player, int inventory, int page, Object... objects) {
+    protected void createInventory(JobsPlugin plugin, Player player, int inventory, int page, Object... objects) {
         plugin.getZInventoryManager().createInventory(inventory, player, page, objects);
     }
 

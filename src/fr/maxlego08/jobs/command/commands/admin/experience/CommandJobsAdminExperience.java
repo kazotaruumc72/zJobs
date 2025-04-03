@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.command.commands.admin.experience;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.command.VCommand;
 import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.enums.Permission;
@@ -8,7 +8,7 @@ import fr.maxlego08.jobs.zcore.utils.commands.CommandType;
 
 public class CommandJobsAdminExperience extends VCommand {
 
-    public CommandJobsAdminExperience(ZJobsPlugin plugin) {
+    public CommandJobsAdminExperience(JobsPlugin plugin) {
         super(plugin);
         this.setPermission(Permission.ZJOBS_ADMIN_EXPERIENCE);
         this.addSubCommand("experience", "exp", "xp");
@@ -19,7 +19,7 @@ public class CommandJobsAdminExperience extends VCommand {
     }
 
     @Override
-    protected CommandType perform(ZJobsPlugin plugin) {
+    protected CommandType perform(JobsPlugin plugin) {
         syntaxMessage();
         return CommandType.SUCCESS;
     }

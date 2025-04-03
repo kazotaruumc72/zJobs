@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.zmenu.buttons;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.api.Job;
 import fr.maxlego08.jobs.api.JobManager;
 import fr.maxlego08.jobs.api.players.PlayerJob;
@@ -20,11 +20,11 @@ import java.util.List;
 
 public class JobInfoButton extends ZButton {
 
-    private final ZJobsPlugin plugin;
+    private final JobsPlugin plugin;
     private final Job job;
     private final JobManager jobManager;
 
-    public JobInfoButton(ZJobsPlugin plugin, Job job) {
+    public JobInfoButton(JobsPlugin plugin, Job job) {
         this.plugin = plugin;
         this.job = job;
         this.jobManager = plugin.getJobManager();

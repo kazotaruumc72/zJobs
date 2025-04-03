@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.bossbar;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.component.PaperComponent;
 import fr.maxlego08.jobs.save.Config;
 import fr.maxlego08.jobs.zcore.enums.Message;
@@ -13,13 +13,13 @@ public class JobBossBar extends ZUtils {
 
     private final Player player;
     private final BossBar bossBar;
-    private final ZJobsPlugin plugin;
+    private final JobsPlugin plugin;
     private final String jobName;
     private double maxExperience;
     private double currentExperience;
     private ZScheduler task;
 
-    public JobBossBar(ZJobsPlugin plugin, Player player, double currentExperience, double maxExperience, int level, int prestige, String jobName) {
+    public JobBossBar(JobsPlugin plugin, Player player, double currentExperience, double maxExperience, int level, int prestige, String jobName) {
 
         PaperComponent paperComponent = plugin.getPaperComponent();
 
@@ -30,7 +30,6 @@ public class JobBossBar extends ZUtils {
         this.maxExperience = maxExperience;
 
         float progress = (float) ((float) currentExperience / maxExperience);
-        System.out.println(progress + " - " + currentExperience + " / " + maxExperience);
         this.bossBar = paperComponent.createBossBar(getMessage(
                 Message.PROGRESSION_BOSSBAR,
                 "%job-experience%", Config.decimalFormat.format(currentExperience),

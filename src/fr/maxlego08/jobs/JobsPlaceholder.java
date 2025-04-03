@@ -7,7 +7,7 @@ import fr.maxlego08.jobs.placeholder.LocalPlaceholder;
 
 public class JobsPlaceholder {
 
-    public void register(ZJobsPlugin plugin, ZJobManager manager) {
+    public void register(JobsPlugin plugin, ZJobManager manager) {
         LocalPlaceholder placeholder = LocalPlaceholder.getInstance();
 
         // Player

@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.command.commands.admin.points;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.api.enums.AdminAction;
 import fr.maxlego08.jobs.command.VCommand;
 import fr.maxlego08.jobs.zcore.enums.Message;
@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 public class CommandJobsAdminPointsRemove extends VCommand {
 
-    public CommandJobsAdminPointsRemove(ZJobsPlugin plugin) {
+    public CommandJobsAdminPointsRemove(JobsPlugin plugin) {
         super(plugin);
         this.setPermission(Permission.ZJOBS_ADMIN_POINTS_REMOVE);
         this.addSubCommand("remove");
@@ -22,7 +22,7 @@ public class CommandJobsAdminPointsRemove extends VCommand {
     }
 
     @Override
-    protected CommandType perform(ZJobsPlugin plugin) {
+    protected CommandType perform(JobsPlugin plugin) {
 
         OfflinePlayer player = this.argAsOfflinePlayer(0);
         int points = this.argAsInteger(1);

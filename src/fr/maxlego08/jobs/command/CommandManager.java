@@ -20,7 +20,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 
 public class CommandManager extends ZUtils implements CommandExecutor, TabCompleter {
 
@@ -38,16 +38,16 @@ public class CommandManager extends ZUtils implements CommandExecutor, TabComple
         }
     }
 	
-	private final ZJobsPlugin plugin;
+	private final JobsPlugin plugin;
 	private final List<VCommand> commands = new ArrayList<VCommand>();
 
 	/**
 	 * F
 	 * 
-	 * @param ZJobsPlugin
+	 * @param JobsPlugin
 	 */
-	public CommandManager(ZJobsPlugin ZJobsPlugin) {
-		this.plugin = ZJobsPlugin;
+	public CommandManager(JobsPlugin JobsPlugin) {
+		this.plugin = JobsPlugin;
 	}
 
 	/**

@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.command.commands.admin.points;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.command.VCommand;
 import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.enums.Permission;
@@ -9,7 +9,7 @@ import org.bukkit.OfflinePlayer;
 
 public class CommandJobsAdminPointsInfo extends VCommand {
 
-    public CommandJobsAdminPointsInfo(ZJobsPlugin plugin) {
+    public CommandJobsAdminPointsInfo(JobsPlugin plugin) {
         super(plugin);
         this.setPermission(Permission.ZJOBS_ADMIN_POINTS_INFO);
         this.addSubCommand("info");
@@ -18,7 +18,7 @@ public class CommandJobsAdminPointsInfo extends VCommand {
     }
 
     @Override
-    protected CommandType perform(ZJobsPlugin plugin) {
+    protected CommandType perform(JobsPlugin plugin) {
 
         OfflinePlayer player = this.argAsOfflinePlayer(0);
         plugin.getJobManager().showPoints(sender, player);

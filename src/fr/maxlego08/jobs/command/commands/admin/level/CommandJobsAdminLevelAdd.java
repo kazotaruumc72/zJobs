@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.command.commands.admin.level;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.api.enums.AdminAction;
 import fr.maxlego08.jobs.api.enums.AttributeType;
 import fr.maxlego08.jobs.command.VCommand;
@@ -13,7 +13,7 @@ import java.util.Arrays;
 
 public class CommandJobsAdminLevelAdd extends VCommand {
 
-    public CommandJobsAdminLevelAdd(ZJobsPlugin plugin) {
+    public CommandJobsAdminLevelAdd(JobsPlugin plugin) {
         super(plugin);
         this.setPermission(Permission.ZJOBS_ADMIN_LEVEL_ADD);
         this.addSubCommand("add");
@@ -24,7 +24,7 @@ public class CommandJobsAdminLevelAdd extends VCommand {
     }
 
     @Override
-    protected CommandType perform(ZJobsPlugin plugin) {
+    protected CommandType perform(JobsPlugin plugin) {
 
         OfflinePlayer player = this.argAsOfflinePlayer(0);
         String jobName = this.argAsString(1);

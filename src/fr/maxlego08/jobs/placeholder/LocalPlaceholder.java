@@ -1,6 +1,6 @@
 package fr.maxlego08.jobs.placeholder;
 
-import fr.maxlego08.jobs.ZJobsPlugin;
+import fr.maxlego08.jobs.JobsPlugin;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ public class LocalPlaceholder {
     private static volatile LocalPlaceholder instance;
     private final Pattern pattern = Pattern.compile("[%]([^%]+)[%]");
     private final List<AutoPlaceholder> autoPlaceholders = new ArrayList<>();
-    private ZJobsPlugin plugin;
+    private JobsPlugin plugin;
     private String prefix = "template";
 
     /**
@@ -101,7 +101,7 @@ public class LocalPlaceholder {
         this.prefix = prefix;
     }
 
-    public ZJobsPlugin getPlugin() {
+    public JobsPlugin getPlugin() {
         return plugin;
     }
 
@@ -110,7 +110,7 @@ public class LocalPlaceholder {
      *
      * @param plugin
      */
-    public void setPlugin(ZJobsPlugin plugin) {
+    public void setPlugin(JobsPlugin plugin) {
         this.plugin = plugin;
     }
 
