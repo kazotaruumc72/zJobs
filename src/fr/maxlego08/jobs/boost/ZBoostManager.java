@@ -49,7 +49,6 @@ public class ZBoostManager extends ZUtils implements BoostManager {
                 return;
             }
 
-
             playerJobs.getBoosts().delete(boostId);
             storageManager.deleteBoost(offlinePlayer.getUniqueId(), boostId);
 
