@@ -78,7 +78,7 @@ public class JobsPlaceholder extends ZUtils {
                 placeholders.register("boost-actions", boost.getActions().isEmpty() ? config.everyActions() : boost.getActions().stream().map(JobActionType::name).collect(Collectors.joining(", ")));
                 placeholders.register("boost-targets", boost.getTargets().isEmpty() ? config.everyTargets() : String.join(", ", boost.getTargets()));
                 placeholders.register("boost-remaining", format(boost.getRemainingBoost()));
-                placeholders.register("boost-amount", format(boost.getRemainingBoost()));
+                placeholders.register("boost-amount", format(boost.getBoostAmount()));
                 placeholders.register("boost-experience", format(boost.getExperienceBoost()));
                 placeholders.register("boost-money", format(boost.getMoneyBoost()));
                 placeholders.register("boost-id", String.valueOf(boost.getId()));
