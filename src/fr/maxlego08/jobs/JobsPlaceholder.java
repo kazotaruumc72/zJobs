@@ -1,13 +1,23 @@
 package fr.maxlego08.jobs;
 
 import fr.maxlego08.jobs.api.Job;
+import fr.maxlego08.jobs.api.JobManager;
+import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.api.players.PlayerJob;
 import fr.maxlego08.jobs.api.players.PlayerJobs;
 import fr.maxlego08.jobs.placeholder.LocalPlaceholder;
+import fr.maxlego08.jobs.placeholder.ReturnConsumer;
+import fr.maxlego08.jobs.save.Config;
+import fr.maxlego08.jobs.zcore.utils.ZUtils;
+import fr.maxlego08.menu.api.utils.Placeholders;
+import org.bukkit.entity.Player;
 
-public class JobsPlaceholder {
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-    public void register(JobsPlugin plugin, ZJobManager manager) {
+public class JobsPlaceholder extends ZUtils {
+
+    public void register(JobsPlugin plugin, JobManager manager) {
         LocalPlaceholder placeholder = LocalPlaceholder.getInstance();
 
         // Player
@@ -42,6 +52,40 @@ public class JobsPlaceholder {
             var job = manager.getTargetJob(player);
             return job == null ? "0" : String.valueOf(job.getCustomModelData());
         });
+
+        // Boosts
+        placeholder.register("boosts", this.placeholderBoosts(manager));
+    }
+
+    private ReturnConsumer<Player, String> placeholderBoosts(JobManager manager) {
+        return player -> {
+
+            var config = Config.boostPlaceholderConfig;
+            var optional = manager.getPlayerJobs(player.getUniqueId());
+            if (optional.isEmpty()) {
+                return config.empty();
+            }
+
+            var boosts = optional.get().getBoosts();
+            if (boosts.getBoosts().isEmpty()) {
+                return config.empty();
+            }
+
+            return boosts.getBoosts().stream().map(boost -> {
+
+                Placeholders placeholders = new Placeholders();
+                placeholders.register("boost-jobs", boost.getJobs().isEmpty() ? config.everyJobs() : boost.getJobs().stream().map(manager::getJob).filter(Optional::isPresent).map(Optional::get).map(Job::getName).collect(Collectors.joining(", ")));
+                placeholders.register("boost-actions", boost.getActions().isEmpty() ? config.everyActions() : boost.getActions().stream().map(JobActionType::name).collect(Collectors.joining(", ")));
+                placeholders.register("boost-targets", boost.getTargets().isEmpty() ? config.everyTargets() : String.join(", ", boost.getTargets()));
+                placeholders.register("boost-remaining", format(boost.getRemainingBoost()));
+                placeholders.register("boost-amount", format(boost.getRemainingBoost()));
+                placeholders.register("boost-experience", format(boost.getExperienceBoost()));
+                placeholders.register("boost-money", format(boost.getMoneyBoost()));
+                placeholders.register("boost-id", String.valueOf(boost.getId()));
+
+                return placeholders.parse(config.result());
+            }).collect(Collectors.joining(config.between()));
+        };
     }
 
 }

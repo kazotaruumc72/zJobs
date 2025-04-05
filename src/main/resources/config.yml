@@ -90,9 +90,19 @@ progress-bar-experience:
   color: "#828282"
   size: 30
 
+placeholder-boosts:
+  empty: "&cAucun boosts actifs"
+  result: "%boost-jobs% - %boost-remaining%/%boost-amount%\nExperience: %boost-experience%\nArgent: %boost-money%"
+  every-jobs: "Tous les métiers"
+  every-actions: "Toutes les actions"
+  every-targets: "Toutes les cibles"
+  between: "\n"
+
+
 force-block-check:
   - SUGAR_CANE
   - KELP
   - BAMBOO
 
-update-jobs-ticks: 200
+# 30 secondes
+update-jobs-ticks: 600

@@ -4,6 +4,7 @@ import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.api.Job;
 import fr.maxlego08.jobs.api.JobManager;
 import fr.maxlego08.jobs.api.event.JobEvent;
+import fr.maxlego08.jobs.api.utils.BoostPlaceholderConfig;
 import fr.maxlego08.jobs.api.utils.ProgressBarConfig;
 import fr.maxlego08.menu.api.utils.TypedMapAccessor;
 import net.kyori.adventure.bossbar.BossBar;
@@ -32,6 +33,7 @@ public class Config {
     public static ProgressBarConfig progressBarLevel;
     public static ProgressBarConfig progressBarPrestige;
     public static ProgressBarConfig progressBarExperience;
+    public static BoostPlaceholderConfig boostPlaceholderConfig;
     public static String moneyReason = "Job money";
     public static List<Material> forceBlockCheck = List.of(Material.SUGAR_CANE);
 
@@ -109,6 +111,15 @@ public class Config {
         progressBarPrestige = loadProgressBarConfig(configuration, "progress-bar-prestige");
         progressBarExperience = loadProgressBarConfig(configuration, "progress-bar-experience");
         forceBlockCheck = configuration.getStringList("force-block-check").stream().map(Material::matchMaterial).toList();
+
+        boostPlaceholderConfig = new BoostPlaceholderConfig(
+                configuration.getString("placeholder-boosts.empty", "&cNo boosts"),
+                configuration.getString("placeholder-boosts.result", "%boost-jobs% - %boost-remaining%/%boost-amount%\nExperience: %boost-experience%\nArgent: %boost-money%"),
+                configuration.getString("placeholder-boosts.between", "\n"),
+                configuration.getString("placeholder-boosts.every-jobs", "All jobs"),
+                configuration.getString("placeholder-boosts.every-actions", "All actions"),
+                configuration.getString("placeholder-boosts.every-targets", "All targets")
+        );
     }
 
     private ProgressBarConfig loadProgressBarConfig(FileConfiguration configuration, String path) {
