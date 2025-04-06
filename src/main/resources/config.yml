@@ -98,6 +98,7 @@ placeholder-boosts:
   every-targets: "Toutes les cibles"
   between: "\n"
 
+enable-boost-finish-message: true
 
 force-block-check:
   - SUGAR_CANE

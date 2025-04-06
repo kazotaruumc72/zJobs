@@ -36,6 +36,7 @@ public class Config {
     public static BoostPlaceholderConfig boostPlaceholderConfig;
     public static String moneyReason = "Job money";
     public static List<Material> forceBlockCheck = List.of(Material.SUGAR_CANE);
+    public static boolean enableBoostFinishMessage;
 
     /**
      * static Singleton instance.
@@ -120,6 +121,7 @@ public class Config {
                 configuration.getString("placeholder-boosts.every-actions", "All actions"),
                 configuration.getString("placeholder-boosts.every-targets", "All targets")
         );
+        enableBoostFinishMessage = configuration.getBoolean("enable-boost-finish-message");
     }
 
     private ProgressBarConfig loadProgressBarConfig(FileConfiguration configuration, String path) {

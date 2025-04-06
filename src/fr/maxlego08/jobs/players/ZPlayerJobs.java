@@ -18,8 +18,11 @@ import fr.maxlego08.jobs.api.players.PlayerJobs;
 import fr.maxlego08.jobs.api.storage.StorageManager;
 import fr.maxlego08.jobs.boost.ZPlayerBoosts;
 import fr.maxlego08.jobs.bossbar.JobBossBar;
+import fr.maxlego08.jobs.placeholder.BoostPlaceholder;
 import fr.maxlego08.jobs.save.Config;
+import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.utils.ElapsedTime;
+import fr.maxlego08.jobs.zcore.utils.ZUtils;
 import fr.maxlego08.menu.MenuPlugin;
 import fr.maxlego08.menu.api.requirement.Action;
 import fr.maxlego08.menu.api.utils.Placeholders;
@@ -35,13 +38,14 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-public class ZPlayerJobs implements PlayerJobs {
+public class ZPlayerJobs extends ZUtils implements PlayerJobs {
 
     private final JobsPlugin plugin;
     private final UUID uniqueId;
     private final List<PlayerJob> jobs;
     private final Set<String> rewards;
     private final Map<Job, JobBossBar> jobBossBars = new HashMap<>();
+    private final BoostPlaceholder boostPlaceholder = new BoostPlaceholder();
     private final PlayerBoosts boosts;
     private long points;
     private double updateMoney;
@@ -144,6 +148,19 @@ public class ZPlayerJobs implements PlayerJobs {
                     this.boosts.delete(result.boost().getId());
                     storage.deleteBoost(uniqueId, boost.getId());
                     storage.insertBoostLog(uniqueId, boost);
+
+                    if (Config.enableBoostFinishMessage) {
+                        message(player, Message.BOOST_FINISH,
+                                "%boost-jobs%", this.boostPlaceholder.getJobs(boost, jobManager),
+                                "%boost-actions%", this.boostPlaceholder.getActions(boost),
+                                "%boost-targets%", this.boostPlaceholder.getTargets(boost),
+                                "%boost-amount%", format(boost.getBoostAmount()),
+                                "%boost-experience%", format(boost.getExperienceBoost()),
+                                "%boost-money%", format(boost.getMoneyBoost()),
+                                "%boost-id%", String.valueOf(boost.getId())
+                        );
+                    }
+
                 } else {
                     storage.update(uniqueId, result.boost(), false);
                 }

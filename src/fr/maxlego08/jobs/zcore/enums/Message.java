@@ -133,7 +133,7 @@ public enum Message {
             "&7Jobs: #77ff77%jobs%, Actions: #77ff77%actions%, Targets: #77ff77%targets%"
     ),
 
-    ;
+    BOOST_FINISH("#ff3535You just finish the boost %boost-jobs% &8(&fx%boost-amount%&8)");
 
     private List<String> messages;
     private String message;
