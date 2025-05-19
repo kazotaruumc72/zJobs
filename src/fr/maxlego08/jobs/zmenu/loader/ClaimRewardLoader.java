@@ -8,7 +8,7 @@ import fr.maxlego08.menu.api.utils.TypedMapAccessor;
 
 import java.io.File;
 
-public class ClaimRewardLoader implements ActionLoader {
+public class ClaimRewardLoader extends ActionLoader {
 
     private final JobsPlugin plugin;
 

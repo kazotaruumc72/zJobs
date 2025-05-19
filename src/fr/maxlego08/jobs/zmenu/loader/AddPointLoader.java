@@ -8,7 +8,7 @@ import fr.maxlego08.menu.api.utils.TypedMapAccessor;
 
 import java.io.File;
 
-public class AddPointLoader implements ActionLoader {
+public class AddPointLoader extends ActionLoader {
 
     private final JobsPlugin plugin;
 
