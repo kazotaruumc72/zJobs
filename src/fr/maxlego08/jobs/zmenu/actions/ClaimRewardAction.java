@@ -2,9 +2,9 @@ package fr.maxlego08.jobs.zmenu.actions;
 
 import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.menu.api.button.Button;
+import fr.maxlego08.menu.api.engine.InventoryEngine;
 import fr.maxlego08.menu.api.requirement.Action;
 import fr.maxlego08.menu.api.utils.Placeholders;
-import fr.maxlego08.menu.inventory.inventories.InventoryDefault;
 import org.bukkit.entity.Player;
 
 public class ClaimRewardAction extends Action {
@@ -18,7 +18,7 @@ public class ClaimRewardAction extends Action {
     }
 
     @Override
-    protected void execute(Player player, Button button, InventoryDefault inventoryDefault, Placeholders placeholders) {
+    protected void execute(Player player, Button button, InventoryEngine inventoryDefault, Placeholders placeholders) {
         var optional = plugin.getJobManager().getPlayerJobs(player.getUniqueId());
         if (optional.isEmpty()) return;
 

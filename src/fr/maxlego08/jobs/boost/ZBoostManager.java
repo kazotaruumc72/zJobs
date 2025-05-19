@@ -30,9 +30,9 @@ public class ZBoostManager extends ZUtils implements BoostManager {
             storageManager.createBoost(offlinePlayer.getUniqueId(), jobs, actions, targets, moneyBoost, experienceBoost, amount, boost -> {
 
                 playerJobs.addBoost(boost);
-                message(sender, Message.BOOST_CREATE_SUCCESS, "%player%", offlinePlayer.getName(), "%amount%", amount, "%experience%", format(experienceBoost), "%money%", format(moneyBoost));
+                message(this.plugin.getInventoryManager().getMeta(), sender, Message.BOOST_CREATE_SUCCESS, "%player%", offlinePlayer.getName(), "%amount%", amount, "%experience%", format(experienceBoost), "%money%", format(moneyBoost));
 
-            }, () -> message(sender, Message.BOOST_CREATE_ERROR));
+            }, () -> message(this.plugin.getInventoryManager().getMeta(), sender, Message.BOOST_CREATE_ERROR));
         });
     }
 
@@ -45,14 +45,14 @@ public class ZBoostManager extends ZUtils implements BoostManager {
         jobManager.loadOfflinePlayer(offlinePlayer.getUniqueId(), playerJobs -> {
 
             if (!playerJobs.getBoosts().contains(boostId)) {
-                message(sender, Message.BOOST_REMOVE_ERROR, "%player%", offlinePlayer.getName(), "%id%", boostId);
+                message(this.plugin.getInventoryManager().getMeta(),sender, Message.BOOST_REMOVE_ERROR, "%player%", offlinePlayer.getName(), "%id%", boostId);
                 return;
             }
 
             playerJobs.getBoosts().delete(boostId);
             storageManager.deleteBoost(offlinePlayer.getUniqueId(), boostId);
 
-            message(sender, Message.BOOST_REMOVE_SUCCESS, "%player%", offlinePlayer.getName(), "%id%", boostId);
+            message(this.plugin.getInventoryManager().getMeta(), sender, Message.BOOST_REMOVE_SUCCESS, "%player%", offlinePlayer.getName(), "%id%", boostId);
         });
     }
 
@@ -64,14 +64,14 @@ public class ZBoostManager extends ZUtils implements BoostManager {
         jobManager.loadOfflinePlayer(offlinePlayer.getUniqueId(), playerJobs -> {
 
             if (playerJobs.getBoosts().isEmpty()) {
-                message(sender, Message.BOOST_SHOW_EMPTY, "%player%", offlinePlayer.getName());
+                message(this.plugin.getInventoryManager().getMeta(), sender, Message.BOOST_SHOW_EMPTY, "%player%", offlinePlayer.getName());
                 return;
             }
 
             var boosts = playerJobs.getBoosts().getBoosts();
-            message(sender, Message.BOOST_SHOW_HEADER, "%player%", offlinePlayer.getName(), "%amount%", boosts.size(), "%s%", boosts.size() <= 1 ? "" : "s");
+            message(this.plugin.getInventoryManager().getMeta(), sender, Message.BOOST_SHOW_HEADER, "%player%", offlinePlayer.getName(), "%amount%", boosts.size(), "%s%", boosts.size() <= 1 ? "" : "s");
             for (Boost boost : boosts) {
-                message(sender, Message.BOOST_SHOW_INFO,
+                message(this.plugin.getInventoryManager().getMeta(), sender, Message.BOOST_SHOW_INFO,
                         "%player%", offlinePlayer.getName(),
                         "%id%", boost.getId(),
                         "%amount%", boost.getBoostAmount(),

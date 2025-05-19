@@ -13,12 +13,8 @@ public class AddPointLoader extends ActionLoader {
     private final JobsPlugin plugin;
 
     public AddPointLoader(JobsPlugin plugin) {
+        super("zjobs_add_points");
         this.plugin = plugin;
-    }
-
-    @Override
-    public String getKey() {
-        return "zjobs_add_points";
     }
 
     @Override

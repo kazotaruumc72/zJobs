@@ -19,7 +19,7 @@ public class CommandJobsReload extends VCommand {
 	protected CommandType perform(JobsPlugin plugin) {
 		
 		plugin.reloadFiles();
-		message(sender, Message.RELOAD);
+		message(this.plugin.getInventoryManager().getMeta(),sender, Message.RELOAD);
 		
 		return CommandType.SUCCESS;
 	}

@@ -23,10 +23,9 @@ import fr.maxlego08.jobs.save.Config;
 import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.utils.ElapsedTime;
 import fr.maxlego08.jobs.zcore.utils.ZUtils;
-import fr.maxlego08.menu.MenuPlugin;
+import fr.maxlego08.menu.api.engine.InventoryEngine;
 import fr.maxlego08.menu.api.requirement.Action;
 import fr.maxlego08.menu.api.utils.Placeholders;
-import fr.maxlego08.menu.inventory.inventories.InventoryDefault;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -150,7 +149,7 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
                     storage.insertBoostLog(uniqueId, boost);
 
                     if (Config.enableBoostFinishMessage) {
-                        message(player, Message.BOOST_FINISH,
+                        message(this.plugin.getInventoryManager().getMeta(), player, Message.BOOST_FINISH,
                                 "%boost-jobs%", this.boostPlaceholder.getJobs(boost, jobManager),
                                 "%boost-actions%", this.boostPlaceholder.getActions(boost),
                                 "%boost-targets%", this.boostPlaceholder.getTargets(boost),
@@ -248,8 +247,7 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
         placeholders.register("prestige", String.valueOf(newPrestige));
         placeholders.register("previous-prestige", String.valueOf(oldPrestige));
 
-        InventoryDefault inventoryDefault = new InventoryDefault();
-        inventoryDefault.setPlugin(MenuPlugin.getInstance());
+        InventoryEngine inventoryDefault = plugin.getInventoryManager().getFakeInventory();
 
         for (JobReward reward : job.getRewards()) {
             int rewardLevel = reward.getLevel();
@@ -281,7 +279,7 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
 
             jobBossBar.resetTimer();
             JobBossBar finalJobBossBar = jobBossBar;
-            this.plugin.getScheduler().runTaskAsynchronously(() -> finalJobBossBar.updateExperience(playerJob.getExperience(), playerJob.getLevel(), playerJob.getPrestige()));
+            this.plugin.getScheduler().runAsync(w -> finalJobBossBar.updateExperience(playerJob.getExperience(), playerJob.getLevel(), playerJob.getPrestige()));
         }
     }
 

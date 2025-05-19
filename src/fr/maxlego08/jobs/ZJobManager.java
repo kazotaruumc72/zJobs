@@ -14,7 +14,6 @@ import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.utils.ElapsedTime;
 import fr.maxlego08.jobs.zcore.utils.ZUtils;
 import fr.maxlego08.jobs.zcore.utils.loader.Loader;
-import fr.maxlego08.menu.api.scheduler.ZScheduler;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -78,7 +77,7 @@ public class ZJobManager extends ZUtils implements JobManager {
         if (this.players.containsKey(uuid)) {
             consumer.accept(this.players.get(uuid));
         } else {
-            this.plugin.getScheduler().runTaskAsynchronously(() -> consumer.accept(this.plugin.getStorageManager().loadPlayerJobs(uuid)));
+            this.plugin.getScheduler().runAsync(w -> consumer.accept(this.plugin.getStorageManager().loadPlayerJobs(uuid)));
         }
     }
 
@@ -97,8 +96,7 @@ public class ZJobManager extends ZUtils implements JobManager {
     @Override
     public void loadPlayerJobs(Player player) {
         StorageManager storageManager = this.plugin.getStorageManager();
-        ZScheduler scheduler = this.plugin.getScheduler();
-        scheduler.runTaskAsynchronously(() -> {
+        this.plugin.getScheduler().runAsync(w -> {
             PlayerJobs playerJobs = storageManager.loadPlayerJobs(player.getUniqueId());
             this.players.put(player.getUniqueId(), playerJobs);
 
@@ -165,29 +163,29 @@ public class ZJobManager extends ZUtils implements JobManager {
 
         Optional<Job> optional = this.getJob(name);
         if (optional.isEmpty()) {
-            message(player, Message.DOESNT_EXIST, "%name%", name);
+            message(this.plugin.getInventoryManager().getMeta(), player, Message.DOESNT_EXIST, "%name%", name);
             return;
         }
 
         Job job = optional.get();
         if (!job.canJoin()) {
-            message(player, Message.JOIN_ERROR_CANT, "%name%", name);
+            message(this.plugin.getInventoryManager().getMeta(), player, Message.JOIN_ERROR_CANT, "%name%", name);
             return;
         }
 
         PlayerJobs playerJobs = getOrCreatePlayerJobs(player.getUniqueId());
         if (playerJobs.hasJob(job)) {
-            message(player, Message.JOIN_ERROR_ALREADY, "%name%", name);
+            message(this.plugin.getInventoryManager().getMeta(), player, Message.JOIN_ERROR_ALREADY, "%name%", name);
             return;
         }
 
         int limit = Config.getJobLimit(player);
         if (playerJobs.size() >= limit) {
-            message(player, Message.JOIN_ERROR_LIMIT, "%max%", limit);
+            message(this.plugin.getInventoryManager().getMeta(), player, Message.JOIN_ERROR_LIMIT, "%max%", limit);
             return;
         }
 
-        message(player, Message.JOIN_SUCCESS, "%name%", name);
+        message(this.plugin.getInventoryManager().getMeta(), player, Message.JOIN_SUCCESS, "%name%", name);
         playerJobs.join(job);
     }
 
@@ -196,35 +194,35 @@ public class ZJobManager extends ZUtils implements JobManager {
 
         Optional<Job> optional = this.getJob(name);
         if (optional.isEmpty()) {
-            message(player, Message.DOESNT_EXIST, "%name%", name);
+            message(this.plugin.getInventoryManager().getMeta(), player, Message.DOESNT_EXIST, "%name%", name);
             return;
         }
 
         Job job = optional.get();
 
         if (!job.canLeave()) {
-            message(player, Message.LEAVE_ERROR_CANT, "%name%", name);
+            message(this.plugin.getInventoryManager().getMeta(), player, Message.LEAVE_ERROR_CANT, "%name%", name);
             return;
         }
 
         var optionalPlayerJobs = getPlayerJobs(player.getUniqueId());
 
         if (optionalPlayerJobs.isEmpty()) {
-            message(player, Message.LEAVE_ERROR, "%name%", name);
+            message(this.plugin.getInventoryManager().getMeta(), player, Message.LEAVE_ERROR, "%name%", name);
             return;
         }
 
         var playerJobs = optionalPlayerJobs.get();
         if (!playerJobs.hasJob(job)) {
-            message(player, Message.LEAVE_ERROR, "%name%", name);
+            message(this.plugin.getInventoryManager().getMeta(), player, Message.LEAVE_ERROR, "%name%", name);
             return;
         }
 
         if (confirm) {
-            message(player, Message.LEAVE_SUCCESS, "%name%", name);
+            message(this.plugin.getInventoryManager().getMeta(), player, Message.LEAVE_SUCCESS, "%name%", name);
             playerJobs.leave(job);
         } else {
-            message(player, Message.LEAVE_SUCCESS_CONFIRM, "%name%", name);
+            message(this.plugin.getInventoryManager().getMeta(), player, Message.LEAVE_SUCCESS_CONFIRM, "%name%", name);
         }
     }
 
@@ -232,7 +230,7 @@ public class ZJobManager extends ZUtils implements JobManager {
     public void updatePlayerJobAttribute(CommandSender sender, OfflinePlayer offlinePlayer, String name, double value, AdminAction action, AttributeType type) {
         Optional<Job> optional = this.getJob(name);
         if (optional.isEmpty()) {
-            message(sender, Message.DOESNT_EXIST, "%name%", name);
+            message(this.plugin.getInventoryManager().getMeta(), sender, Message.DOESNT_EXIST, "%name%", name);
             return;
         }
 
@@ -242,7 +240,7 @@ public class ZJobManager extends ZUtils implements JobManager {
 
             var optionalPlayerJob = playerJobs.get(job);
             if (optionalPlayerJob.isEmpty()) {
-                message(sender, Message.ADMIN_PLAYER_JOB, "%name%", name, "%player%", offlinePlayer.getName());
+                message(this.plugin.getInventoryManager().getMeta(), sender, Message.ADMIN_PLAYER_JOB, "%name%", name, "%player%", offlinePlayer.getName());
                 return;
             }
 
@@ -254,7 +252,7 @@ public class ZJobManager extends ZUtils implements JobManager {
                 case EXPERIENCE -> processExperienceAction(playerJobs, playerJob, job, offlinePlayer, value, action);
             };
 
-            message(sender, message, "%name%", job.getName(), "%value%", type == AttributeType.EXPERIENCE ? value : (int) value, "%player%", offlinePlayer.getName());
+            message(this.plugin.getInventoryManager().getMeta(), sender, message, "%name%", job.getName(), "%value%", type == AttributeType.EXPERIENCE ? value : (int) value, "%player%", offlinePlayer.getName());
             this.plugin.getStorageManager().upsert(offlinePlayer.getUniqueId(), playerJob, true);
         });
     }
@@ -340,7 +338,7 @@ public class ZJobManager extends ZUtils implements JobManager {
             }
         };
 
-        message(sender, message, "%value%", points, "%player%", offlinePlayer.getName());
+        message(this.plugin.getInventoryManager().getMeta(), sender, message, "%value%", points, "%player%", offlinePlayer.getName());
         this.plugin.getStorageManager().upsert(offlinePlayer.getUniqueId(), playerJobs.getPoints());
     }
 
@@ -350,7 +348,7 @@ public class ZJobManager extends ZUtils implements JobManager {
         if (optional.isPresent()) {
             sendPoints(sender, offlinePlayer, optional.get().getPoints());
         } else {
-            this.plugin.getScheduler().runTaskAsynchronously(() -> sendPoints(sender, offlinePlayer, this.plugin.getStorageManager().getPoints(offlinePlayer.getUniqueId())));
+            this.plugin.getScheduler().runAsync(w -> sendPoints(sender, offlinePlayer, this.plugin.getStorageManager().getPoints(offlinePlayer.getUniqueId())));
         }
     }
 
@@ -365,7 +363,7 @@ public class ZJobManager extends ZUtils implements JobManager {
     }
 
     private void sendPoints(CommandSender sender, OfflinePlayer offlinePlayer, long points) {
-        message(sender, Message.ADMIN_POINTS_INFO, "%player%", offlinePlayer.getName(), "%points%", points);
+        message(this.plugin.getInventoryManager().getMeta(), sender, Message.ADMIN_POINTS_INFO, "%player%", offlinePlayer.getName(), "%points%", points);
     }
 
     @Override
@@ -374,7 +372,7 @@ public class ZJobManager extends ZUtils implements JobManager {
         if (optional.isPresent()) {
             setReward(sender, offlinePlayer, rewardId, rewardStatus, optional.get().getRewards());
         } else {
-            this.plugin.getScheduler().runTaskAsynchronously(() -> setReward(sender, offlinePlayer, rewardId, rewardStatus, this.plugin.getStorageManager().getRewards(offlinePlayer.getUniqueId())));
+            this.plugin.getScheduler().runAsync(w -> setReward(sender, offlinePlayer, rewardId, rewardStatus, this.plugin.getStorageManager().getRewards(offlinePlayer.getUniqueId())));
         }
     }
 
@@ -385,6 +383,6 @@ public class ZJobManager extends ZUtils implements JobManager {
 
         this.plugin.getStorageManager().upsert(offlinePlayer.getUniqueId(), rewards);
 
-        message(sender, rewardStatus ? Message.ADMIN_REWARD_ADD : Message.ADMIN_REWARD_REMOVE, "%player%", offlinePlayer.getName(), "%reward%", rewardId);
+        message(this.plugin.getInventoryManager().getMeta(), sender, rewardStatus ? Message.ADMIN_REWARD_ADD : Message.ADMIN_REWARD_REMOVE, "%player%", offlinePlayer.getName(), "%reward%", rewardId);
     }
 }

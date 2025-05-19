@@ -21,9 +21,9 @@ import fr.maxlego08.jobs.zmenu.loader.ClaimRewardLoader;
 import fr.maxlego08.jobs.zmenu.loader.JobInfoLoader;
 import fr.maxlego08.menu.api.ButtonManager;
 import fr.maxlego08.menu.api.InventoryManager;
-import fr.maxlego08.menu.api.scheduler.ZScheduler;
-import fr.maxlego08.menu.button.loader.NoneLoader;
-import fr.maxlego08.menu.exceptions.InventoryException;
+import fr.maxlego08.menu.api.exceptions.InventoryException;
+import fr.maxlego08.menu.api.loader.NoneLoader;
+import fr.maxlego08.menu.hooks.folialib.impl.PlatformScheduler;
 import fr.traqueur.currencies.Currencies;
 import fr.traqueur.currencies.CurrencyProvider;
 import org.bukkit.plugin.ServicePriority;
@@ -133,7 +133,7 @@ public class JobsPlugin extends ZPlugin {
         return storageManager;
     }
 
-    public ZScheduler getScheduler() {
+    public PlatformScheduler getScheduler() {
         return this.inventoryManager.getScheduler();
     }
 

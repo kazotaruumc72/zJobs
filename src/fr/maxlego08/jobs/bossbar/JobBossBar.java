@@ -5,7 +5,7 @@ import fr.maxlego08.jobs.component.PaperComponent;
 import fr.maxlego08.jobs.save.Config;
 import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.utils.ZUtils;
-import fr.maxlego08.menu.api.scheduler.ZScheduler;
+import fr.maxlego08.menu.hooks.folialib.wrapper.task.WrappedTask;
 import net.kyori.adventure.bossbar.BossBar;
 import org.bukkit.entity.Player;
 
@@ -17,7 +17,7 @@ public class JobBossBar extends ZUtils {
     private final String jobName;
     private double maxExperience;
     private double currentExperience;
-    private ZScheduler task;
+    private WrappedTask task;
 
     public JobBossBar(JobsPlugin plugin, Player player, double currentExperience, double maxExperience, int level, int prestige, String jobName) {
 
@@ -30,14 +30,7 @@ public class JobBossBar extends ZUtils {
         this.maxExperience = maxExperience;
 
         float progress = (float) ((float) currentExperience / maxExperience);
-        this.bossBar = paperComponent.createBossBar(getMessage(
-                Message.PROGRESSION_BOSSBAR,
-                "%job-experience%", Config.decimalFormat.format(currentExperience),
-                "%job-max-experience%", Config.decimalFormat.format(maxExperience),
-                "%job-name%", jobName,
-                "%job-prestige%", prestige,
-                "%job-level%", level
-        ), Config.progressionBarColor, Config.progressionBarOverlay, Math.max(0, Math.min(1, progress)));
+        this.bossBar = paperComponent.createBossBar(getMessage(Message.PROGRESSION_BOSSBAR, "%job-experience%", Config.decimalFormat.format(currentExperience), "%job-max-experience%", Config.decimalFormat.format(maxExperience), "%job-name%", jobName, "%job-prestige%", prestige, "%job-level%", level), Config.progressionBarColor, Config.progressionBarOverlay, Math.max(0, Math.min(1, progress)));
         this.bossBar.addViewer(player);
     }
 
@@ -49,14 +42,7 @@ public class JobBossBar extends ZUtils {
     public void updateExperience(double newExperience, int level, int prestige) {
         this.currentExperience = newExperience;
         updateBossBar();
-        this.bossBar.name(this.plugin.getPaperComponent().getComponent(getMessage(
-                Message.PROGRESSION_BOSSBAR,
-                "%job-experience%", Config.decimalFormat.format(currentExperience),
-                "%job-max-experience%", Config.decimalFormat.format(maxExperience),
-                "%job-name%", jobName,
-                "%job-prestige%", prestige,
-                "%job-level%", level
-        )));
+        this.bossBar.name(this.plugin.getPaperComponent().getComponent(getMessage(Message.PROGRESSION_BOSSBAR, "%job-experience%", Config.decimalFormat.format(currentExperience), "%job-max-experience%", Config.decimalFormat.format(maxExperience), "%job-name%", jobName, "%job-prestige%", prestige, "%job-level%", level)));
     }
 
     public void updateMaxExperience(double maxExperience) {
@@ -66,10 +52,10 @@ public class JobBossBar extends ZUtils {
     public void resetTimer() {
         if (task != null) task.cancel();
 
-        this.task = this.plugin.getScheduler().runTaskLater(this.player.getLocation(), 100L, () -> {
+        this.task = this.plugin.getScheduler().runAtLocationLater(this.player.getLocation(), () -> {
             this.bossBar.removeViewer(player);
             this.task = null;
-        });
+        }, 100L);
     }
 
     public boolean isExpired() {

@@ -3,15 +3,13 @@ package fr.maxlego08.jobs.zcore.utils;
 import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.enums.MessageType;
 import fr.maxlego08.jobs.zcore.utils.nms.NmsVersion;
-import fr.maxlego08.jobs.zcore.utils.players.ActionBar;
-import fr.maxlego08.menu.MenuPlugin;
+import fr.maxlego08.menu.api.utils.MetaUpdater;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -65,8 +63,8 @@ public abstract class MessageUtils extends LocationUtils {
      * @param sender  the command sender to send the message to.
      * @param message the message to send.
      */
-    private void message(CommandSender sender, String message) {
-        MenuPlugin.getInstance().getInventoryManager().getMeta().sendMessage(sender, message);
+    private void message(MetaUpdater updater, CommandSender sender, String message) {
+        updater.sendMessage(sender, message);
         // sender.sendMessage(color(message));
     }
 
@@ -92,9 +90,9 @@ public abstract class MessageUtils extends LocationUtils {
      * @param message the message - using the Message enum for simplified message management.
      * @param args    the arguments - the arguments work in pairs, you must put for example %test% and then the value.
      */
-    protected void message(CommandSender sender, Message message, Object... args) {
+    protected void message(MetaUpdater updater, CommandSender sender, Message message, Object... args) {
         if (sender instanceof ConsoleCommandSender) {
-            if (message.getMessages().size() > 0) {
+            if (!message.getMessages().isEmpty()) {
                 message.getMessages().forEach(msg -> message(sender, getMessage(msg, args)));
             } else {
                 message(sender, Message.PREFIX.msg() + getMessage(message, args));
@@ -103,15 +101,15 @@ public abstract class MessageUtils extends LocationUtils {
             Player player = (Player) sender;
             switch (message.getType()) {
                 case CENTER -> {
-                    if (message.getMessages().size() > 0) {
+                    if (!message.getMessages().isEmpty()) {
                         message.getMessages().forEach(msg -> sender.sendMessage(this.getCenteredMessage(this.papi(getMessage(msg, args), player))));
                     } else {
                         sender.sendMessage(this.getCenteredMessage(this.papi(getMessage(message, args), player)));
                     }
                 }
-                case ACTION -> this.actionMessage(player, message, args);
+                case ACTION -> this.actionMessage(updater, player, message, args);
                 case TCHAT_AND_ACTION -> {
-                    this.actionMessage(player, message, args);
+                    this.actionMessage(updater, player, message, args);
                     sendTchatMessage(player, message, args);
                 }
                 case TCHAT, WITHOUT_PREFIX -> sendTchatMessage(player, message, args);
@@ -121,25 +119,12 @@ public abstract class MessageUtils extends LocationUtils {
                     int fadeInTime = message.getStart();
                     int showTime = message.getTime();
                     int fadeOutTime = message.getEnd();
-                    this.title(player, this.papi(this.getMessage(title, args), player), this.papi(this.getMessage(subTitle, args), player), fadeInTime, showTime, fadeOutTime);
+                    this.title(updater, player, this.papi(this.getMessage(title, args), player), this.papi(this.getMessage(subTitle, args), player), fadeInTime, showTime, fadeOutTime);
                 }
                 default -> {
                 }
             }
         }
-    }
-
-    /**
-     * Broadcasts a message to all online players and the console.
-     *
-     * @param message the message to broadcast.
-     * @param args    the arguments for the message.
-     */
-    protected void broadcast(Message message, Object... args) {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            message(player, message, args);
-        }
-        message(Bukkit.getConsoleSender(), message, args);
     }
 
     /**
@@ -149,8 +134,8 @@ public abstract class MessageUtils extends LocationUtils {
      * @param message the message to send.
      * @param args    the arguments for the message.
      */
-    protected void actionMessage(Player player, Message message, Object... args) {
-        MenuPlugin.getInstance().getInventoryManager().getMeta().sendAction(player, this.papi(getMessage(message, args), player));
+    protected void actionMessage(MetaUpdater updater, Player player, Message message, Object... args) {
+        updater.sendAction(player, this.papi(getMessage(message, args), player));
         // ActionBar.sendActionBar(player, color(this.papi(getMessage(message, args), player)));
     }
 
@@ -211,43 +196,8 @@ public abstract class MessageUtils extends LocationUtils {
      * @param showTime    the showtime in ticks.
      * @param fadeOutTime the fade-out time in ticks.
      */
-    protected void title(Player player, String title, String subtitle, int fadeInTime, int showTime, int fadeOutTime) {
-        MenuPlugin.getInstance().getInventoryManager().getMeta().sendTitle(player, title, subtitle, fadeInTime, showTime, fadeOutTime);
-        /*if (NmsVersion.nmsVersion.isNewMaterial()) {
-            player.sendTitle(title, subtitle, fadeInTime, showTime, fadeOutTime);
-            return;
-        }
-
-        try {
-            Object chatTitle = getNMSClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", String.class).invoke(null, "{\"text\": \"" + title + "\"}");
-            Constructor<?> titleConstructor = getNMSClass("PacketPlayOutTitle").getConstructor(getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0], getNMSClass("IChatBaseComponent"), int.class, int.class, int.class);
-            Object packet = titleConstructor.newInstance(getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("TITLE").get(null), chatTitle, fadeInTime, showTime, fadeOutTime);
-
-            Object chatsTitle = getNMSClass("IChatBaseComponent").getDeclaredClasses()[0].getMethod("a", String.class).invoke(null, "{\"text\": \"" + subtitle + "\"}");
-            Constructor<?> timingTitleConstructor = getNMSClass("PacketPlayOutTitle").getConstructor(getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0], getNMSClass("IChatBaseComponent"), int.class, int.class, int.class);
-            Object timingPacket = timingTitleConstructor.newInstance(getNMSClass("PacketPlayOutTitle").getDeclaredClasses()[0].getField("SUBTITLE").get(null), chatsTitle, fadeInTime, showTime, fadeOutTime);
-
-            sendPacket(player, packet);
-            sendPacket(player, timingPacket);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }*/
-    }
-
-    /**
-     * Sends a packet to the player.
-     *
-     * @param player the player to send the packet to.
-     * @param packet the packet to send.
-     */
-    protected final void sendPacket(Player player, Object packet) {
-        try {
-            Object handle = player.getClass().getMethod("getHandle").invoke(player);
-            Object playerConnection = handle.getClass().getField("playerConnection").get(handle);
-            playerConnection.getClass().getMethod("sendPacket", getNMSClass("Packet")).invoke(playerConnection, packet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    protected void title(MetaUpdater updater, Player player, String title, String subtitle, int fadeInTime, int showTime, int fadeOutTime) {
+        updater.sendTitle(player, title, subtitle, fadeInTime, showTime, fadeOutTime);
     }
 
     /**
@@ -289,30 +239,6 @@ public abstract class MessageUtils extends LocationUtils {
             compensated += spaceLength;
         }
         return sb + message;
-    }
-
-    /**
-     * Broadcasts a centered message to all online players.
-     *
-     * @param messages the list of messages to broadcast.
-     */
-    protected void broadcastCenterMessage(List<String> messages) {
-        messages.stream().map(this::getCenteredMessage).forEach(e -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                messageWO(player, e);
-            }
-        });
-    }
-
-    /**
-     * Broadcasts an action bar message to all online players.
-     *
-     * @param message the message to broadcast.
-     */
-    protected void broadcastAction(String message) {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            ActionBar.sendActionBar(player, papi(message, player));
-        }
     }
 
     /**

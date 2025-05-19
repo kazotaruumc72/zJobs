@@ -2,11 +2,11 @@ package fr.maxlego08.jobs.zmenu.buttons;
 
 import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.api.JobAction;
+import fr.maxlego08.jobs.zcore.utils.FormatUtils;
 import fr.maxlego08.jobs.zcore.utils.inventory.Pagination;
 import fr.maxlego08.menu.api.button.PaginateButton;
+import fr.maxlego08.menu.api.engine.InventoryEngine;
 import fr.maxlego08.menu.api.utils.Placeholders;
-import fr.maxlego08.menu.button.ZButton;
-import fr.maxlego08.menu.inventory.inventories.InventoryDefault;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
@@ -15,7 +15,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.ToDoubleFunction;
 
-public class JobValueButton extends ZButton implements PaginateButton {
+public class JobValueButton extends PaginateButton {
 
     private final JobsPlugin plugin;
 
@@ -24,7 +24,7 @@ public class JobValueButton extends ZButton implements PaginateButton {
     }
 
     @Override
-    public void onInventoryOpen(Player player, InventoryDefault inventory, Placeholders placeholders) {
+    public void onInventoryOpen(Player player, InventoryEngine inventory, Placeholders placeholders) {
         super.onInventoryOpen(player, inventory, placeholders);
         var targetJob = plugin.getJobManager().getTargetJob(player);
         if (targetJob == null) return;
@@ -38,7 +38,7 @@ public class JobValueButton extends ZButton implements PaginateButton {
     }
 
     @Override
-    public void onRender(Player player, InventoryDefault inventory) {
+    public void onRender(Player player, InventoryEngine inventory) {
         var targetJobs = plugin.getJobManager().getTargetJob(player);
         if (targetJobs == null) return;
 
@@ -51,8 +51,8 @@ public class JobValueButton extends ZButton implements PaginateButton {
             JobAction<?> jobAction = jobActions.get(i);
 
             Placeholders placeholders = new Placeholders();
-            placeholders.register("experience", format(jobAction.getExperience()));
-            placeholders.register("money", format(jobAction.getMoney()));
+            placeholders.register("experience", FormatUtils.format(jobAction.getExperience()));
+            placeholders.register("money", FormatUtils.format(jobAction.getMoney()));
             placeholders.register("material", jobAction.getDisplayMaterial().name());
             placeholders.register("name", jobAction.getDisplayName());
             ItemStack itemStack = getItemStack().build(player, false, placeholders);

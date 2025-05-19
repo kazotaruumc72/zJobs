@@ -10,26 +10,12 @@ import fr.maxlego08.menu.api.loader.ButtonLoader;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
-public class JobInfoLoader implements ButtonLoader {
+public class JobInfoLoader extends ButtonLoader {
     private final JobsPlugin plugin;
 
     public JobInfoLoader(JobsPlugin plugin) {
+        super(plugin, "ZJOBS_INFO");
         this.plugin = plugin;
-    }
-
-    @Override
-    public Class<? extends Button> getButton() {
-        return JobInfoButton.class;
-    }
-
-    @Override
-    public String getName() {
-        return "ZJOBS_INFO";
-    }
-
-    @Override
-    public Plugin getPlugin() {
-        return this.plugin;
     }
 
     @Override

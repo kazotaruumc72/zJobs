@@ -150,7 +150,7 @@ public class ZStorageManager implements StorageManager {
 
     @Override
     public void upsert(UUID uniqueId, long points) {
-        this.plugin.getScheduler().runTaskAsynchronously(() -> {
+        this.plugin.getScheduler().runAsync(w -> {
             this.requestHelper.upsert(Tables.POINTS, table -> {
                 table.uuid("unique_id", uniqueId).primary();
                 table.bigInt("points", points);
@@ -160,7 +160,7 @@ public class ZStorageManager implements StorageManager {
 
     @Override
     public void upsert(UUID uniqueId, Set<String> rewards) {
-        this.plugin.getScheduler().runTaskAsynchronously(() -> {
+        this.plugin.getScheduler().runAsync(w -> {
             this.requestHelper.upsert(Tables.REWARDS, table -> {
                 table.uuid("unique_id", uniqueId).primary();
                 table.string("content", rewards.stream().map(String::valueOf).collect(Collectors.joining(",")));
@@ -169,7 +169,7 @@ public class ZStorageManager implements StorageManager {
     }
 
     private void executeUpsert(UUID uniqueId, PlayerJob playerJob) {
-        this.plugin.getScheduler().runTaskAsynchronously(() -> this.requestHelper.upsert(Tables.JOBS, this.toPlayerJobTable(uniqueId, playerJob)));
+        this.plugin.getScheduler().runAsync(w -> this.requestHelper.upsert(Tables.JOBS, this.toPlayerJobTable(uniqueId, playerJob)));
     }
 
     private Consumer<Schema> toPlayerJobTable(UUID uniqueId, PlayerJob playerJob) {
@@ -183,7 +183,7 @@ public class ZStorageManager implements StorageManager {
     }
 
     private void startUpdateTask(long ticks) {
-        this.plugin.getScheduler().runTaskTimerAsynchronously(ticks, ticks, this::update);
+        this.plugin.getScheduler().runTimerAsync(this::update, ticks, ticks);
     }
 
     private void update() {
@@ -201,7 +201,7 @@ public class ZStorageManager implements StorageManager {
         });
         this.pendingUpdates.clear();
 
-        this.plugin.getScheduler().runTaskAsynchronously(() -> {
+        this.plugin.getScheduler().runAsync(w -> {
             this.requestHelper.upsertMultiple(updateJobs);
             this.requestHelper.updateMultiple(updateBoots);
         });
@@ -209,7 +209,7 @@ public class ZStorageManager implements StorageManager {
 
     @Override
     public void deleteJob(UUID uniqueId, String jobId) {
-        this.plugin.getScheduler().runTaskAsynchronously(() -> {
+        this.plugin.getScheduler().runAsync(w -> {
 
             this.requestHelper.delete(Tables.JOBS, table -> {
                 table.where("unique_id", uniqueId).primary();
@@ -253,7 +253,7 @@ public class ZStorageManager implements StorageManager {
 
     @Override
     public void createBoost(@NotNull UUID uniqueId, List<String> jobs, List<JobActionType> actions, List<String> targets, double moneyBoost, double experienceBoost, int amount, Consumer<Boost> consumer, Runnable errorRunnable) {
-        this.plugin.getScheduler().runTaskAsynchronously(() -> this.requestHelper.insert(Tables.BOOSTS, table -> {
+        this.plugin.getScheduler().runAsync(w -> this.requestHelper.insert(Tables.BOOSTS, table -> {
             table.uuid("unique_id", uniqueId).primary();
             if (!jobs.isEmpty()) table.string("jobs", String.join(",", jobs));
             if (!actions.isEmpty()) {
@@ -269,12 +269,12 @@ public class ZStorageManager implements StorageManager {
 
     @Override
     public void deleteBoost(@NotNull UUID uniqueId, int boostId) {
-        this.plugin.getScheduler().runTaskAsynchronously(() -> this.requestHelper.delete(Tables.BOOSTS, table -> table.where("id", boostId)));
+        this.plugin.getScheduler().runAsync(w -> this.requestHelper.delete(Tables.BOOSTS, table -> table.where("id", boostId)));
     }
 
     @Override
     public void insertBoostLog(UUID uniqueId, Boost boost) {
-        this.plugin.getScheduler().runTaskAsynchronously(() -> this.requestHelper.insert(Tables.BOOST_LOGS, table -> {
+        this.plugin.getScheduler().runAsync(w -> this.requestHelper.insert(Tables.BOOST_LOGS, table -> {
             table.uuid("unique_id", uniqueId).primary();
             if (!boost.getJobs().isEmpty()) table.string("jobs", String.join(",", boost.getJobs()));
             if (!boost.getActions().isEmpty()) {

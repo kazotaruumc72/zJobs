@@ -13,12 +13,8 @@ public class ClaimRewardLoader extends ActionLoader {
     private final JobsPlugin plugin;
 
     public ClaimRewardLoader(JobsPlugin plugin) {
+        super("zjobs_claim_reward");
         this.plugin = plugin;
-    }
-
-    @Override
-    public String getKey() {
-        return "zjobs_claim_reward";
     }
 
     @Override

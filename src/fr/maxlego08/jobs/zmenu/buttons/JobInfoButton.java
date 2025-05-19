@@ -8,9 +8,10 @@ import fr.maxlego08.jobs.api.players.PlayerJobs;
 import fr.maxlego08.jobs.players.ZPlayerJob;
 import fr.maxlego08.jobs.players.ZPlayerJobs;
 import fr.maxlego08.jobs.save.Config;
+import fr.maxlego08.jobs.zcore.utils.FormatUtils;
+import fr.maxlego08.menu.api.button.Button;
+import fr.maxlego08.menu.api.engine.InventoryEngine;
 import fr.maxlego08.menu.api.utils.Placeholders;
-import fr.maxlego08.menu.button.ZButton;
-import fr.maxlego08.menu.inventory.inventories.InventoryDefault;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
@@ -18,7 +19,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.HashSet;
 import java.util.List;
 
-public class JobInfoButton extends ZButton {
+public class JobInfoButton extends Button {
 
     private final JobsPlugin plugin;
     private final Job job;
@@ -44,14 +45,14 @@ public class JobInfoButton extends ZButton {
         PlayerJob playerJob = playerJobs.get(this.job).orElse(new ZPlayerJob(this.job.getFileName(), 0, 0, 0.0));
 
         double maxExperience = this.job.getExperience(playerJob.getLevel(), playerJob.getPrestige());
-        placeholders.register("experience", format(playerJob.getExperience()));
-        placeholders.register("max-experience", format(maxExperience));
+        placeholders.register("experience", FormatUtils.format(playerJob.getExperience()));
+        placeholders.register("max-experience", FormatUtils.format(maxExperience));
 
-        placeholders.register("level", format(playerJob.getLevel()));
-        placeholders.register("max-level", format(this.job.getMaxLevels()));
+        placeholders.register("level", FormatUtils.format(playerJob.getLevel()));
+        placeholders.register("max-level", FormatUtils.format(this.job.getMaxLevels()));
 
-        placeholders.register("prestige", format(playerJob.getPrestige()));
-        placeholders.register("max-prestige", format(this.job.getMaxPrestiges()));
+        placeholders.register("prestige", FormatUtils.format(playerJob.getPrestige()));
+        placeholders.register("max-prestige", FormatUtils.format(this.job.getMaxPrestiges()));
 
         placeholders.register("experience-progressbar", Config.progressBarExperience.getProgressBar(playerJob.getExperience(), maxExperience));
         placeholders.register("level-progressbar", Config.progressBarLevel.getProgressBar(playerJob.getLevel(), this.job.getMaxLevels()));
@@ -61,7 +62,7 @@ public class JobInfoButton extends ZButton {
     }
 
     @Override
-    public void onClick(Player player, InventoryClickEvent event, InventoryDefault inventory, int slot, Placeholders placeholders) {
+    public void onClick(Player player, InventoryClickEvent event, InventoryEngine inventory, int slot, Placeholders placeholders) {
         super.onClick(player, event, inventory, slot, placeholders);
         this.plugin.getJobManager().setTargetJob(player, this.job);
         var inventoryManager = this.plugin.getInventoryManager();
