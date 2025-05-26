@@ -3,7 +3,6 @@ package fr.maxlego08.jobs.placeholder;
 import fr.maxlego08.jobs.api.Job;
 import fr.maxlego08.jobs.api.JobManager;
 import fr.maxlego08.jobs.api.boost.Boost;
-import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.save.Config;
 import fr.maxlego08.jobs.zcore.utils.ZUtils;
 import fr.maxlego08.menu.api.utils.Placeholders;

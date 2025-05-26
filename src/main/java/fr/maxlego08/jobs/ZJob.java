@@ -4,8 +4,8 @@ import fr.maxlego08.jobs.api.Job;
 import fr.maxlego08.jobs.api.JobAction;
 import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.api.JobReward;
-import net.objecthunter.exp4j.Expression;
-import net.objecthunter.exp4j.ExpressionBuilder;
+import fr.maxlego08.menu.hooks.exp4j.Expression;
+import fr.maxlego08.menu.hooks.exp4j.ExpressionBuilder;
 
 import java.util.Collection;
 import java.util.Collections;

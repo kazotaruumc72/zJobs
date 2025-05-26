@@ -29,7 +29,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.permissions.Permissible;
 import org.bukkit.plugin.Plugin;
@@ -1070,19 +1069,6 @@ public abstract class ZUtils extends MessageUtils {
         }
     }
 
-
-    /**
-     * Adds a glow effect to an item stack.
-     *
-     * @param itemStack the item stack to make glow.
-     */
-    public void glow(ItemStack itemStack) {
-        ItemMeta itemMeta = itemStack.getItemMeta();
-        itemMeta.addEnchant(Enchantment.ARROW_DAMAGE, 1, true);
-        itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        itemStack.setItemMeta(itemMeta);
-    }
-
     /**
      * Clears a player's inventory, removes potion effects, and resets their status.
      *
@@ -1172,8 +1158,7 @@ public abstract class ZUtils extends MessageUtils {
 
     protected void files(File folder, Consumer<File> consumer) {
         try (Stream<Path> s = Files.walk(Paths.get(folder.getPath()))) {
-            s.skip(1).map(Path::toFile).filter(File::isFile).filter(e -> e.getName().endsWith(".yml"))
-                    .forEach(consumer);
+            s.skip(1).map(Path::toFile).filter(File::isFile).filter(e -> e.getName().endsWith(".yml")).forEach(consumer);
         } catch (IOException exception) {
             exception.printStackTrace();
         }

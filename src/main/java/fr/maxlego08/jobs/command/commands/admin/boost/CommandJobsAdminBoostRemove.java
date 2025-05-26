@@ -2,7 +2,6 @@ package fr.maxlego08.jobs.command.commands.admin.boost;
 
 import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.api.boost.Boost;
-import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.command.VCommand;
 import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.enums.Permission;

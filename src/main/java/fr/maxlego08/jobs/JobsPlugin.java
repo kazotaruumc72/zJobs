@@ -23,9 +23,9 @@ import fr.maxlego08.menu.api.ButtonManager;
 import fr.maxlego08.menu.api.InventoryManager;
 import fr.maxlego08.menu.api.exceptions.InventoryException;
 import fr.maxlego08.menu.api.loader.NoneLoader;
+import fr.maxlego08.menu.hooks.currencies.Currencies;
+import fr.maxlego08.menu.hooks.currencies.CurrencyProvider;
 import fr.maxlego08.menu.hooks.folialib.impl.PlatformScheduler;
-import fr.traqueur.currencies.Currencies;
-import fr.traqueur.currencies.CurrencyProvider;
 import org.bukkit.plugin.ServicePriority;
 
 import java.io.File;

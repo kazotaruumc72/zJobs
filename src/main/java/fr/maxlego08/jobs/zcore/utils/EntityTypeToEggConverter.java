@@ -38,7 +38,7 @@ public class EntityTypeToEggConverter {
             case IRON_GOLEM -> Material.IRON_GOLEM_SPAWN_EGG;
             case LLAMA -> Material.LLAMA_SPAWN_EGG;
             case MAGMA_CUBE -> Material.MAGMA_CUBE_SPAWN_EGG;
-            case MUSHROOM_COW -> Material.MOOSHROOM_SPAWN_EGG;
+            case MOOSHROOM -> Material.MOOSHROOM_SPAWN_EGG;
             case MULE -> Material.MULE_SPAWN_EGG;
             case OCELOT -> Material.OCELOT_SPAWN_EGG;
             case PANDA -> Material.PANDA_SPAWN_EGG;
@@ -59,7 +59,7 @@ public class EntityTypeToEggConverter {
             case SKELETON -> Material.SKELETON_SPAWN_EGG;
             case SKELETON_HORSE -> Material.SKELETON_HORSE_SPAWN_EGG;
             case SLIME -> Material.SLIME_SPAWN_EGG;
-            case SNOWMAN -> Material.SNOW_BLOCK;
+            case SNOW_GOLEM -> Material.SNOW_BLOCK;
             case SPIDER -> Material.SPIDER_SPAWN_EGG;
             case SQUID -> Material.SQUID_SPAWN_EGG;
             case STRAY -> Material.STRAY_SPAWN_EGG;
