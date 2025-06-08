@@ -27,6 +27,12 @@ public class JobsPlaceholder extends ZUtils {
             var playerJobs = optional.get();
             return playerJobs.get(jobId).map(PlayerJob::getLevel).orElse(0).toString();
         });
+        placeholder.register("prestige_", (player, jobId) -> {
+            var optional = manager.getPlayerJobs(player.getUniqueId());
+            if (optional.isEmpty()) return "0";
+            var playerJobs = optional.get();
+            return playerJobs.get(jobId).map(PlayerJob::getPrestige).orElse(0).toString();
+        });
         placeholder.register("points", (player) -> {
             var optional = manager.getPlayerJobs(player.getUniqueId());
             return optional.map(PlayerJobs::getPoints).orElse(0L).toString();
