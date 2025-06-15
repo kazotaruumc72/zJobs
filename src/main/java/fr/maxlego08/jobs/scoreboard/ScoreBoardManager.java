@@ -133,13 +133,6 @@ public class ScoreBoardManager extends ZUtils {
 		return false;
 	}
 
-	/**
-	 * Update board line
-	 * 
-	 * @param player
-	 * @param title
-	 * @return boolean
-	 */
 	public boolean updateLine(Player player, int line, String string) {
 
 		if (!hasBoard(player)) {
