@@ -21,6 +21,7 @@ public class JobsPlaceholder extends ZUtils {
         LocalPlaceholder placeholder = LocalPlaceholder.getInstance();
 
         // Player
+        placeholder.register("has_", (player, jobId) -> manager.getPlayerJobs(player.getUniqueId()).map(playerJobs -> String.valueOf(playerJobs.get(jobId).isPresent())).orElse("false"));
         placeholder.register("level_", (player, jobId) -> {
             var optional = manager.getPlayerJobs(player.getUniqueId());
             if (optional.isEmpty()) return "0";
