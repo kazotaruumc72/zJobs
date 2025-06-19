@@ -1,0 +1,330 @@
+package fr.maxlego08.jobs.players;
+
+import fr.maxlego08.jobs.JobsPlugin;
+import fr.maxlego08.jobs.api.Job;
+import fr.maxlego08.jobs.api.JobManager;
+import fr.maxlego08.jobs.api.JobReward;
+import fr.maxlego08.jobs.api.actions.ActionInfo;
+import fr.maxlego08.jobs.api.boost.Boost;
+import fr.maxlego08.jobs.api.boost.PlayerBoosts;
+import fr.maxlego08.jobs.api.enums.JobActionType;
+import fr.maxlego08.jobs.api.event.events.JobExpGainEvent;
+import fr.maxlego08.jobs.api.event.events.JobLevelEvent;
+import fr.maxlego08.jobs.api.event.events.JobMoneyGainEvent;
+import fr.maxlego08.jobs.api.event.events.JobPrestigeEvent;
+import fr.maxlego08.jobs.api.event.events.JobRewardEvent;
+import fr.maxlego08.jobs.api.players.PlayerJob;
+import fr.maxlego08.jobs.api.players.PlayerJobs;
+import fr.maxlego08.jobs.api.storage.StorageManager;
+import fr.maxlego08.jobs.boost.ZPlayerBoosts;
+import fr.maxlego08.jobs.bossbar.JobBossBar;
+import fr.maxlego08.jobs.placeholder.BoostPlaceholder;
+import fr.maxlego08.jobs.save.Config;
+import fr.maxlego08.jobs.zcore.enums.Message;
+import fr.maxlego08.jobs.zcore.utils.ElapsedTime;
+import fr.maxlego08.jobs.zcore.utils.ZUtils;
+import fr.maxlego08.menu.api.engine.InventoryEngine;
+import fr.maxlego08.menu.api.requirement.Action;
+import fr.maxlego08.menu.api.utils.Placeholders;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+
+public class ZPlayerJobs extends ZUtils implements PlayerJobs {
+
+    private final JobsPlugin plugin;
+    private final UUID uniqueId;
+    private final List<PlayerJob> jobs;
+    private final Set<String> rewards;
+    private final Map<Job, JobBossBar> jobBossBars = new HashMap<>();
+    private final BoostPlaceholder boostPlaceholder = new BoostPlaceholder();
+    private final PlayerBoosts boosts;
+    private long points;
+    private double updateMoney;
+
+    public ZPlayerJobs(JobsPlugin plugin, UUID uniqueId, List<PlayerJob> jobs, long points, Set<String> rewards, PlayerBoosts boosts) {
+        this.plugin = plugin;
+        this.uniqueId = uniqueId;
+        this.jobs = jobs;
+        this.points = points;
+        this.rewards = rewards;
+        this.boosts = boosts;
+    }
+
+    public ZPlayerJobs(JobsPlugin plugin, UUID uniqueId, List<PlayerJob> jobs, long points, Set<String> rewards) {
+        this(plugin, uniqueId, jobs, points, rewards, new ZPlayerBoosts(plugin));
+    }
+
+    @Override
+    public UUID getUniqueId() {
+        return uniqueId;
+    }
+
+    @Override
+    public List<PlayerJob> getJobs() {
+        return jobs;
+    }
+
+    @Override
+    public boolean hasJob(Job job) {
+        return get(job).isPresent();
+    }
+
+    @Override
+    public void join(Job job) {
+        if (!hasJob(job)) {
+            PlayerJob playerJob = new ZPlayerJob(job.getFileName(), 0, 0, 0.0);
+            jobs.add(playerJob);
+
+            StorageManager storageManager = plugin.getStorageManager();
+            storageManager.upsert(this.uniqueId, playerJob, true);
+        }
+    }
+
+    @Override
+    public void leave(Job job) {
+        jobs.removeIf(jp -> jp.getJobId().equals(job.getFileName()));
+
+        StorageManager storageManager = plugin.getStorageManager();
+        storageManager.deleteJob(this.uniqueId, job.getFileName());
+    }
+
+    @Override
+    public Optional<PlayerJob> get(Job job) {
+        return get(job.getFileName());
+    }
+
+    @Override
+    public Optional<PlayerJob> get(String jobId) {
+        return jobs.stream().filter(jobPlayer -> jobPlayer.getJobId().equals(jobId)).findFirst();
+    }
+
+    @Override
+    public int size() {
+        return jobs.size();
+    }
+
+    @Override
+    public String toString() {
+        return "JobPlayersImpl{" + "uniqueId=" + uniqueId + ", jobs=" + jobs + '}';
+    }
+
+    @Override
+    public void action(Player player, Object target, JobActionType type) {
+        JobManager jobManager = this.plugin.getJobManager();
+        for (PlayerJob playerJob : this.jobs) {
+
+            ElapsedTime elapsedTime = new ElapsedTime("Find action for job " + playerJob.getJobId() + " for " + player.getName() + " -> " + type + " : " + target);
+            elapsedTime.start();
+
+            var optional = jobManager.getJob(playerJob.getJobId());
+            if (optional.isEmpty()) continue;
+
+            var job = optional.get();
+
+            var optionalAction = job.getAction(type, target);
+            if (optionalAction.isEmpty()) continue;
+
+            var action = optionalAction.get();
+
+            elapsedTime.endDisplay();
+
+            var actionInfo = type.toAction(target);
+            var result = this.boosts.processBoost(job, action, target);
+
+            if (result.hasBoost()) {
+
+                var storage = this.plugin.getStorageManager();
+                var boost = result.boost();
+                if (boost.isEmpty()) {
+                    this.boosts.delete(result.boost().getId());
+                    storage.deleteBoost(uniqueId, boost.getId());
+                    storage.insertBoostLog(uniqueId, boost);
+
+                    if (Config.enableBoostFinishMessage) {
+                        message(this.plugin.getInventoryManager().getMeta(), player, Message.BOOST_FINISH,
+                                "%boost-jobs%", this.boostPlaceholder.getJobs(boost, jobManager),
+                                "%boost-actions%", this.boostPlaceholder.getActions(boost),
+                                "%boost-targets%", this.boostPlaceholder.getTargets(boost),
+                                "%boost-amount%", format(boost.getBoostAmount()),
+                                "%boost-experience%", format(boost.getExperienceBoost()),
+                                "%boost-money%", format(boost.getMoneyBoost()),
+                                "%boost-id%", String.valueOf(boost.getId())
+                        );
+                    }
+
+                } else {
+                    storage.update(uniqueId, result.boost(), false);
+                }
+            }
+
+            if (result.money() > 0) {
+
+                var event = new JobMoneyGainEvent(player, this, playerJob, job, actionInfo, result.money());
+                if (Config.isEnable(event) && !event.callEvent()) continue;
+                this.updateMoney += event.getMoney();
+            }
+
+            this.process(player, playerJob, job, result.experience(), true, actionInfo);
+        }
+    }
+
+    @Override
+    public void process(Player player, PlayerJob playerJob, Job job, double experience, boolean initialCall, ActionInfo<?> actionInfo) {
+
+        // Event
+        var event = new JobExpGainEvent(player, this, playerJob, job, actionInfo, experience);
+        if (Config.isEnable(event) && !event.callEvent()) return;
+        experience = event.getExperience();
+
+        // Mise à jour des niveaux
+        playerJob.process(experience);
+        this.updateBossBar(player, playerJob, job);
+
+        double maxExperience = job.getExperience(playerJob.getLevel(), playerJob.getPrestige());
+
+        // On peut augmenter le niveau du jouer
+        if (playerJob.getExperience() >= maxExperience) {
+            double remainingExperience = playerJob.getExperience() - maxExperience;
+
+            // Mise à jour du niveau
+
+            int nextLevel = playerJob.getLevel() + 1;
+            var levelEvent = new JobLevelEvent(player, this, playerJob, job, nextLevel, 0);
+            if (Config.isEnable(levelEvent) && !levelEvent.callEvent()) return;
+
+            playerJob.setLevel(levelEvent.getLevel());
+            playerJob.setExperience(levelEvent.getExperience());
+
+            // On vérifie si on peut changer de prestige
+            if (playerJob.getLevel() > job.getMaxLevels()) {
+
+                int nextPrestige = playerJob.getPrestige() + 1;
+                var prestigeEvent = new JobPrestigeEvent(player, this, playerJob, job, nextPrestige, 1, 0);
+                if (Config.isEnable(prestigeEvent) && !prestigeEvent.callEvent()) return;
+
+                playerJob.setLevel(prestigeEvent.getLevel());
+                playerJob.setPrestige(prestigeEvent.getPrestige());
+                playerJob.setExperience(prestigeEvent.getExperience());
+
+                // On va vérifier le prestige
+                // ToDo
+            }
+
+            processReward(player, playerJob, job, playerJob.getLevel(), playerJob.getLevel() - 1, playerJob.getPrestige(), playerJob.getPrestige() - 1);
+
+            var jobBossBar = this.jobBossBars.get(job);
+            if (jobBossBar != null) {
+                jobBossBar.updateMaxExperience(job.getExperience(playerJob.getLevel(), playerJob.getPrestige()));
+            }
+            this.updateBossBar(player, playerJob, job);
+
+            if (remainingExperience > 0) {
+                this.process(player, playerJob, job, remainingExperience, false, actionInfo);
+            }
+        }
+
+        if (initialCall) {
+            StorageManager storageManager = plugin.getStorageManager();
+            storageManager.upsert(uniqueId, playerJob, false);
+        }
+    }
+
+    private void processReward(Player player, PlayerJob playerJob, Job job, int newLevel, int oldLevel, int newPrestige, int oldPrestige) {
+        if (player == null) return;
+
+        Placeholders placeholders = new Placeholders();
+        placeholders.register("name", job.getName());
+        placeholders.register("level", String.valueOf(newLevel));
+        placeholders.register("previous-level", String.valueOf(oldLevel));
+        placeholders.register("prestige", String.valueOf(newPrestige));
+        placeholders.register("previous-prestige", String.valueOf(oldPrestige));
+
+        InventoryEngine inventoryDefault = plugin.getInventoryManager().getFakeInventory();
+
+        for (JobReward reward : job.getRewards()) {
+            int rewardLevel = reward.getLevel();
+            int rewardPrestige = reward.getPrestige();
+            if ((rewardLevel == -1 || rewardLevel == newLevel) && (rewardPrestige == -1 || rewardPrestige == newPrestige)) {
+
+                var event = new JobRewardEvent(player, this, playerJob, job, oldLevel, oldPrestige, reward, newLevel, newPrestige);
+                if (Config.isEnable(event) && !event.callEvent()) return;
+
+                reward = event.getJobReward();
+
+                for (Action rewardAction : reward.getActions()) {
+                    rewardAction.preExecute(player, null, inventoryDefault, placeholders);
+                }
+            }
+        }
+    }
+
+    private void updateBossBar(Player player, PlayerJob playerJob, Job job) {
+        if (player == null) return;
+
+        var jobBossBar = this.jobBossBars.get(job);
+        if (jobBossBar == null || jobBossBar.isExpired()) {
+
+            jobBossBar = new JobBossBar(plugin, player, playerJob.getExperience(), job.getExperience(playerJob.getLevel(), playerJob.getPrestige()), playerJob.getLevel(), playerJob.getPrestige(), job.getName());
+            jobBossBar.resetTimer();
+            this.jobBossBars.put(job, jobBossBar);
+        } else {
+
+            jobBossBar.resetTimer();
+            JobBossBar finalJobBossBar = jobBossBar;
+            this.plugin.getScheduler().runAsync(w -> finalJobBossBar.updateExperience(playerJob.getExperience(), playerJob.getLevel(), playerJob.getPrestige()));
+        }
+    }
+
+    @Override
+    public void updateJobEconomies() {
+        if (this.updateMoney <= 0) return;
+
+        var offlinePlayer = Bukkit.getOfflinePlayer(this.uniqueId);
+        this.plugin.getCurrencyProvider().deposit(offlinePlayer, BigDecimal.valueOf(this.updateMoney), Config.moneyReason);
+
+        this.updateMoney = 0;
+    }
+
+    @Override
+    public long getPoints() {
+        return points;
+    }
+
+    @Override
+    public void setPoints(long points) {
+        this.points = points;
+    }
+
+    @Override
+    public void addPoints(long points) {
+        this.points += points;
+    }
+
+    @Override
+    public void removePoints(long points) {
+        this.points -= points;
+    }
+
+    @Override
+    public Set<String> getRewards() {
+        return this.rewards;
+    }
+
+    @Override
+    public PlayerBoosts getBoosts() {
+        return this.boosts;
+    }
+
+    @Override
+    public void addBoost(Boost boost) {
+        this.boosts.addBoost(boost);
+    }
+}
