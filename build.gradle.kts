@@ -29,6 +29,10 @@ allprojects {
         maven(url = "https://oss.sonatype.org/content/groups/public/")
         maven(url = "https://repo.extendedclip.com/content/repositories/placeholderapi/")
         maven(url = "https://repo.bg-software.com/repository/api/")
+        maven {
+            name = "groupezReleases"
+            url = uri("https://repo.groupez.dev/releases")
+        }
     }
 
     java {
@@ -51,9 +55,8 @@ allprojects {
         compileOnly("com.mojang:authlib:3.11.50")
         compileOnly("dev.krakenied:blocktracker:1.0.6")
 
-        compileOnly(files("libs/zMenu-API-1.1.0.0.jar"))
-
-        implementation("com.github.Maxlego08:Sarah:1.17")
+        compileOnly("fr.maxlego08.menu:zmenu-api:1.1.0.1")
+        implementation("fr.maxlego08.sarah:sarah:1.18")
     }
 }
 
