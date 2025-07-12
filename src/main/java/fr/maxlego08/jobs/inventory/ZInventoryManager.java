@@ -80,7 +80,7 @@ public class ZInventoryManager extends ListenerAdapter {
         Optional<VInventory> optional = this.getInventory(id);
 
         if (!optional.isPresent()) {
-            message(this.plugin.getInventoryManager().getMeta(), player, Message.INVENTORY_CLONE_NULL, "%id%", id);
+            message(this.plugin, player, Message.INVENTORY_CLONE_NULL, "%id%", id);
             return;
         }
 
@@ -93,7 +93,7 @@ public class ZInventoryManager extends ListenerAdapter {
         VInventory clonedInventory = inventory.clone();
 
         if (clonedInventory == null) {
-            message(this.plugin.getInventoryManager().getMeta(), player, Message.INVENTORY_CLONE_NULL, "%id%", id);
+            message(this.plugin, player, Message.INVENTORY_CLONE_NULL, "%id%", id);
             return;
         }
 
@@ -104,10 +104,10 @@ public class ZInventoryManager extends ListenerAdapter {
                 player.openInventory(clonedInventory.getInventory());
                 playerInventories.put(player.getUniqueId(), clonedInventory);
             } else if (result.equals(InventoryResult.ERROR)) {
-                message(this.plugin.getInventoryManager().getMeta(), player, Message.INVENTORY_OPEN_ERROR, "%id%", id);
+                message(this.plugin, player, Message.INVENTORY_OPEN_ERROR, "%id%", id);
             }
         } catch (InventoryOpenException e) {
-            message(this.plugin.getInventoryManager().getMeta(), player, Message.INVENTORY_OPEN_ERROR, "%id%", id);
+            message(this.plugin, player, Message.INVENTORY_OPEN_ERROR, "%id%", id);
             e.printStackTrace();
         }
     }

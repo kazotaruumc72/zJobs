@@ -1,5 +1,6 @@
 package fr.maxlego08.jobs.zcore.utils;
 
+import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.enums.MessageType;
 import fr.maxlego08.jobs.zcore.utils.nms.NmsVersion;
@@ -53,8 +54,8 @@ public abstract class MessageUtils extends LocationUtils {
      * @param message the message to send.
      * @param args    the arguments for the message.
      */
-    protected void message(CommandSender sender, String message, Object... args) {
-        sender.sendMessage(Message.PREFIX.msg() + getMessage(message, args));
+    protected void message(MetaUpdater updater, CommandSender sender, String message, Object... args) {
+        message(updater, sender, Message.PREFIX.msg() + getMessage(message, args));
     }
 
     /**
@@ -75,27 +76,31 @@ public abstract class MessageUtils extends LocationUtils {
      * @param message the message to send.
      * @param args    the arguments for the message.
      */
-    private void sendTchatMessage(Player player, Message message, Object... args) {
+    private void sendTchatMessage(MetaUpdater updater, Player player, Message message, Object... args) {
         if (message.getMessages().size() > 1) {
-            message.getMessages().forEach(msg -> message(player, this.papi(getMessage(msg, args), player)));
+            message.getMessages().forEach(msg -> message(updater, player, this.papi(getMessage(msg, args), player)));
         } else {
-            message(player, this.papi((message.getType() == MessageType.WITHOUT_PREFIX ? "" : Message.PREFIX.msg()) + getMessage(message, args), player));
+            message(updater, player, this.papi((message.getType() == MessageType.WITHOUT_PREFIX ? "" : Message.PREFIX.msg()) + getMessage(message, args), player));
         }
     }
 
     /**
      * Allows you to send a message to a command sender.
      *
+     * @param plugin  the plugin instance.
      * @param sender  the user who sent the command.
      * @param message the message - using the Message enum for simplified message management.
      * @param args    the arguments - the arguments work in pairs, you must put for example %test% and then the value.
      */
-    protected void message(MetaUpdater updater, CommandSender sender, Message message, Object... args) {
+    protected void message(JobsPlugin plugin, CommandSender sender, Message message, Object... args) {
+
+        var updater = plugin.getInventoryManager().getMeta();
+
         if (sender instanceof ConsoleCommandSender) {
             if (!message.getMessages().isEmpty()) {
-                message.getMessages().forEach(msg -> message(sender, getMessage(msg, args)));
+                message.getMessages().forEach(msg -> message(updater, sender, getMessage(msg, args)));
             } else {
-                message(sender, Message.PREFIX.msg() + getMessage(message, args));
+                message(updater, sender, Message.PREFIX.msg() + getMessage(message, args));
             }
         } else {
             Player player = (Player) sender;
@@ -110,9 +115,9 @@ public abstract class MessageUtils extends LocationUtils {
                 case ACTION -> this.actionMessage(updater, player, message, args);
                 case TCHAT_AND_ACTION -> {
                     this.actionMessage(updater, player, message, args);
-                    sendTchatMessage(player, message, args);
+                    sendTchatMessage(updater, player, message, args);
                 }
-                case TCHAT, WITHOUT_PREFIX -> sendTchatMessage(player, message, args);
+                case TCHAT, WITHOUT_PREFIX -> sendTchatMessage(updater, player, message, args);
                 case TITLE -> {
                     String title = message.getTitle();
                     String subTitle = message.getSubTitle();

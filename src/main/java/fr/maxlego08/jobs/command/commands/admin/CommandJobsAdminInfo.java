@@ -24,19 +24,19 @@ public class CommandJobsAdminInfo extends VCommand {
 
         Block block = this.player.getTargetBlock(null, 64);
         if (block.getType().isAir()) {
-            message(this.plugin.getInventoryManager().getMeta(), sender, Message.ADMIN_BLOCKINFO_ERROR);
+            message(this.plugin, sender, Message.ADMIN_BLOCKINFO_ERROR);
             return CommandType.DEFAULT;
         }
 
         Location location = block.getLocation();
-        message(this.plugin.getInventoryManager().getMeta(), sender, Message.ADMIN_BLOCKINFO_MATERIAL, "%world%", location.getWorld().getName(), "%x%", location.getBlockX(), "%y%", location.getBlockY(), "%z%", location.getBlockZ(), "%material%", block.getType());
+        message(this.plugin, sender, Message.ADMIN_BLOCKINFO_MATERIAL, "%world%", location.getWorld().getName(), "%x%", location.getBlockX(), "%y%", location.getBlockY(), "%z%", location.getBlockZ(), "%material%", block.getType());
 
         var blockData = block.getBlockData();
         if (blockData instanceof Ageable ageable) {
-            message(this.plugin.getInventoryManager().getMeta(), sender, Message.ADMIN_BLOCKINFO_AGE, "%age%", ageable.getAge(), "%maxAge%", ageable.getMaximumAge());
+            message(this.plugin, sender, Message.ADMIN_BLOCKINFO_AGE, "%age%", ageable.getAge(), "%maxAge%", ageable.getMaximumAge());
         }
 
-        message(this.plugin.getInventoryManager().getMeta(), sender, Message.ADMIN_BLOCKINFO_FOOTER);
+        message(this.plugin, sender, Message.ADMIN_BLOCKINFO_FOOTER);
 
         return CommandType.SUCCESS;
     }

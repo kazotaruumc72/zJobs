@@ -149,7 +149,7 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
                     storage.insertBoostLog(uniqueId, boost);
 
                     if (Config.enableBoostFinishMessage) {
-                        message(this.plugin.getInventoryManager().getMeta(), player, Message.BOOST_FINISH,
+                        message(this.plugin, player, Message.BOOST_FINISH,
                                 "%boost-jobs%", this.boostPlaceholder.getJobs(boost, jobManager),
                                 "%boost-actions%", this.boostPlaceholder.getActions(boost),
                                 "%boost-targets%", this.boostPlaceholder.getTargets(boost),
