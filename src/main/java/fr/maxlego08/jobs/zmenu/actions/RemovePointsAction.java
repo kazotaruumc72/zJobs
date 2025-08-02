@@ -21,6 +21,6 @@ public class RemovePointsAction extends Action {
     @Override
     protected void execute(Player player, Button button, InventoryEngine inventoryDefault, Placeholders placeholders) {
         var finalPoints = Integer.parseInt(placeholders.parse(!this.points.contains("%") ? this.points : Placeholder.getPlaceholder().setPlaceholders(player, this.points)));
-        this.plugin.getJobManager().addPoints(player.getUniqueId(), finalPoints);
+        this.plugin.getJobManager().removePoints(player.getUniqueId(), finalPoints);
     }
 }
