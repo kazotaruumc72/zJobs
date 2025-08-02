@@ -15,7 +15,7 @@ public class HasPointLoader extends PermissibleLoader {
     private final JobsPlugin plugin;
 
     public HasPointLoader(JobsPlugin plugin) {
-        super("zjobs has point");
+        super("zjobs has points");
         this.plugin = plugin;
     }
 
