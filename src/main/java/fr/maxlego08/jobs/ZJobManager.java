@@ -321,6 +321,13 @@ public class ZJobManager extends ZUtils implements JobManager {
     }
 
     @Override
+    public void removePoints(UUID uniqueId, long points) {
+        PlayerJobs playerJobs = this.players.computeIfAbsent(uniqueId, uuid -> new ZPlayerJobs(this.plugin, uuid, new ArrayList<>(), 0, new HashSet<>()));
+        playerJobs.removePoints(points);
+        this.plugin.getStorageManager().upsert(uniqueId, playerJobs.getPoints());
+    }
+
+    @Override
     public void updatePoints(CommandSender sender, OfflinePlayer offlinePlayer, int points, AdminAction action) {
         PlayerJobs playerJobs = this.players.computeIfAbsent(offlinePlayer.getUniqueId(), uuid -> new ZPlayerJobs(this.plugin, uuid, new ArrayList<>(), 0, new HashSet<>()));
         Message message = switch (action) {

@@ -47,6 +47,8 @@ public interface JobManager {
 
     void addPoints(UUID uniqueId, long points);
 
+    void removePoints(UUID uniqueId, long points);
+
     void updatePoints(CommandSender sender, OfflinePlayer offlinePlayer, int points, AdminAction action);
 
     void showPoints(CommandSender sender, OfflinePlayer player);

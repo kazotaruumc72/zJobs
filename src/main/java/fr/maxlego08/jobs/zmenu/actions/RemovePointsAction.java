@@ -8,12 +8,12 @@ import fr.maxlego08.menu.api.requirement.Action;
 import fr.maxlego08.menu.api.utils.Placeholders;
 import org.bukkit.entity.Player;
 
-public class AddPointsAction extends Action {
+public class RemovePointsAction extends Action {
 
     private final JobsPlugin plugin;
     private final String points;
 
-    public AddPointsAction(JobsPlugin plugin, String points) {
+    public RemovePointsAction(JobsPlugin plugin, String points) {
         this.plugin = plugin;
         this.points = points;
     }

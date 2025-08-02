@@ -18,11 +18,14 @@ import fr.maxlego08.jobs.zcore.utils.plugins.Plugins;
 import fr.maxlego08.jobs.zmenu.buttons.JobValueButton;
 import fr.maxlego08.jobs.zmenu.loader.AddPointLoader;
 import fr.maxlego08.jobs.zmenu.loader.ClaimRewardLoader;
+import fr.maxlego08.jobs.zmenu.loader.HasPointLoader;
 import fr.maxlego08.jobs.zmenu.loader.JobInfoLoader;
+import fr.maxlego08.jobs.zmenu.loader.RemovePointLoader;
 import fr.maxlego08.menu.api.ButtonManager;
 import fr.maxlego08.menu.api.InventoryManager;
 import fr.maxlego08.menu.api.exceptions.InventoryException;
 import fr.maxlego08.menu.api.loader.NoneLoader;
+import fr.maxlego08.menu.api.pattern.PatternManager;
 import fr.maxlego08.menu.hooks.currencies.Currencies;
 import fr.maxlego08.menu.hooks.currencies.CurrencyProvider;
 import fr.maxlego08.menu.hooks.folialib.impl.PlatformScheduler;
@@ -51,6 +54,7 @@ public class JobsPlugin extends ZPlugin {
     private final StorageManager storageManager = new ZStorageManager(this);
     private final PaperComponent paperComponent = new PaperComponent();
     private final Set<String> knowRewards = new HashSet<>();
+    private PatternManager patternManager;
     private InventoryManager inventoryManager;
     private ButtonManager buttonManager;
     private BlockHook blockHook = new EmptyHook();
@@ -71,6 +75,7 @@ public class JobsPlugin extends ZPlugin {
         this.registerCommand("zjobs", new CommandJobs(this), "jobs");
 
         this.inventoryManager = getProvider(InventoryManager.class);
+        this.patternManager = getProvider(PatternManager.class);
         this.buttonManager = getProvider(ButtonManager.class);
 
         this.loadActions();
@@ -147,7 +152,9 @@ public class JobsPlugin extends ZPlugin {
 
     private void loadActions() {
         this.buttonManager.registerAction(new AddPointLoader(this));
+        this.buttonManager.registerAction(new RemovePointLoader(this));
         this.buttonManager.registerAction(new ClaimRewardLoader(this));
+        this.buttonManager.registerPermissible(new HasPointLoader(this));
     }
 
     private void loadButtons() {
@@ -156,6 +163,8 @@ public class JobsPlugin extends ZPlugin {
     }
 
     public void loadInventories() {
+
+        this.loadPatterns();
 
         File folder = new File(this.getDataFolder(), "inventories");
         if (!folder.exists()) {
@@ -169,6 +178,22 @@ public class JobsPlugin extends ZPlugin {
         this.files(folder, file -> {
             try {
                 this.inventoryManager.loadInventory(this, file);
+            } catch (InventoryException exception) {
+                exception.printStackTrace();
+            }
+        });
+    }
+
+    private void loadPatterns() {
+
+        File folder = new File(this.getDataFolder(), "patterns");
+        if (!folder.exists()) {
+            folder.mkdir();
+        }
+
+        this.files(folder, file -> {
+            try {
+                this.patternManager.loadPattern(file);
             } catch (InventoryException exception) {
                 exception.printStackTrace();
             }
