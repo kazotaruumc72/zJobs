@@ -13,7 +13,7 @@ public class ClaimRewardLoader extends ActionLoader {
     private final JobsPlugin plugin;
 
     public ClaimRewardLoader(JobsPlugin plugin) {
-        super("zjobs_claim_reward");
+        super("zjobs_claim_reward", "zjobs claim reward");
         this.plugin = plugin;
     }
 
