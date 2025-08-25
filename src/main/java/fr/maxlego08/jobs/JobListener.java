@@ -122,7 +122,7 @@ public class JobListener implements Listener {
 
         LivingEntity entity = event.getEntity();
         if (entity.getKiller() != null) {
-            this.jobManager.action(entity.getKiller(), entity.getType(), JobActionType.KILL_ENTITY);
+            this.jobManager.action(entity.getKiller(), entity, JobActionType.KILL_ENTITY);
         }
     }
 
