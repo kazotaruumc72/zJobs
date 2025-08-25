@@ -6,6 +6,7 @@ import fr.maxlego08.jobs.save.Config;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.BrewingStand;
 import org.bukkit.block.Container;
@@ -17,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.enchantment.EnchantItemEvent;
@@ -27,6 +29,7 @@ import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EnchantingInventory;
@@ -195,5 +198,42 @@ public class JobListener implements Listener {
                 }
             }
         }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onStrip(PlayerInteractEvent event) {
+
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+
+        Block block = event.getClickedBlock();
+        if (block == null) return;
+
+        if (this.plugin.getBlockHook().isTracked(block)) return;
+
+        ItemStack tool = event.getItem();
+        if (tool == null || !Tag.ITEMS_AXES.isTagged(tool.getType())) return;
+
+        Material before = block.getType();
+
+        if (isNotStrippable(before)) return;
+
+        Material expectedAfter = strippedOf(before);
+        if (expectedAfter == null) return;
+
+        plugin.getScheduler().runNextTick(w -> {
+            if (block.getType() == expectedAfter) {
+                Player player = event.getPlayer();
+                this.jobManager.action(player, expectedAfter, JobActionType.STRIPLOGS);
+            }
+        });
+    }
+
+    private boolean isNotStrippable(Material type) {
+        return !Tag.LOGS.isTagged(type) && !Tag.CRIMSON_STEMS.isTagged(type) && !Tag.WARPED_STEMS.isTagged(type) && type != Material.BAMBOO_BLOCK;
+    }
+
+    private Material strippedOf(Material type) {
+        if (isNotStrippable(type)) return null;
+        return Material.matchMaterial("STRIPPED_" + type.name());
     }
 }

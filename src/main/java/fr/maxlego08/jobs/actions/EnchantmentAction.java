@@ -45,7 +45,7 @@ public class EnchantmentAction extends ZJobAction<Material> {
                 }
             }
 
-            return minimumCost >= event.getExpLevelCost();
+            return event.getExpLevelCost() >= minimumCost;
         }
 
         return false;

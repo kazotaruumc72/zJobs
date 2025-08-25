@@ -23,11 +23,12 @@ public enum JobActionType {
     TAME,
     ENCHANT,
     BREW,
-    SMELT;
+    SMELT,
+    STRIPLOGS;
 
     public ActionInfo<?> toAction(Object target) {
         return switch (this) {
-            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT -> new MaterialAction(this, (Material) target);
+            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS -> new MaterialAction(this, (Material) target);
             case KILL_ENTITY, TAME -> new EntityAction(this, (EntityType) target);
             case COMMAND -> new CommandAction(target == null ? "" : (String) target);
             case ENCHANT -> new EnchantAction(this, (EnchantItemEvent) target);
@@ -37,7 +38,7 @@ public enum JobActionType {
 
     public boolean isMaterial() {
         return switch (this) {
-            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT -> true;
+            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS -> true;
             case COMMAND, KILL_ENTITY, TAME, ENCHANT, BREW -> false;
         };
     }
