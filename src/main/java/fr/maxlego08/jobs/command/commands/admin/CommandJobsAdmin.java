@@ -24,6 +24,7 @@ public class CommandJobsAdmin extends VCommand {
         this.addSubCommand(new CommandJobsAdminPrestige(plugin));
         this.addSubCommand(new CommandJobsAdminPoints(plugin));
         this.addSubCommand(new CommandJobsAdminInfo(plugin));
+        this.addSubCommand(new CommandJobsAdminShow(plugin));
         this.addSubCommand(new CommandJobsAdminReward(plugin));
         this.addSubCommand(new CommandJobsAdminBoost(plugin));
     }

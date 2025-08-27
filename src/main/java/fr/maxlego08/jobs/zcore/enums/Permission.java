@@ -32,6 +32,8 @@ public enum Permission {
     ZJOBS_ADMIN_POINTS_REMOVE,
     ZJOBS_ADMIN_POINTS_INFO,
 
+    ZJOBS_ADMIN_SHOW,
+
     ZJOBS_ADMIN_REWARD_SET;
 
     private final String permission;
