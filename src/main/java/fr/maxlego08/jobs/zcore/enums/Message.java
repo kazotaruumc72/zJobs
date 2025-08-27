@@ -108,7 +108,7 @@ public enum Message {
 
     ADMIN_SHOW_EMPTY("&f%player% &chas no job."),
     ADMIN_SHOW_HEADER("&7Jobs of &f%player% &8(&7%amount%&8)&7:"),
-    ADMIN_SHOW_JOB_INFO("&8- &f%job% &7level &e%level% &7prestige &e%prestige% &7experience &e%experience%&7/&e%max_experience%"),
+    ADMIN_SHOW_JOB_INFO(MessageType.WITHOUT_PREFIX,"&8- &f%job% &7level &e%level% &7prestige &e%prestige% &7experience &e%experience%&7/&e%max_experience%"),
 
     ADMIN_BLOCKINFO_ERROR("&cImpossible to find the block."),
     ADMIN_BLOCKINFO_MATERIAL(

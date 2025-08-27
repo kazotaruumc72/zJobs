@@ -85,7 +85,13 @@ public class Config {
 
         enableDebug = configuration.getBoolean("enable-debug");
         enableDebugTime = configuration.getBoolean("enable-debug-time");
-        defaultJobs = configuration.getStringList("default-jobs").stream().map(jobManager::getJob).filter(Optional::isPresent).map(Optional::get).toList();
+        defaultJobs = configuration.getStringList("default-jobs").stream().map(jobName -> {
+            var result = jobManager.getJob(jobName);
+            if (result.isEmpty()) {
+                plugin.getLogger().warning("Job " + jobName + " not found ! Impossible to add it to default jobs");
+            }
+            return result;
+        }).filter(Optional::isPresent).map(Optional::get).toList();
         decimalFormat = new DecimalFormat(configuration.getString("decimal-format", "#.##"));
 
         progressionBarColor = BossBar.Color.valueOf(configuration.getString("progression-bar.color", "WHITE").toUpperCase());
