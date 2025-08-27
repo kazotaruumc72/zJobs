@@ -66,6 +66,7 @@ public enum Message {
     DESCRIPTION_ADMIN_POINTS_SET("Define points to a player"),
     DESCRIPTION_ADMIN_POINTS_REMOVE("Remove points to a player"),
     DESCRIPTION_ADMIN_BLOCK_INFO("Get information on a block"),
+    DESCRIPTION_ADMIN_SHOW("Show jobs info of a player"),
 
     PROGRESSION_BOSSBAR("#2fe082%job-name% #434343- #f7f725%job-experience%&8/#f78e25%job-max-experience% #434343- #2fe082P%job-prestige% lvl %job-level%"),
 
@@ -104,6 +105,10 @@ public enum Message {
     ADMIN_POINTS_SET("&aYou just set the points to &a%value%&a for&f %player%&a."),
     ADMIN_POINTS_REMOVE("&aYou have just removed &a%value%&a experience from &f%player%&a."),
     ADMIN_POINTS_INFO("&f%player%&8: &7%points% points"),
+
+    ADMIN_SHOW_EMPTY("&f%player% &chas no job."),
+    ADMIN_SHOW_HEADER("&7Jobs of &f%player% &8(&7%amount%&8)&7:"),
+    ADMIN_SHOW_JOB_INFO("&8- &f%job% &7level &e%level% &7prestige &e%prestige% &7experience &e%experience%&7/&e%max_experience%"),
 
     ADMIN_BLOCKINFO_ERROR("&cImpossible to find the block."),
     ADMIN_BLOCKINFO_MATERIAL(
