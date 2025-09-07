@@ -7,8 +7,6 @@ public record ProgressBarConfig(String symbol, String notCompletedSymbol, String
     public String getProgressBar(double current, double max) {
         float percent = (float) current / (float) max;
         int progressBars = (int) ((float) size * percent);
-        return Strings.repeat(progressColor + symbol, progressBars) + Strings.repeat(notCompletedColor + notCompletedSymbol, size - progressBars);
+        return Strings.repeat(progressColor + symbol, Math.max(progressBars, 0)) + Strings.repeat(notCompletedColor + notCompletedSymbol, Math.max(size - progressBars, 0));
     }
-
-
 }

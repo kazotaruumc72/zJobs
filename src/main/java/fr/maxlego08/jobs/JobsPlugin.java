@@ -18,7 +18,9 @@ import fr.maxlego08.jobs.zcore.utils.plugins.Plugins;
 import fr.maxlego08.jobs.zmenu.buttons.JobValueButton;
 import fr.maxlego08.jobs.zmenu.loader.AddPointLoader;
 import fr.maxlego08.jobs.zmenu.loader.ClaimRewardLoader;
+import fr.maxlego08.jobs.zmenu.loader.HasLevelLoader;
 import fr.maxlego08.jobs.zmenu.loader.HasPointLoader;
+import fr.maxlego08.jobs.zmenu.loader.HasPrestigeLoader;
 import fr.maxlego08.jobs.zmenu.loader.JobInfoLoader;
 import fr.maxlego08.jobs.zmenu.loader.RemovePointLoader;
 import fr.maxlego08.menu.api.ButtonManager;
@@ -155,6 +157,8 @@ public class JobsPlugin extends ZPlugin {
         this.buttonManager.registerAction(new RemovePointLoader(this));
         this.buttonManager.registerAction(new ClaimRewardLoader(this));
         this.buttonManager.registerPermissible(new HasPointLoader(this));
+        this.buttonManager.registerPermissible(new HasPrestigeLoader(this));
+        this.buttonManager.registerPermissible(new HasLevelLoader(this));
     }
 
     private void loadButtons() {
