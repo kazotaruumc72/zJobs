@@ -1,6 +1,7 @@
 package fr.maxlego08.jobs;
 
 import fr.maxlego08.jobs.actions.BrewAction;
+import fr.maxlego08.jobs.actions.CustomAction;
 import fr.maxlego08.jobs.actions.EnchantmentAction;
 import fr.maxlego08.jobs.actions.EntityAction;
 import fr.maxlego08.jobs.actions.MaterialAction;
@@ -119,6 +120,13 @@ public class JobLoader implements Loader<Job> {
                 } else if (jobActionType == JobActionType.BREW) {
 
                     jobAction = loadBrewAction(accessor, experience, money, displayMaterial);
+
+                } else if (jobActionType == JobActionType.CUSTOM) {
+
+                    String data = accessor.getString("data", null);
+                    if (data == null) {
+                        plugin.getLogger().severe("Custom data was not found for " + jobActionType + " in file " + file.getAbsolutePath());
+                    } else jobAction = new CustomAction(data, experience, money, displayMaterial);
                 }
 
                 if (jobAction != null) {

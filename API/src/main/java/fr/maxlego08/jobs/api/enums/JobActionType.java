@@ -3,6 +3,7 @@ package fr.maxlego08.jobs.api.enums;
 import fr.maxlego08.jobs.api.actions.ActionInfo;
 import fr.maxlego08.jobs.api.actions.BrewAction;
 import fr.maxlego08.jobs.api.actions.CommandAction;
+import fr.maxlego08.jobs.api.actions.CustomAction;
 import fr.maxlego08.jobs.api.actions.EnchantAction;
 import fr.maxlego08.jobs.api.actions.EntityAction;
 import fr.maxlego08.jobs.api.actions.MaterialAction;
@@ -23,7 +24,9 @@ public enum JobActionType {
     ENCHANT,
     BREW,
     SMELT,
-    STRIPLOGS;
+    STRIPLOGS,
+    CUSTOM
+    ;
 
     public ActionInfo<?> toAction(Object target) {
         return switch (this) {
@@ -33,13 +36,14 @@ public enum JobActionType {
             case COMMAND -> new CommandAction(target == null ? "" : (String) target);
             case ENCHANT -> new EnchantAction(this, (EnchantItemEvent) target);
             case BREW -> new BrewAction(this, (BrewEvent) target);
+            case CUSTOM -> new CustomAction(this, (String) target);
         };
     }
 
     public boolean isMaterial() {
         return switch (this) {
             case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS -> true;
-            case COMMAND, KILL_ENTITY, TAME, ENCHANT, BREW -> false;
+            case COMMAND, KILL_ENTITY, TAME, ENCHANT, BREW, CUSTOM -> false;
         };
     }
 
