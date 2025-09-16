@@ -1,9 +1,8 @@
 package fr.maxlego08.jobs.zmenu.buttons;
 
 import fr.maxlego08.jobs.JobsPlugin;
-import fr.maxlego08.jobs.api.JobAction;
+import fr.maxlego08.jobs.api.utils.ValueInformation;
 import fr.maxlego08.jobs.zcore.utils.FormatUtils;
-import fr.maxlego08.jobs.zcore.utils.inventory.Pagination;
 import fr.maxlego08.menu.api.button.PaginateButton;
 import fr.maxlego08.menu.api.engine.InventoryEngine;
 import fr.maxlego08.menu.api.utils.Placeholders;
@@ -12,8 +11,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import java.util.Comparator;
-import java.util.List;
-import java.util.function.ToDoubleFunction;
 
 public class JobValueButton extends PaginateButton {
 
@@ -26,7 +23,7 @@ public class JobValueButton extends PaginateButton {
     @Override
     public void onInventoryOpen(Player player, InventoryEngine inventory, Placeholders placeholders) {
         super.onInventoryOpen(player, inventory, placeholders);
-        var targetJob = plugin.getJobManager().getTargetJob(player);
+        var targetJob = this.plugin.getJobManager().getTargetJob(player);
         if (targetJob == null) return;
 
         placeholders.register("job-name", targetJob.getName());
@@ -42,30 +39,28 @@ public class JobValueButton extends PaginateButton {
         var targetJobs = plugin.getJobManager().getTargetJob(player);
         if (targetJobs == null) return;
 
-        List<JobAction<?>> jobActions = targetJobs.getActions().stream().sorted(Comparator.comparingDouble((ToDoubleFunction<JobAction<?>>) JobAction::getExperience).reversed()).toList();
-        Pagination<JobAction<?>> pagination = new Pagination<>();
-        jobActions = pagination.paginate(jobActions, this.slots.size(), inventory.getPage());
-
-        for (int i = 0; i != Math.min(jobActions.size(), this.slots.size()); i++) {
-            int slot = slots.get(i);
-            JobAction<?> jobAction = jobActions.get(i);
+        var jobActions = targetJobs.getValues().stream().sorted(Comparator.comparingDouble(ValueInformation::experience).reversed()).toList();
+        paginate(jobActions, inventory, (slot, value) -> {
 
             Placeholders placeholders = new Placeholders();
-            placeholders.register("experience", FormatUtils.format(jobAction.getExperience()));
-            placeholders.register("money", FormatUtils.format(jobAction.getMoney()));
-            placeholders.register("material", jobAction.getDisplayMaterial().name());
-            placeholders.register("name", jobAction.getDisplayName());
+            placeholders.register("experience", FormatUtils.format(value.experience()));
+            placeholders.register("money", FormatUtils.format(value.money()));
+            placeholders.register("material", value.material());
+            placeholders.register("name", value.name());
+
             ItemStack itemStack = getItemStack().build(player, false, placeholders);
-            jobAction.applyItemStack(itemStack);
+            if (value.applyItemStack() != null) {
+                value.applyItemStack().accept(itemStack);
+            }
 
             inventory.addItem(slot, itemStack);
-        }
+        });
     }
 
     @Override
     public int getPaginationSize(Player player) {
-        var targetJobs = plugin.getJobManager().getTargetJob(player);
-        return targetJobs == null ? 0 : targetJobs.getActions().size();
+        var targetJobs = this.plugin.getJobManager().getTargetJob(player);
+        return targetJobs == null ? 0 : targetJobs.getValues().size();
     }
 
     @Override

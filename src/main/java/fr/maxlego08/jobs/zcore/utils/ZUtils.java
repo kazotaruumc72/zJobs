@@ -390,57 +390,6 @@ public abstract class ZUtils extends MessageUtils {
         }, 0, delay);
     }
 
-
-    /**
-     * Creates an inventory for a player with the specified template and inventory type.
-     *
-     * @param plugin    the plugin instance.
-     * @param player    the player for whom the inventory is created.
-     * @param inventory the type of inventory to create.
-     */
-    protected void createInventory(JobsPlugin plugin, Player player, EnumInventory inventory) {
-        createInventory(plugin, player, inventory, 1);
-    }
-
-    /**
-     * Creates an inventory for a player with the specified template, inventory type, and page number.
-     *
-     * @param plugin    the plugin instance.
-     * @param player    the player for whom the inventory is created.
-     * @param inventory the type of inventory to create.
-     * @param page      the page number of the inventory.
-     */
-    protected void createInventory(JobsPlugin plugin, Player player, EnumInventory inventory, int page) {
-        createInventory(plugin, player, inventory, page, new Object() {
-        });
-    }
-
-    /**
-     * Creates an inventory for a player with the specified template, inventory type, page number, and additional objects.
-     *
-     * @param plugin    the plugin instance.
-     * @param player    the player for whom the inventory is created.
-     * @param inventory the type of inventory to create.
-     * @param page      the page number of the inventory.
-     * @param objects   additional objects to be used in creating the inventory.
-     */
-    protected void createInventory(JobsPlugin plugin, Player player, EnumInventory inventory, int page, Object... objects) {
-        plugin.getZInventoryManager().createInventory(inventory, player, page, objects);
-    }
-
-    /**
-     * Creates an inventory for a player with the specified template, inventory ID, page number, and additional objects.
-     *
-     * @param plugin    the plugin instance.
-     * @param player    the player for whom the inventory is created.
-     * @param inventory the ID of the inventory to create.
-     * @param page      the page number of the inventory.
-     * @param objects   additional objects to be used in creating the inventory.
-     */
-    protected void createInventory(JobsPlugin plugin, Player player, int inventory, int page, Object... objects) {
-        plugin.getZInventoryManager().createInventory(inventory, player, page, objects);
-    }
-
     /**
      * Checks if a permissible entity has a specific permission.
      *

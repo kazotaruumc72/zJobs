@@ -9,7 +9,7 @@ public class EntityAction extends ZJobAction<EntityType> {
 
     private final JobActionType actionType;
 
-    public EntityAction(EntityType target, double experience, double money, JobActionType actionType, Material displayMaterial) {
+    public EntityAction(EntityType target, double experience, double money, JobActionType actionType, String displayMaterial) {
         super(target, experience, money, displayMaterial);
         this.actionType = actionType;
     }

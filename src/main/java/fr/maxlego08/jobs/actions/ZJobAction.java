@@ -1,7 +1,7 @@
 package fr.maxlego08.jobs.actions;
 
 import fr.maxlego08.jobs.api.JobAction;
-import org.bukkit.Material;
+import fr.maxlego08.jobs.api.utils.ValueInformation;
 import org.bukkit.inventory.ItemStack;
 
 public abstract class ZJobAction<T> implements JobAction<T> {
@@ -9,10 +9,10 @@ public abstract class ZJobAction<T> implements JobAction<T> {
     protected final T target;
     private final double experience;
     private final double money;
-    private final Material displayMaterial;
+    private final String displayMaterial;
     private String displayName;
 
-    public ZJobAction(T target, double experience, double money, Material displayMaterial) {
+    public ZJobAction(T target, double experience, double money, String displayMaterial) {
         this.target = target;
         this.experience = experience;
         this.money = money;
@@ -49,8 +49,8 @@ public abstract class ZJobAction<T> implements JobAction<T> {
     }
 
     @Override
-    public Material getDisplayMaterial() {
-        return this.displayMaterial == null ? Material.STONE : this.displayMaterial;
+    public String getDisplayMaterial() {
+        return this.displayMaterial == null ? "STONE" : this.displayMaterial;
     }
 
     @Override
@@ -60,5 +60,10 @@ public abstract class ZJobAction<T> implements JobAction<T> {
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    @Override
+    public ValueInformation toValueInformation() {
+        return new ValueInformation(this.getDisplayMaterial(), this.getDisplayName(), this.getExperience(), this.getMoney(), this::applyItemStack);
     }
 }

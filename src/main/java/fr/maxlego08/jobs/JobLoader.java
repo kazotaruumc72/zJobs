@@ -10,6 +10,7 @@ import fr.maxlego08.jobs.api.Job;
 import fr.maxlego08.jobs.api.JobAction;
 import fr.maxlego08.jobs.api.JobReward;
 import fr.maxlego08.jobs.api.enums.JobActionType;
+import fr.maxlego08.jobs.api.utils.ValueInformation;
 import fr.maxlego08.jobs.zcore.utils.EntityTypeToEggConverter;
 import fr.maxlego08.jobs.zcore.utils.TagRegistry;
 import fr.maxlego08.jobs.zcore.utils.loader.Loader;
@@ -61,7 +62,22 @@ public class JobLoader implements Loader<Job> {
             jobRewards.add(new ZJobReward(level, prestige, actions));
         });
 
-        return new ZJob(name, file.getName().replace(".yml", ""), baseExperience, maxLevels, maxPrestiges, formula, jobActions, jobRewards, canJoin, canLeave, customModelData);
+        List<ValueInformation> valueInformations = loadValueInformations(configuration);
+
+        return new ZJob(name, file.getName().replace(".yml", ""), baseExperience, maxLevels, maxPrestiges, formula, jobActions, jobRewards, canJoin, canLeave, customModelData, valueInformations);
+    }
+
+    private List<ValueInformation> loadValueInformations(YamlConfiguration configuration) {
+        List<ValueInformation> valueInformations = new ArrayList<>();
+        for (Map<?, ?> map : configuration.getMapList("additional-value-informations")) {
+            var accessor = new TypedMapAccessor((Map<String, Object>) map);
+            var material = accessor.getString("material");
+            var name = accessor.getString("name");
+            var experience = accessor.getDouble("experience");
+            var money = accessor.getDouble("money");
+            valueInformations.add(new ValueInformation(material, name, experience, money, null));
+        }
+        return valueInformations;
     }
 
     private List<JobAction<?>> loadActions(YamlConfiguration configuration) {
@@ -75,7 +91,7 @@ public class JobLoader implements Loader<Job> {
 
                 JobActionType jobActionType = JobActionType.valueOf(accessor.getString("type").toUpperCase());
                 String displayMaterialName = accessor.getString("display-material", null);
-                Material displayMaterial = displayMaterialName == null ? null : Material.valueOf(displayMaterialName.toUpperCase());
+                String displayMaterial = displayMaterialName == null ? null : displayMaterialName.toUpperCase();
                 String displayName = accessor.getString("display-name", "Name not found");
                 JobAction<?> jobAction = null;
 
@@ -83,10 +99,10 @@ public class JobLoader implements Loader<Job> {
 
                     if (accessor.contains("material")) {
                         Material material = Material.valueOf(accessor.getString("material").toUpperCase());
-                        jobAction = new MaterialAction(material, experience, money, jobActionType, displayMaterial == null ? material : displayMaterial);
+                        jobAction = new MaterialAction(material, experience, money, jobActionType, displayMaterial == null ? material.name() : displayMaterial);
                     } else if (accessor.contains("tag")) {
                         Tag<Material> tag = TagRegistry.getTag(accessor.getString("tag").toUpperCase());
-                        jobAction = new TagAction(tag, experience, money, jobActionType, displayMaterial == null ? Material.PAPER : displayMaterial);
+                        jobAction = new TagAction(tag, experience, money, jobActionType, displayMaterial == null ? "PAPER" : displayMaterial);
                     } else {
                         this.plugin.getLogger().severe("Impossible to find the tag or material for " + jobActionType + " in file " + file.getAbsolutePath());
                     }
@@ -94,7 +110,7 @@ public class JobLoader implements Loader<Job> {
                 } else if (jobActionType.isEntityType()) {
 
                     EntityType entityType = EntityType.valueOf(accessor.getString("entity").toUpperCase());
-                    jobAction = new EntityAction(entityType, experience, money, jobActionType, displayMaterial == null ? EntityTypeToEggConverter.getSpawnEgg(entityType) : displayMaterial);
+                    jobAction = new EntityAction(entityType, experience, money, jobActionType, displayMaterial == null ? EntityTypeToEggConverter.getSpawnEgg(entityType).name() : displayMaterial);
 
                 } else if (jobActionType == JobActionType.ENCHANT) {
 
@@ -132,7 +148,7 @@ public class JobLoader implements Loader<Job> {
      * @param displayMaterial the material to display in the GUI
      * @return the job action
      */
-    private JobAction<?> loadEnchantAction(TypedMapAccessor accessor, double experience, double money, Material displayMaterial) {
+    private JobAction<?> loadEnchantAction(TypedMapAccessor accessor, double experience, double money, String displayMaterial) {
         Enchantments enchantments = plugin.getInventoryManager().getEnchantments();
         String enchantmentName = accessor.getString("enchantment");
         String materialName = accessor.getString("material", null);
@@ -154,7 +170,7 @@ public class JobLoader implements Loader<Job> {
      * @param displayMaterial the display material of the item, if not set, the material of the potion is used
      * @return a new {@link JobAction} of type {@link JobActionType#BREW}
      */
-    private JobAction<?> loadBrewAction(TypedMapAccessor accessor, double experience, double money, Material displayMaterial) {
+    private JobAction<?> loadBrewAction(TypedMapAccessor accessor, double experience, double money, String displayMaterial) {
         String potionName = accessor.getString("potion-type", null);
         String potionMaterialName = accessor.getString("potion-material", "POTION");
         String ingredientName = accessor.getString("ingredient", null);
@@ -163,6 +179,6 @@ public class JobLoader implements Loader<Job> {
         Material material = ingredientName == null ? null : Material.valueOf(ingredientName.toUpperCase());
         Material potionMaterial = Material.valueOf(potionMaterialName.toUpperCase());
 
-        return new BrewAction(potionType, experience, money, potionMaterial, material, displayMaterial == null ? potionMaterial : displayMaterial);
+        return new BrewAction(potionType, experience, money, potionMaterial, material, displayMaterial == null ? potionMaterial.name() : displayMaterial);
     }
 }

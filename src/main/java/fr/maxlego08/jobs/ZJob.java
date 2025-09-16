@@ -2,11 +2,13 @@ package fr.maxlego08.jobs;
 
 import fr.maxlego08.jobs.api.Job;
 import fr.maxlego08.jobs.api.JobAction;
-import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.api.JobReward;
+import fr.maxlego08.jobs.api.enums.JobActionType;
+import fr.maxlego08.jobs.api.utils.ValueInformation;
 import fr.maxlego08.menu.hooks.exp4j.Expression;
 import fr.maxlego08.menu.hooks.exp4j.ExpressionBuilder;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -26,8 +28,9 @@ public class ZJob implements Job {
     private final boolean canJoin;
     private final boolean canLeave;
     private final int customModelData;
+    private final List<ValueInformation> additionalValues;
 
-    public ZJob(String name, String fileName, double baseExperience, int maxLevels, int maxPrestiges, String formula, List<JobAction<?>> jobActions, List<JobReward> jobRewards, boolean canJoin, boolean canLeave, int customModelData) {
+    public ZJob(String name, String fileName, double baseExperience, int maxLevels, int maxPrestiges, String formula, List<JobAction<?>> jobActions, List<JobReward> jobRewards, boolean canJoin, boolean canLeave, int customModelData, List<ValueInformation> additionalValues) {
         this.name = name;
         this.fileName = fileName;
         this.baseExperience = baseExperience;
@@ -39,6 +42,7 @@ public class ZJob implements Job {
         this.canJoin = canJoin;
         this.canLeave = canLeave;
         this.customModelData = customModelData;
+        this.additionalValues = additionalValues;
         this.matrix = new double[this.maxLevels][this.maxPrestiges + 1];
 
         for (int prestige = 0; prestige <= this.maxPrestiges; prestige++) {
@@ -150,5 +154,18 @@ public class ZJob implements Job {
     @Override
     public int getCustomModelData() {
         return customModelData;
+    }
+
+    @Override
+    public List<ValueInformation> getValues() {
+        List<ValueInformation> valueInformations = new ArrayList<>();
+        valueInformations.addAll(this.additionalValues);
+        valueInformations.addAll(this.jobActions.stream().map(JobAction::toValueInformation).toList());
+        return valueInformations;
+    }
+
+    @Override
+    public List<ValueInformation> getAdditionalValues() {
+        return this.additionalValues;
     }
 }

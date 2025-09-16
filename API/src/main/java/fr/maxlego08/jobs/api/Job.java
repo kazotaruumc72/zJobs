@@ -1,8 +1,10 @@
 package fr.maxlego08.jobs.api;
 
 import fr.maxlego08.jobs.api.enums.JobActionType;
+import fr.maxlego08.jobs.api.utils.ValueInformation;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public interface Job {
@@ -120,4 +122,20 @@ public interface Job {
      * @return The custom model data for this job.
      */
     int getCustomModelData();
+
+    /**
+     * Gets the values of this job.
+     * These values are used to display the job in the job selection gui.
+     *
+     * @return A list of {@link ValueInformation} containing the values of this job.
+     */
+    List<ValueInformation> getValues();
+
+    /**
+     * Gets additional values for this job.
+     * These values are used to display additional information about the job in the job selection gui.
+     *
+     * @return A list of {@link ValueInformation} containing the additional values of this job.
+     */
+    List<ValueInformation> getAdditionalValues();
 }

@@ -1,6 +1,7 @@
 package fr.maxlego08.jobs.api;
 
 import fr.maxlego08.jobs.api.enums.JobActionType;
+import fr.maxlego08.jobs.api.utils.ValueInformation;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -54,7 +55,7 @@ public interface JobAction<T> {
      *
      * @return the material to use for the gui
      */
-    Material getDisplayMaterial();
+    String getDisplayMaterial();
 
     /**
      * Gets the display name for the action in the gui.
@@ -62,4 +63,6 @@ public interface JobAction<T> {
      * @return the display name for the action
      */
     String getDisplayName();
+
+    ValueInformation toValueInformation();
 }

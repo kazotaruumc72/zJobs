@@ -13,7 +13,7 @@ public class BrewAction extends ZJobAction<PotionType> {
     private final Material potionMaterial;
     private final Material ingredient;
 
-    public BrewAction(PotionType target, double experience, double money, Material potionMaterial, Material ingredient, Material displayMaterial) {
+    public BrewAction(PotionType target, double experience, double money, Material potionMaterial, Material ingredient, String displayMaterial) {
         super(target, experience, money, displayMaterial);
         this.potionMaterial = potionMaterial;
         this.ingredient = ingredient;

@@ -6,7 +6,7 @@ import org.bukkit.Material;
 public class MaterialAction extends ZJobAction<Material> {
 
     private final JobActionType type;
-    public MaterialAction(Material target, double experience, double money, JobActionType type, Material displayMaterial) {
+    public MaterialAction(Material target, double experience, double money, JobActionType type, String displayMaterial) {
         super(target, experience, money, displayMaterial);
         this.type = type;
     }
