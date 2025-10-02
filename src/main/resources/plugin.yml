@@ -11,4 +11,5 @@ depend:
 softdepend:
   - Vault
   - BlockTracker
-commands:
+libraries:
+  - org.mariadb.jdbc:mariadb-java-client:3.5.6

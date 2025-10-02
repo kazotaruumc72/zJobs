@@ -7,7 +7,6 @@ import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.api.players.PlayerJob;
 import fr.maxlego08.jobs.api.players.PlayerJobs;
 import fr.maxlego08.jobs.api.storage.StorageManager;
-import fr.maxlego08.jobs.api.storage.StorageType;
 import fr.maxlego08.jobs.boost.ZBoost;
 import fr.maxlego08.jobs.boost.ZPlayerBoosts;
 import fr.maxlego08.jobs.dto.PlayerBoostDTO;
@@ -26,7 +25,6 @@ import fr.maxlego08.sarah.DatabaseConfiguration;
 import fr.maxlego08.sarah.DatabaseConnection;
 import fr.maxlego08.sarah.HikariDatabaseConnection;
 import fr.maxlego08.sarah.MigrationManager;
-import fr.maxlego08.sarah.MySqlConnection;
 import fr.maxlego08.sarah.RequestHelper;
 import fr.maxlego08.sarah.SchemaBuilder;
 import fr.maxlego08.sarah.SqliteConnection;
@@ -63,13 +61,12 @@ public class ZStorageManager implements StorageManager {
     public void load() {
 
         FileConfiguration configuration = plugin.getConfig();
-        StorageType storageType = StorageType.valueOf(configuration.getString("storage-type", "SQLITE").toUpperCase());
+        DatabaseType storageType = DatabaseType.valueOf(configuration.getString("storage-type", "SQLITE").toUpperCase());
 
         DatabaseConfiguration databaseConfiguration = getDatabaseConfiguration(configuration, storageType);
         DatabaseConnection connection = switch (storageType) {
-            case MYSQL -> new MySqlConnection(databaseConfiguration);
             case SQLITE -> new SqliteConnection(databaseConfiguration, this.plugin.getDataFolder());
-            case HIKARICP -> new HikariDatabaseConnection(databaseConfiguration);
+            case MARIADB, MYSQL -> new HikariDatabaseConnection(databaseConfiguration);
         };
         this.requestHelper = new RequestHelper(connection, JULogger.from(plugin.getLogger()));
 
@@ -77,7 +74,7 @@ public class ZStorageManager implements StorageManager {
             plugin.getLogger().severe("Unable to connect to database!");
             Bukkit.getPluginManager().disablePlugin(plugin);
         } else {
-            if (storageType == StorageType.SQLITE) {
+            if (storageType == DatabaseType.SQLITE) {
                 plugin.getLogger().info("The database connection is valid! (SQLITE)");
             } else {
                 plugin.getLogger().info("The database connection is valid! (" + connection.getDatabaseConfiguration().getHost() + ")");
@@ -98,7 +95,7 @@ public class ZStorageManager implements StorageManager {
         startUpdateTask(configuration.getLong("update-jobs-ticks", 200));
     }
 
-    private DatabaseConfiguration getDatabaseConfiguration(FileConfiguration configuration, StorageType storageType) {
+    private DatabaseConfiguration getDatabaseConfiguration(FileConfiguration configuration, DatabaseType databaseType) {
         GlobalDatabaseConfiguration globalDatabaseConfiguration = new GlobalDatabaseConfiguration(configuration);
         String tablePrefix = globalDatabaseConfiguration.getTablePrefix();
         String host = globalDatabaseConfiguration.getHost();
@@ -108,7 +105,7 @@ public class ZStorageManager implements StorageManager {
         String database = globalDatabaseConfiguration.getDatabase();
         boolean debug = globalDatabaseConfiguration.isDebug();
 
-        return new DatabaseConfiguration(tablePrefix, user, password, port, host, database, debug, storageType == StorageType.SQLITE ? DatabaseType.SQLITE : DatabaseType.MYSQL);
+        return new DatabaseConfiguration(tablePrefix, user, password, port, host, database, debug, databaseType);
     }
 
     @Override
