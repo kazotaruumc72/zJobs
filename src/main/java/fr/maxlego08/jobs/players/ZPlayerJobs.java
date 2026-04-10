@@ -179,10 +179,16 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
     @Override
     public void process(Player player, PlayerJob playerJob, Job job, double experience, boolean initialCall, ActionInfo<?> actionInfo) {
 
+        // Track original state for action bar notification
+        int originalLevel = playerJob.getLevel();
+        int originalPrestige = playerJob.getPrestige();
+
         // Event
         var event = new JobExpGainEvent(player, this, playerJob, job, actionInfo, experience);
         if (Config.isEnable(event) && !event.callEvent()) return;
         experience = event.getExperience();
+
+        double gainedExperience = experience;
 
         // Mise à jour des niveaux
         playerJob.process(experience);
@@ -232,8 +238,36 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
         }
 
         if (initialCall) {
+            sendActionBarNotification(player, playerJob, job, gainedExperience, originalLevel, originalPrestige);
+
             StorageManager storageManager = plugin.getStorageManager();
             storageManager.upsert(uniqueId, playerJob, false);
+        }
+    }
+
+    private void sendActionBarNotification(Player player, PlayerJob playerJob, Job job, double gainedExperience, int originalLevel, int originalPrestige) {
+        if (player == null) return;
+
+        double maxExperience = job.getExperience(playerJob.getLevel(), playerJob.getPrestige());
+
+        if (playerJob.getPrestige() > originalPrestige) {
+            message(this.plugin, player, Message.ACTIONBAR_PRESTIGE_UP,
+                    "%job-name%", job.getName(),
+                    "%prestige%", playerJob.getPrestige(),
+                    "%level%", playerJob.getLevel());
+        } else if (playerJob.getLevel() > originalLevel) {
+            message(this.plugin, player, Message.ACTIONBAR_LEVEL_UP,
+                    "%job-name%", job.getName(),
+                    "%level%", playerJob.getLevel(),
+                    "%prestige%", playerJob.getPrestige());
+        } else {
+            message(this.plugin, player, Message.ACTIONBAR_EXP_GAIN,
+                    "%job-name%", job.getName(),
+                    "%experience%", Config.decimalFormat.format(gainedExperience),
+                    "%job-experience%", Config.decimalFormat.format(playerJob.getExperience()),
+                    "%job-max-experience%", Config.decimalFormat.format(maxExperience),
+                    "%job-level%", playerJob.getLevel(),
+                    "%job-prestige%", playerJob.getPrestige());
         }
     }
 
