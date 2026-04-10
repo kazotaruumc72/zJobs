@@ -141,8 +141,8 @@ public enum Message {
     BOOST_FINISH("#ff3535You just finish the boost %boost-jobs% &8(&fx%boost-amount%&8)"),
 
     ACTIONBAR_EXP_GAIN(MessageType.ACTION, "#2fe082%job-name% #434343- &f+%experience% exp #434343- #f7f725%job-experience%&8/#f78e25%job-max-experience% #434343- #2fe082Lvl %job-level% P%job-prestige%"),
-    ACTIONBAR_LEVEL_UP(MessageType.ACTION, "#2fe082%job-name% #434343- #f7f725⬆ Level Up! &fLevel %level% #434343- #2fe082P%prestige%"),
-    ACTIONBAR_PRESTIGE_UP(MessageType.ACTION, "#2fe082%job-name% #434343- #f78e25⬆ Prestige Up! &fPrestige %prestige% #434343- #2fe082Level %level%");
+    ACTIONBAR_LEVEL_UP(MessageType.ACTION, "#2fe082%job-name% #434343- #f7f725⬆ Level Up! &fLevel %level% #434343- &f+%experience% exp #434343- #2fe082P%prestige%"),
+    ACTIONBAR_PRESTIGE_UP(MessageType.ACTION, "#2fe082%job-name% #434343- #f78e25⬆ Prestige Up! &fPrestige %prestige% #434343- &f+%experience% exp #434343- #2fe082Level %level%");
 
     private List<String> messages;
     private String message;
