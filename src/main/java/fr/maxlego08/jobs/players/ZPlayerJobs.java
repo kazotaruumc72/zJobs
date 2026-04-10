@@ -250,24 +250,26 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
 
         double maxExperience = job.getExperience(playerJob.getLevel(), playerJob.getPrestige());
 
+        // Common placeholders shared across all action bar messages
+        Object[] placeholders = {
+                "%job-name%", job.getName(),
+                "%experience%", Config.decimalFormat.format(gainedExperience),
+                "%job-experience%", Config.decimalFormat.format(playerJob.getExperience()),
+                "%job-max-experience%", Config.decimalFormat.format(maxExperience),
+                "%job-level%", playerJob.getLevel(),
+                "%job-prestige%", playerJob.getPrestige(),
+                "%level%", playerJob.getLevel(),
+                "%prestige%", playerJob.getPrestige(),
+                "%previous-level%", originalLevel,
+                "%previous-prestige%", originalPrestige
+        };
+
         if (playerJob.getPrestige() > originalPrestige) {
-            message(this.plugin, player, Message.ACTIONBAR_PRESTIGE_UP,
-                    "%job-name%", job.getName(),
-                    "%prestige%", playerJob.getPrestige(),
-                    "%level%", playerJob.getLevel());
+            message(this.plugin, player, Message.ACTIONBAR_PRESTIGE_UP, placeholders);
         } else if (playerJob.getLevel() > originalLevel) {
-            message(this.plugin, player, Message.ACTIONBAR_LEVEL_UP,
-                    "%job-name%", job.getName(),
-                    "%level%", playerJob.getLevel(),
-                    "%prestige%", playerJob.getPrestige());
+            message(this.plugin, player, Message.ACTIONBAR_LEVEL_UP, placeholders);
         } else {
-            message(this.plugin, player, Message.ACTIONBAR_EXP_GAIN,
-                    "%job-name%", job.getName(),
-                    "%experience%", Config.decimalFormat.format(gainedExperience),
-                    "%job-experience%", Config.decimalFormat.format(playerJob.getExperience()),
-                    "%job-max-experience%", Config.decimalFormat.format(maxExperience),
-                    "%job-level%", playerJob.getLevel(),
-                    "%job-prestige%", playerJob.getPrestige());
+            message(this.plugin, player, Message.ACTIONBAR_EXP_GAIN, placeholders);
         }
     }
 
