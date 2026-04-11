@@ -1,12 +1,12 @@
 package fr.maxlego08.jobs.zcore.utils;
 
 import fr.maxlego08.jobs.JobsPlugin;
+import fr.maxlego08.jobs.component.PaperComponent;
 import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.enums.MessageType;
 import fr.maxlego08.jobs.zcore.utils.nms.NmsVersion;
 import fr.maxlego08.menu.api.utils.MetaUpdater;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
@@ -24,27 +24,30 @@ import java.util.regex.Pattern;
 public abstract class MessageUtils extends LocationUtils {
 
     private final static int CENTER_PX = 154;
+    private static final PaperComponent PAPER_COMPONENT = new PaperComponent();
 
     /**
      * Sends a message without prefix to the specified command sender.
+     * Supports MiniMessage formatting.
      *
      * @param player  the command sender to send the message to.
      * @param message the message to send.
      * @param args    the arguments for the message.
      */
     protected void messageWO(CommandSender player, Message message, Object... args) {
-        player.sendMessage(getMessage(message, args));
+        player.sendMessage(PAPER_COMPONENT.getComponent(getMessage(message, args)));
     }
 
     /**
      * Sends a message without prefix to the specified command sender.
+     * Supports MiniMessage formatting.
      *
      * @param player  the command sender to send the message to.
      * @param message the message to send.
      * @param args    the arguments for the message.
      */
     protected void messageWO(CommandSender player, String message, Object... args) {
-        player.sendMessage(getMessage(message, args));
+        player.sendMessage(PAPER_COMPONENT.getComponent(getMessage(message, args)));
     }
 
     /**
@@ -106,10 +109,11 @@ public abstract class MessageUtils extends LocationUtils {
             Player player = (Player) sender;
             switch (message.getType()) {
                 case CENTER -> {
+                    var paperComponent = plugin.getPaperComponent();
                     if (!message.getMessages().isEmpty()) {
-                        message.getMessages().forEach(msg -> sender.sendMessage(this.getCenteredMessage(this.papi(getMessage(msg, args), player))));
+                        message.getMessages().forEach(msg -> sender.sendMessage(paperComponent.getComponent(this.getCenteredMessage(this.papi(getMessage(msg, args), player)))));
                     } else {
-                        sender.sendMessage(this.getCenteredMessage(this.papi(getMessage(message, args), player)));
+                        sender.sendMessage(paperComponent.getComponent(this.getCenteredMessage(this.papi(getMessage(message, args), player))));
                     }
                 }
                 case ACTION -> this.actionMessage(updater, player, message, args);
@@ -207,31 +211,27 @@ public abstract class MessageUtils extends LocationUtils {
 
     /**
      * Gets a centered message.
+     * Supports MiniMessage formatting by stripping tags for width calculation.
      *
      * @param message the message to center.
-     * @return the centered message.
+     * @return the centered message in MiniMessage format with prepended spaces.
      */
     protected String getCenteredMessage(String message) {
         if (message == null || message.equals("")) {
             return "";
         }
-        message = ChatColor.translateAlternateColorCodes('&', message);
+
+        // Convert legacy codes to MiniMessage format and get plain text for width calculation
+        String miniMessageFormatted = PAPER_COMPONENT.colorMiniMessage(message);
+        String plainText = PAPER_COMPONENT.getPlainText(message);
 
         int messagePxSize = 0;
-        boolean previousCode = false;
         boolean isBold = false;
 
-        for (char c : message.toCharArray()) {
-            if (c == '§') {
-                previousCode = true;
-            } else if (previousCode) {
-                previousCode = false;
-                isBold = c == 'l' || c == 'L';
-            } else {
-                DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
-                messagePxSize += isBold ? dFI.getBoldLength() : dFI.getLength();
-                messagePxSize++;
-            }
+        for (char c : plainText.toCharArray()) {
+            DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
+            messagePxSize += isBold ? dFI.getBoldLength() : dFI.getLength();
+            messagePxSize++;
         }
 
         int halvedMessageSize = messagePxSize / 2;
@@ -243,7 +243,7 @@ public abstract class MessageUtils extends LocationUtils {
             sb.append(" ");
             compensated += spaceLength;
         }
-        return sb + message;
+        return sb + miniMessageFormatted;
     }
 
     /**
