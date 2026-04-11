@@ -226,11 +226,10 @@ public abstract class MessageUtils extends LocationUtils {
         String plainText = PAPER_COMPONENT.getPlainText(message);
 
         int messagePxSize = 0;
-        boolean isBold = false;
 
         for (char c : plainText.toCharArray()) {
             DefaultFontInfo dFI = DefaultFontInfo.getDefaultFontInfo(c);
-            messagePxSize += isBold ? dFI.getBoldLength() : dFI.getLength();
+            messagePxSize += dFI.getLength();
             messagePxSize++;
         }
 
