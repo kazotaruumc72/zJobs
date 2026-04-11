@@ -47,7 +47,17 @@ public class PaperComponent implements AdventureComponent {
         return text.contains("&o") || text.contains("<i>") || text.contains("<em>") || text.contains("<italic>") ? TextDecoration.State.TRUE : TextDecoration.State.FALSE;
     }
 
-    private String colorMiniMessage(String message) {
+    /**
+     * Gets the plain text of a message by converting legacy codes to MiniMessage format and stripping all tags.
+     *
+     * @param message the message to convert to plain text.
+     * @return the plain text without any formatting.
+     */
+    public String getPlainText(String message) {
+        return this.MINI_MESSAGE.stripTags(colorMiniMessage(message));
+    }
+
+    public String colorMiniMessage(String message) {
         StringBuilder stringBuilder = new StringBuilder();
 
         Pattern pattern = Pattern.compile("(?<!<)(?<!:)#([a-fA-F0-9]{6})");
