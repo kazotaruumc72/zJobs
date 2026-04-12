@@ -10,6 +10,7 @@ import fr.maxlego08.jobs.component.PaperComponent;
 import fr.maxlego08.jobs.hooks.BlockTrackerHook;
 import fr.maxlego08.jobs.hooks.EmptyHook;
 import fr.maxlego08.jobs.hooks.NexoHook;
+import fr.maxlego08.jobs.hooks.NexoListener;
 import fr.maxlego08.jobs.placeholder.LocalPlaceholder;
 import fr.maxlego08.jobs.save.Config;
 import fr.maxlego08.jobs.save.MessageLoader;
@@ -102,6 +103,7 @@ public class JobsPlugin extends ZPlugin {
         if (isEnable(Plugins.NEXO)) {
             getLogger().info("Using Nexo");
             this.nexoHook = new NexoHook();
+            this.addListener(new NexoListener(this));
         }
 
         this.loadInventories();
