@@ -1,6 +1,7 @@
 package fr.maxlego08.jobs.hooks;
 
 import com.nexomc.nexo.api.events.custom_block.NexoBlockBreakEvent;
+import com.nexomc.nexo.api.events.custom_block.NexoBlockPlaceEvent;
 import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.api.JobManager;
 import fr.maxlego08.jobs.api.enums.JobActionType;
@@ -27,5 +28,13 @@ public class NexoListener implements Listener {
         if (this.plugin.getBlockHook().isTracked(event.getBlock())) return;
 
         this.jobManager.action(player, "nexo:" + nexoId, JobActionType.BLOCK_BREAK);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onNexoBlockPlace(NexoBlockPlaceEvent event) {
+        Player player = event.getPlayer();
+        String nexoId = event.getMechanic().getItemID();
+
+        this.jobManager.action(player, "nexo:" + nexoId, JobActionType.BLOCK_PLACE);
     }
 }
