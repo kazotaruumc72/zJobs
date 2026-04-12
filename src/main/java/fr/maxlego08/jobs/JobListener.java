@@ -2,6 +2,7 @@ package fr.maxlego08.jobs;
 
 import fr.maxlego08.jobs.api.JobManager;
 import fr.maxlego08.jobs.api.enums.JobActionType;
+import fr.maxlego08.jobs.hooks.NexoHook;
 import fr.maxlego08.jobs.save.Config;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -71,6 +72,15 @@ public class JobListener implements Listener {
         if (!(block.getBlockData() instanceof Ageable)) {
 
             if (this.plugin.getBlockHook().isTracked(block)) return;
+
+            NexoHook nexoHook = this.plugin.getNexoHook();
+            if (nexoHook != null && nexoHook.isNexoBlock(block)) {
+                String nexoId = nexoHook.getNexoBlockId(block);
+                if (nexoId != null) {
+                    this.jobManager.action(player, "nexo:" + nexoId, JobActionType.BLOCK_BREAK);
+                    return;
+                }
+            }
 
             this.jobManager.action(player, material, JobActionType.BLOCK_BREAK);
 

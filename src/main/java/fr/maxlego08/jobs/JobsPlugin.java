@@ -9,6 +9,7 @@ import fr.maxlego08.jobs.command.commands.CommandJobs;
 import fr.maxlego08.jobs.component.PaperComponent;
 import fr.maxlego08.jobs.hooks.BlockTrackerHook;
 import fr.maxlego08.jobs.hooks.EmptyHook;
+import fr.maxlego08.jobs.hooks.NexoHook;
 import fr.maxlego08.jobs.placeholder.LocalPlaceholder;
 import fr.maxlego08.jobs.save.Config;
 import fr.maxlego08.jobs.save.MessageLoader;
@@ -60,6 +61,7 @@ public class JobsPlugin extends ZPlugin {
     private InventoryManager inventoryManager;
     private ButtonManager buttonManager;
     private BlockHook blockHook = new EmptyHook();
+    private NexoHook nexoHook;
     private CurrencyProvider currencyProvider;
 
     @Override
@@ -95,6 +97,11 @@ public class JobsPlugin extends ZPlugin {
         if (isEnable(Plugins.BLOCKTRACKER)) {
             getLogger().info("Using BlockTracker");
             this.blockHook = new BlockTrackerHook();
+        }
+
+        if (isEnable(Plugins.NEXO)) {
+            getLogger().info("Using Nexo");
+            this.nexoHook = new NexoHook();
         }
 
         this.loadInventories();
@@ -150,6 +157,10 @@ public class JobsPlugin extends ZPlugin {
 
     public BlockHook getBlockHook() {
         return blockHook;
+    }
+
+    public NexoHook getNexoHook() {
+        return nexoHook;
     }
 
     private void loadActions() {
