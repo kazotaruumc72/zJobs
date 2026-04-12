@@ -5,6 +5,7 @@ import fr.maxlego08.jobs.actions.CustomAction;
 import fr.maxlego08.jobs.actions.EnchantmentAction;
 import fr.maxlego08.jobs.actions.EntityAction;
 import fr.maxlego08.jobs.actions.MaterialAction;
+import fr.maxlego08.jobs.actions.NexoAction;
 import fr.maxlego08.jobs.actions.TagAction;
 import fr.maxlego08.jobs.actions.ZJobAction;
 import fr.maxlego08.jobs.api.Job;
@@ -99,8 +100,14 @@ public class JobLoader implements Loader<Job> {
                 if (jobActionType.isMaterial()) {
 
                     if (accessor.contains("material")) {
-                        Material material = Material.valueOf(accessor.getString("material").toUpperCase());
-                        jobAction = new MaterialAction(material, experience, money, jobActionType, displayMaterial == null ? material.name() : displayMaterial);
+                        String materialName = accessor.getString("material");
+                        if (materialName.toLowerCase().startsWith("nexo:")) {
+                            String nexoId = "nexo:" + materialName.substring(5);
+                            jobAction = new NexoAction(nexoId, experience, money, jobActionType, displayMaterial == null ? "PAPER" : displayMaterial);
+                        } else {
+                            Material material = Material.valueOf(materialName.toUpperCase());
+                            jobAction = new MaterialAction(material, experience, money, jobActionType, displayMaterial == null ? material.name() : displayMaterial);
+                        }
                     } else if (accessor.contains("tag")) {
                         Tag<Material> tag = TagRegistry.getTag(accessor.getString("tag").toUpperCase());
                         jobAction = new TagAction(tag, experience, money, jobActionType, displayMaterial == null ? "PAPER" : displayMaterial);

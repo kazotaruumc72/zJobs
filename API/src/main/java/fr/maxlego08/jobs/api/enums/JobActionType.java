@@ -30,8 +30,10 @@ public enum JobActionType {
 
     public ActionInfo<?> toAction(Object target) {
         return switch (this) {
-            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS ->
-                    new MaterialAction(this, (Material) target);
+            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS -> {
+                if (target instanceof String s) yield new CustomAction(this, s);
+                yield new MaterialAction(this, (Material) target);
+            }
             case KILL_ENTITY, TAME -> new EntityAction(this, (Entity) target);
             case COMMAND -> new CommandAction(target == null ? "" : (String) target);
             case ENCHANT -> new EnchantAction(this, (EnchantItemEvent) target);

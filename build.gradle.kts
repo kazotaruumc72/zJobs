@@ -31,6 +31,7 @@ allprojects {
         maven(url = "https://repo.bg-software.com/repository/api/")
         maven(url = "https://repo.groupez.dev/releases")
         // maven(url = "https://repo.groupez.dev/snapshots")
+        maven(url = "https://repo.nexomc.com/releases/")
     }
 
     java {
@@ -52,6 +53,7 @@ allprojects {
         compileOnly("me.clip:placeholderapi:2.11.6")
         compileOnly("com.mojang:authlib:3.11.50")
         compileOnly("dev.krakenied:blocktracker:1.0.6")
+        compileOnly("com.nexomc:nexo:1.6.0")
 
         compileOnly("fr.maxlego08.menu:zmenu-api:1.1.0.4")
         implementation("fr.maxlego08.sarah:sarah:1.20")

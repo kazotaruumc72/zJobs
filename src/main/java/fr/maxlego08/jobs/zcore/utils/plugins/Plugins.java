@@ -10,6 +10,7 @@ public enum Plugins {
 	TRANSLATIONAPI("TranslationAPI"),
 	ZTRANSLATOR("zTranslator"),
 	BLOCKTRACKER("BlockTracker"),
+	NEXO("Nexo"),
 
 	;
 
