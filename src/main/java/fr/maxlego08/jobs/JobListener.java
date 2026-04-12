@@ -75,11 +75,7 @@ public class JobListener implements Listener {
 
             NexoHook nexoHook = this.plugin.getNexoHook();
             if (nexoHook != null && nexoHook.isNexoBlock(block)) {
-                String nexoId = nexoHook.getNexoBlockId(block);
-                if (nexoId != null) {
-                    this.jobManager.action(player, "nexo:" + nexoId, JobActionType.BLOCK_BREAK);
-                    return;
-                }
+                return;
             }
 
             this.jobManager.action(player, material, JobActionType.BLOCK_BREAK);
