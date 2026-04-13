@@ -93,7 +93,8 @@ public class JobLoader implements Loader<Job> {
 
                 JobActionType jobActionType = JobActionType.valueOf(accessor.getString("type").toUpperCase());
                 String displayMaterialName = accessor.getString("display-material", null);
-                String displayMaterial = displayMaterialName == null ? null : displayMaterialName.toUpperCase();
+                String displayMaterial = displayMaterialName == null ? null :
+                        (displayMaterialName.toLowerCase().startsWith("nexo:") ? displayMaterialName : displayMaterialName.toUpperCase());
                 String displayName = accessor.getString("display-name", "Name not found");
                 JobAction<?> jobAction = null;
 
