@@ -42,13 +42,33 @@ public class JobValueButton extends PaginateButton {
         var jobActions = targetJobs.getValues().stream().sorted(Comparator.comparingDouble(ValueInformation::experience).reversed()).toList();
         paginate(jobActions, inventory, (slot, value) -> {
 
+            String materialStr = value.material();
+            boolean isNexo = materialStr != null && materialStr.toLowerCase().startsWith("nexo:");
+
             Placeholders placeholders = new Placeholders();
             placeholders.register("experience", FormatUtils.format(value.experience()));
             placeholders.register("money", FormatUtils.format(value.money()));
-            placeholders.register("material", value.material());
+            placeholders.register("material", isNexo ? "PAPER" : materialStr);
             placeholders.register("name", value.name());
 
             ItemStack itemStack = getItemStack().build(player, false, placeholders);
+
+            if (isNexo && plugin.getNexoHook() != null) {
+                String nexoId = materialStr.substring(5);
+                ItemStack nexoItem = plugin.getNexoHook().getItemStack(nexoId);
+                if (nexoItem != null) {
+                    itemStack.setType(nexoItem.getType());
+                    var displayMeta = itemStack.getItemMeta();
+                    var nexoMeta = nexoItem.getItemMeta();
+                    if (nexoMeta != null && displayMeta != null) {
+                        if (nexoMeta.hasCustomModelData()) {
+                            displayMeta.setCustomModelData(nexoMeta.getCustomModelData());
+                        }
+                        itemStack.setItemMeta(displayMeta);
+                    }
+                }
+            }
+
             if (value.applyItemStack() != null) {
                 value.applyItemStack().accept(itemStack);
             }
