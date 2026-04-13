@@ -82,6 +82,11 @@ public class JobListener implements Listener {
 
         } else if (block.getBlockData() instanceof Ageable ageable && ((material == Material.SUGAR_CANE || material == Material.KELP || material == Material.BAMBOO) || ageable.getAge() == ageable.getMaximumAge())) {
 
+            NexoHook nexoHook = this.plugin.getNexoHook();
+            if (nexoHook != null && nexoHook.isNexoBlock(block)) {
+                return;
+            }
+
             if (Config.forceBlockCheck.contains(material)) {
 
                 if (this.plugin.getBlockHook().isTracked(block)) return;

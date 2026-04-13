@@ -28,6 +28,7 @@ public class NexoListener implements Listener {
         if (this.plugin.getBlockHook().isTracked(event.getBlock())) return;
 
         this.jobManager.action(player, "nexo:" + nexoId, JobActionType.BLOCK_BREAK);
+        this.jobManager.action(player, "nexo:" + nexoId, JobActionType.FARMING);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
