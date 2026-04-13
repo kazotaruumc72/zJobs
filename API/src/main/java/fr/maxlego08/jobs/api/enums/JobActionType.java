@@ -25,12 +25,14 @@ public enum JobActionType {
     BREW,
     SMELT,
     STRIPLOGS,
+    ANVIL_REPAIR,
+    SMITHING,
     CUSTOM
     ;
 
     public ActionInfo<?> toAction(Object target) {
         return switch (this) {
-            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS -> {
+            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS, ANVIL_REPAIR, SMITHING -> {
                 if (target instanceof String s) yield new CustomAction(this, s);
                 yield new MaterialAction(this, (Material) target);
             }
@@ -44,7 +46,7 @@ public enum JobActionType {
 
     public boolean isMaterial() {
         return switch (this) {
-            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS -> true;
+            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS, ANVIL_REPAIR, SMITHING -> true;
             case COMMAND, KILL_ENTITY, TAME, ENCHANT, BREW, CUSTOM -> false;
         };
     }
