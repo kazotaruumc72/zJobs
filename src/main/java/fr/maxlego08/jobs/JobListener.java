@@ -29,6 +29,7 @@ import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.SmithItemEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -242,6 +243,30 @@ public class JobListener implements Listener {
                 this.jobManager.action(player, expectedAfter, JobActionType.STRIPLOGS);
             }
         });
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onAnvilRepair(InventoryClickEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+
+        var inventory = event.getInventory();
+        if (inventory.getType() != InventoryType.ANVIL) return;
+        if (event.getRawSlot() != 2) return;
+
+        ItemStack result = event.getCurrentItem();
+        if (result == null || result.getType() == Material.AIR) return;
+
+        this.jobManager.action(player, result.getType(), JobActionType.ANVIL_REPAIR);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onSmithItem(SmithItemEvent event) {
+        if (!(event.getWhoClicked() instanceof Player player)) return;
+
+        ItemStack result = event.getCurrentItem();
+        if (result == null || result.getType() == Material.AIR) return;
+
+        this.jobManager.action(player, result.getType(), JobActionType.SMITHING);
     }
 
     private boolean isNotStrippable(Material type) {
