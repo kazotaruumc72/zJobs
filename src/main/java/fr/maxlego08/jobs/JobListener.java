@@ -299,9 +299,13 @@ public class JobListener implements Listener {
                 cached[i + 1] = item != null ? item.clone() : null;
             }
             this.smithingCache.put(player.getUniqueId(), cached);
-        } else {
-            this.smithingCache.remove(player.getUniqueId());
         }
+        // Do NOT clear the cache when result is null/AIR.  When the player picks up
+        // the result, the server (or Nexo) removes the input items which fires a new
+        // PrepareSmithingEvent with an empty result *during* InventoryClickEvent
+        // processing.  Clearing here would wipe the cache before our MONITOR-priority
+        // InventoryClickEvent handler gets a chance to use it.  The cache is consumed
+        // (removed) in onSmithItem and cleaned up on player quit.
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
@@ -341,10 +345,24 @@ public class JobListener implements Listener {
             }
         }
 
+        // Fallback: check the cursor item.  When Nexo handles the craft it may place
+        // the result directly on the player's cursor before our MONITOR handler runs.
+        boolean usingCursor = false;
+        if ((result == null || result.getType() == Material.AIR) && event.isCancelled()) {
+            ItemStack cursorItem = event.getCursor();
+            if (cursorItem != null && cursorItem.getType() != Material.AIR) {
+                result = cursorItem;
+                usingCursor = true;
+                if (debug) {
+                    this.plugin.getLogger().info("[SMITHING DEBUG] Using cursor item as result fallback");
+                }
+            }
+        }
+
         boolean hasResult = result != null && result.getType() != Material.AIR;
 
         if (debug) {
-            this.plugin.getLogger().info("[SMITHING DEBUG] hasResult: " + hasResult + " (usingCache: " + usingCache + ")");
+            this.plugin.getLogger().info("[SMITHING DEBUG] hasResult: " + hasResult + " (usingCache: " + usingCache + ", usingCursor: " + usingCursor + ")");
         }
 
         NexoHook nexoHook = this.plugin.getNexoHook();
@@ -363,7 +381,7 @@ public class JobListener implements Listener {
             // Check input items (slots 0=template, 1=base item, 2=addition)
             // Use cached items when the live inventory was cleared by Nexo
             for (int slot = 0; slot <= 2; slot++) {
-                ItemStack inputItem = usingCache ? cachedItems[slot + 1] : inventory.getItem(slot);
+                ItemStack inputItem = (usingCache || usingCursor) && cachedItems != null ? cachedItems[slot + 1] : inventory.getItem(slot);
                 if (inputItem != null) {
                     String inputNexoId = nexoHook.getNexoItemId(inputItem);
                     if (inputNexoId != null) {
