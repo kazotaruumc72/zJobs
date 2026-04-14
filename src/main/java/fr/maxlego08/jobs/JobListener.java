@@ -285,23 +285,48 @@ public class JobListener implements Listener {
         if (inventory.getType() != InventoryType.SMITHING) return;
         if (event.getSlotType() != InventoryType.SlotType.RESULT) return;
 
+        boolean debug = Config.enableDebug;
+
+        if (debug) {
+            this.plugin.getLogger().info("[SMITHING DEBUG] Player " + player.getName() + " clicked result slot in smithing table");
+            this.plugin.getLogger().info("[SMITHING DEBUG] Event cancelled: " + event.isCancelled() + ", Click type: " + event.getClick() + ", Action: " + event.getAction());
+        }
+
         ItemStack result = event.getCurrentItem();
+
+        if (debug) {
+            this.plugin.getLogger().info("[SMITHING DEBUG] getCurrentItem(): " + (result != null ? result.getType() + " x" + result.getAmount() : "null"));
+        }
 
         // Fallback: use SmithingInventory.getResult() if getCurrentItem() is empty
         // This handles cases where another plugin (e.g. Nexo) modified the inventory during event processing
         if ((result == null || result.getType() == Material.AIR) && inventory instanceof SmithingInventory smithingInventory) {
             result = smithingInventory.getResult();
+            if (debug) {
+                this.plugin.getLogger().info("[SMITHING DEBUG] Fallback SmithingInventory.getResult(): " + (result != null ? result.getType() + " x" + result.getAmount() : "null"));
+            }
         }
 
         boolean hasResult = result != null && result.getType() != Material.AIR;
 
+        if (debug) {
+            this.plugin.getLogger().info("[SMITHING DEBUG] hasResult: " + hasResult);
+        }
+
         NexoHook nexoHook = this.plugin.getNexoHook();
         if (nexoHook != null) {
+            if (debug) {
+                this.plugin.getLogger().info("[SMITHING DEBUG] NexoHook is available");
+            }
+
             Set<String> nexoIds = new LinkedHashSet<>();
 
             // Check result item
             if (hasResult) {
                 String resultNexoId = nexoHook.getNexoItemId(result);
+                if (debug) {
+                    this.plugin.getLogger().info("[SMITHING DEBUG] Result Nexo ID: " + resultNexoId);
+                }
                 if (resultNexoId != null) {
                     nexoIds.add(resultNexoId);
                 }
@@ -314,10 +339,19 @@ public class JobListener implements Listener {
                 ItemStack inputItem = inventory.getItem(slot);
                 if (inputItem != null) {
                     String inputNexoId = nexoHook.getNexoItemId(inputItem);
+                    if (debug) {
+                        this.plugin.getLogger().info("[SMITHING DEBUG] Slot " + slot + ": " + inputItem.getType() + " x" + inputItem.getAmount() + ", Nexo ID: " + inputNexoId);
+                    }
                     if (inputNexoId != null) {
                         nexoIds.add(inputNexoId);
                     }
+                } else if (debug) {
+                    this.plugin.getLogger().info("[SMITHING DEBUG] Slot " + slot + ": empty");
                 }
+            }
+
+            if (debug) {
+                this.plugin.getLogger().info("[SMITHING DEBUG] Collected Nexo IDs: " + nexoIds);
             }
 
             if (!nexoIds.isEmpty()) {
@@ -326,15 +360,31 @@ public class JobListener implements Listener {
                 // smithing itself and consumed the result before our handler ran).
                 if (hasResult || event.isCancelled()) {
                     for (String nexoId : nexoIds) {
+                        if (debug) {
+                            this.plugin.getLogger().info("[SMITHING DEBUG] Dispatching action for nexo:" + nexoId + " (SMITHING)");
+                        }
                         this.jobManager.action(player, "nexo:" + nexoId, JobActionType.SMITHING);
                     }
                     return;
+                } else if (debug) {
+                    this.plugin.getLogger().info("[SMITHING DEBUG] Nexo IDs found but skipped: hasResult=" + hasResult + ", isCancelled=" + event.isCancelled());
                 }
             }
+        } else if (debug) {
+            this.plugin.getLogger().info("[SMITHING DEBUG] NexoHook is null (Nexo not loaded)");
         }
 
         // For vanilla items, require a valid result and non-cancelled event
-        if (!hasResult || event.isCancelled()) return;
+        if (!hasResult || event.isCancelled()) {
+            if (debug) {
+                this.plugin.getLogger().info("[SMITHING DEBUG] Vanilla path skipped: hasResult=" + hasResult + ", isCancelled=" + event.isCancelled());
+            }
+            return;
+        }
+
+        if (debug) {
+            this.plugin.getLogger().info("[SMITHING DEBUG] Dispatching vanilla action for " + result.getType() + " (SMITHING)");
+        }
         this.jobManager.action(player, result.getType(), JobActionType.SMITHING);
     }
 
