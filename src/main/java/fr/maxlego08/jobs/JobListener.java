@@ -29,7 +29,6 @@ import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.inventory.SmithItemEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -278,8 +277,12 @@ public class JobListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onSmithItem(SmithItemEvent event) {
+    public void onSmithItem(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
+
+        var inventory = event.getInventory();
+        if (inventory.getType() != InventoryType.SMITHING) return;
+        if (event.getSlotType() != InventoryType.SlotType.RESULT) return;
 
         ItemStack result = event.getCurrentItem();
         if (result == null || result.getType() == Material.AIR) return;
@@ -297,7 +300,6 @@ public class JobListener implements Listener {
             // Always check input items too (slots 0=template, 1=base item, 2=addition)
             // The result may be a different Nexo item than the inputs, and the user
             // may configure actions based on any item involved in the smithing.
-            var inventory = event.getInventory();
             for (int slot = 0; slot <= 2; slot++) {
                 ItemStack inputItem = inventory.getItem(slot);
                 if (inputItem != null) {
