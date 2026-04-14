@@ -118,6 +118,7 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
 
     @Override
     public void action(Player player, Object target, JobActionType type) {
+        boolean debug = Config.enableDebug;
         JobManager jobManager = this.plugin.getJobManager();
         for (PlayerJob playerJob : this.jobs) {
 
@@ -125,14 +126,28 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
             elapsedTime.start();
 
             var optional = jobManager.getJob(playerJob.getJobId());
-            if (optional.isEmpty()) continue;
+            if (optional.isEmpty()) {
+                if (debug) {
+                    this.plugin.getLogger().info("[ACTION DEBUG] Job not found: " + playerJob.getJobId());
+                }
+                continue;
+            }
 
             var job = optional.get();
 
             var optionalAction = job.getAction(type, target);
-            if (optionalAction.isEmpty()) continue;
+            if (optionalAction.isEmpty()) {
+                if (debug) {
+                    this.plugin.getLogger().info("[ACTION DEBUG] No matching action in job " + job.getFileName() + " for type=" + type + ", target=" + target + " (class: " + target.getClass().getSimpleName() + ")");
+                }
+                continue;
+            }
 
             var action = optionalAction.get();
+
+            if (debug) {
+                this.plugin.getLogger().info("[ACTION DEBUG] Matched action in job " + job.getFileName() + " for type=" + type + ", target=" + target);
+            }
 
             elapsedTime.endDisplay();
 

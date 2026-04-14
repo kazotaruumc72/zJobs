@@ -122,11 +122,19 @@ public class ZJobManager extends ZUtils implements JobManager {
 
         // Disable worlds
         if (Config.disabledWorlds.contains(player.getWorld().getName())) {
+            if (Config.enableDebug) {
+                this.plugin.getLogger().info("[ACTION DEBUG] World " + player.getWorld().getName() + " is disabled, skipping action " + action + " for " + player.getName());
+            }
             return;
         }
 
         var optional = getPlayerJobs(player.getUniqueId());
-        if (optional.isEmpty()) return;
+        if (optional.isEmpty()) {
+            if (Config.enableDebug) {
+                this.plugin.getLogger().info("[ACTION DEBUG] No player jobs found for " + player.getName() + " (" + player.getUniqueId() + ")");
+            }
+            return;
+        }
 
         var playerJobs = optional.get();
         playerJobs.action(player, target, action);
