@@ -18,9 +18,9 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- * 
- * @author Maxlego08
+ * Checks for plugin version updates and notifies players on join if a new version is available.
  *
+ * @author Maxlego08
  */
 public class VersionChecker implements Listener {
 

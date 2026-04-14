@@ -24,20 +24,38 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
+/**
+ * Listener that delegates Bukkit events to registered {@link fr.maxlego08.jobs.zcore.utils.plugins.Plugins} listener adapters.
+ */
 @SuppressWarnings("deprecation")
 public class AdapterListener extends ZUtils implements Listener {
 
     private final JobsPlugin plugin;
 
+    /**
+     * Constructs a new {@code AdapterListener}.
+     *
+     * @param plugin the jobs plugin instance.
+     */
     public AdapterListener(JobsPlugin plugin) {
         this.plugin = plugin;
     }
 
+    /**
+     * Handles player join events.
+     *
+     * @param event the player join event.
+     */
     @EventHandler
     public void onConnect(PlayerJoinEvent event) {
         this.plugin.getListenerAdapters().forEach(adapter -> adapter.onConnect(event, event.getPlayer()));
     }
 
+    /**
+     * Handles player quit events.
+     *
+     * @param event the player quit event.
+     */
     @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         this.plugin.getListenerAdapters().forEach(adapter -> adapter.onQuit(event, event.getPlayer()));
@@ -54,60 +72,115 @@ public class AdapterListener extends ZUtils implements Listener {
     }*/
 
 
+    /**
+     * Handles inventory click events.
+     *
+     * @param event the inventory click event.
+     */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         this.plugin.getListenerAdapters()
                 .forEach(adapter -> adapter.onInventoryClick(event, (Player) event.getWhoClicked()));
     }
 
+    /**
+     * Handles block break events.
+     *
+     * @param event the block break event.
+     */
     @EventHandler
     public void onBlockBreak(BlockBreakEvent event) {
         this.plugin.getListenerAdapters().forEach(adapter -> adapter.onBlockBreak(event, event.getPlayer()));
     }
 
+    /**
+     * Handles block place events.
+     *
+     * @param event the block place event.
+     */
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
         this.plugin.getListenerAdapters().forEach(adapter -> adapter.onBlockPlace(event, event.getPlayer()));
     }
 
+    /**
+     * Handles entity death events.
+     *
+     * @param event the entity death event.
+     */
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
         this.plugin.getListenerAdapters().forEach(adapter -> adapter.onEntityDeath(event, event.getEntity()));
     }
 
+    /**
+     * Handles player interact events.
+     *
+     * @param event the player interact event.
+     */
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         this.plugin.getListenerAdapters().forEach(adapter -> adapter.onInteract(event, event.getPlayer()));
     }
 
+    /**
+     * Handles async player chat events.
+     *
+     * @param event the async player chat event.
+     */
     @EventHandler
     public void onPlayerTalk(AsyncPlayerChatEvent event) {
         this.plugin.getListenerAdapters().forEach(adapter -> adapter.onPlayerTalk(event, event.getMessage()));
     }
 
+    /**
+     * Handles craft item events.
+     *
+     * @param event the craft item event.
+     */
     @EventHandler
     public void onCraftItem(CraftItemEvent event) {
         this.plugin.getListenerAdapters().forEach(adapter -> adapter.onCraftItem(event));
     }
 
+    /**
+     * Handles inventory drag events.
+     *
+     * @param event the inventory drag event.
+     */
     @EventHandler
     public void onDrag(InventoryDragEvent event) {
         this.plugin.getListenerAdapters()
                 .forEach(adapter -> adapter.onInventoryDrag(event, (Player) event.getWhoClicked()));
     }
 
+    /**
+     * Handles inventory close events.
+     *
+     * @param event the inventory close event.
+     */
     @EventHandler
     public void onClose(InventoryCloseEvent event) {
         this.plugin.getListenerAdapters()
                 .forEach(adapter -> adapter.onInventoryClose(event, (Player) event.getPlayer()));
     }
 
+    /**
+     * Handles player command preprocess events.
+     *
+     * @param event the player command preprocess event.
+     */
     @EventHandler
     public void onCommand(PlayerCommandPreprocessEvent event) {
         this.plugin.getListenerAdapters()
                 .forEach(adapter -> adapter.onCommand(event, event.getPlayer(), event.getMessage()));
     }
 
+    /**
+     * Handles player game mode change events.
+     *
+     * @param event the player game mode change event.
+     */
     @EventHandler
     public void onGamemodeChange(PlayerGameModeChangeEvent event) {
         this.plugin.getListenerAdapters().forEach(adapter -> adapter.onGamemodeChange(event, event.getPlayer()));
@@ -128,16 +201,31 @@ public class AdapterListener extends ZUtils implements Listener {
      * item.getLocation())); } }); }
      */
 
+    /**
+     * Handles player item pickup events.
+     *
+     * @param event the player pickup item event.
+     */
     @EventHandler
     public void onPick(PlayerPickupItemEvent event) {
         this.plugin.getListenerAdapters().forEach(adapter -> adapter.onPickUp(event, event.getPlayer()));
     }
 
+    /**
+     * Handles creature spawn events.
+     *
+     * @param event the creature spawn event.
+     */
     @EventHandler
     public void onMobSpawn(CreatureSpawnEvent event) {
         this.plugin.getListenerAdapters().forEach(adapter -> adapter.onMobSpawn(event));
     }
 
+    /**
+     * Handles entity damage by entity events.
+     *
+     * @param event the entity damage by entity event.
+     */
     @EventHandler
     public void onDamage(EntityDamageByEntityEvent event) {
 

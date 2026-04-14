@@ -8,11 +8,20 @@ import fr.maxlego08.menu.api.requirement.Action;
 import fr.maxlego08.menu.api.utils.Placeholders;
 import org.bukkit.entity.Player;
 
+/**
+ * Action that adds job points to a player.
+ */
 public class AddPointsAction extends Action {
 
     private final JobsPlugin plugin;
     private final String points;
 
+    /**
+     * Constructs a new {@code AddPointsAction}.
+     *
+     * @param plugin the jobs plugin instance.
+     * @param points the number of points to add (may contain placeholders).
+     */
     public AddPointsAction(JobsPlugin plugin, String points) {
         this.plugin = plugin;
         this.points = points;

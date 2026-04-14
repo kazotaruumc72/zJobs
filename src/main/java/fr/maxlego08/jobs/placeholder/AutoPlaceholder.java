@@ -2,12 +2,21 @@ package fr.maxlego08.jobs.placeholder;
 
 import org.bukkit.entity.Player;
 
+/**
+ * Represents a placeholder that automatically resolves values based on a prefix string.
+ */
 public class AutoPlaceholder {
 
     private final String startWith;
     private final ReturnBiConsumer<Player, String, String> biConsumer;
     private final ReturnConsumer<Player, String> consumer;
 
+    /**
+     * Constructs an {@code AutoPlaceholder} with a bi-consumer resolver.
+     *
+     * @param startWith  the prefix this placeholder matches.
+     * @param biConsumer the bi-consumer used to resolve the placeholder value.
+     */
     public AutoPlaceholder(String startWith, ReturnBiConsumer<Player, String, String> biConsumer) {
         super();
         this.startWith = startWith;
@@ -15,6 +24,12 @@ public class AutoPlaceholder {
         this.consumer = null;
     }
 
+    /**
+     * Constructs an {@code AutoPlaceholder} with a consumer resolver.
+     *
+     * @param startWith the prefix this placeholder matches.
+     * @param consumer  the consumer used to resolve the placeholder value.
+     */
     public AutoPlaceholder(String startWith, ReturnConsumer<Player, String> consumer) {
         this.startWith = startWith;
         this.biConsumer = null;
@@ -22,14 +37,18 @@ public class AutoPlaceholder {
     }
 
     /**
-     * @return the startWith
+     * Gets the prefix string this placeholder matches against.
+     *
+     * @return the startWith prefix.
      */
     public String getStartWith() {
         return startWith;
     }
 
     /**
-     * @return the biConsumer
+     * Gets the bi-consumer resolver for this placeholder.
+     *
+     * @return the biConsumer, or {@code null} if a simple consumer is used.
      */
     public ReturnBiConsumer<Player, String, String> getBiConsumer() {
         return biConsumer;

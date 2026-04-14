@@ -14,6 +14,8 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 /**
+ * Utility class for encoding and decoding {@link ItemStack} objects to and from Base64 strings.
+ *
  * @author sya-ri
  * Github: <a href="https://github.com/sya-ri/base64-itemstack/tree/master">https://github.com/sya-ri/base64-itemstack/tree/master</a>
  */

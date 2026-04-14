@@ -53,6 +53,7 @@ public abstract class MessageUtils extends LocationUtils {
     /**
      * Sends a message with prefix to the specified command sender.
      *
+     * @param updater the meta updater used to send the message.
      * @param sender  the command sender to send the message to.
      * @param message the message to send.
      * @param args    the arguments for the message.
@@ -139,6 +140,7 @@ public abstract class MessageUtils extends LocationUtils {
     /**
      * Sends an action bar message to the specified player.
      *
+     * @param updater the meta updater used to send the action bar message.
      * @param player  the player to send the message to.
      * @param message the message to send.
      * @param args    the arguments for the message.
@@ -198,6 +200,7 @@ public abstract class MessageUtils extends LocationUtils {
     /**
      * Sends a title to the player.
      *
+     * @param updater     the meta updater used to send the title.
      * @param player      the player to send the title to.
      * @param title       the title text.
      * @param subtitle    the subtitle text.
