@@ -29,6 +29,7 @@ import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.inventory.FurnaceSmeltEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -40,7 +41,9 @@ import org.bukkit.inventory.SmithingInventory;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -49,6 +52,10 @@ public class JobListener implements Listener {
     private final JobsPlugin plugin;
     private final JobManager jobManager;
     private final NamespacedKey playerKey;
+    // Caches smithing table contents per player from PrepareSmithingEvent.
+    // Index 0 = result, 1-3 = input slots (template, base, addition).
+    // Used as fallback when Nexo clears the inventory before our MONITOR handler runs.
+    private final Map<UUID, ItemStack[]> smithingCache = new HashMap<>();
 
     public JobListener(JobsPlugin plugin) {
         this.plugin = plugin;
@@ -64,6 +71,7 @@ public class JobListener implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         this.jobManager.playerQuit(event.getPlayer());
+        this.smithingCache.remove(event.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -277,6 +285,25 @@ public class JobListener implements Listener {
         this.jobManager.action(player, result.getType(), JobActionType.ANVIL_REPAIR);
     }
 
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPrepareSmithing(PrepareSmithingEvent event) {
+        if (!(event.getView().getPlayer() instanceof Player player)) return;
+
+        ItemStack result = event.getResult();
+        if (result != null && result.getType() != Material.AIR) {
+            SmithingInventory inventory = event.getInventory();
+            ItemStack[] cached = new ItemStack[4];
+            cached[0] = result.clone();
+            for (int i = 0; i < 3; i++) {
+                ItemStack item = inventory.getItem(i);
+                cached[i + 1] = item != null ? item.clone() : null;
+            }
+            this.smithingCache.put(player.getUniqueId(), cached);
+        } else {
+            this.smithingCache.remove(player.getUniqueId());
+        }
+    }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
     public void onSmithItem(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
@@ -287,66 +314,61 @@ public class JobListener implements Listener {
 
         boolean debug = Config.enableDebug;
 
+        // Always consume the cache entry when the result slot is clicked
+        ItemStack[] cachedItems = this.smithingCache.remove(player.getUniqueId());
+
         if (debug) {
             this.plugin.getLogger().info("[SMITHING DEBUG] Player " + player.getName() + " clicked result slot in smithing table");
             this.plugin.getLogger().info("[SMITHING DEBUG] Event cancelled: " + event.isCancelled() + ", Click type: " + event.getClick() + ", Action: " + event.getAction());
+            this.plugin.getLogger().info("[SMITHING DEBUG] Cache available: " + (cachedItems != null));
         }
 
         ItemStack result = event.getCurrentItem();
 
-        if (debug) {
-            this.plugin.getLogger().info("[SMITHING DEBUG] getCurrentItem(): " + (result != null ? result.getType() + " x" + result.getAmount() : "null"));
-        }
-
         // Fallback: use SmithingInventory.getResult() if getCurrentItem() is empty
-        // This handles cases where another plugin (e.g. Nexo) modified the inventory during event processing
         if ((result == null || result.getType() == Material.AIR) && inventory instanceof SmithingInventory smithingInventory) {
             result = smithingInventory.getResult();
+        }
+
+        // Fallback: use cached result from PrepareSmithingEvent if the inventory was
+        // already cleared (e.g. Nexo handles the craft and empties slots before MONITOR)
+        boolean usingCache = false;
+        if ((result == null || result.getType() == Material.AIR) && cachedItems != null && event.isCancelled()) {
+            result = cachedItems[0];
+            usingCache = true;
             if (debug) {
-                this.plugin.getLogger().info("[SMITHING DEBUG] Fallback SmithingInventory.getResult(): " + (result != null ? result.getType() + " x" + result.getAmount() : "null"));
+                this.plugin.getLogger().info("[SMITHING DEBUG] Using cached items from PrepareSmithingEvent");
             }
         }
 
         boolean hasResult = result != null && result.getType() != Material.AIR;
 
         if (debug) {
-            this.plugin.getLogger().info("[SMITHING DEBUG] hasResult: " + hasResult);
+            this.plugin.getLogger().info("[SMITHING DEBUG] hasResult: " + hasResult + " (usingCache: " + usingCache + ")");
         }
 
         NexoHook nexoHook = this.plugin.getNexoHook();
         if (nexoHook != null) {
-            if (debug) {
-                this.plugin.getLogger().info("[SMITHING DEBUG] NexoHook is available");
-            }
 
             Set<String> nexoIds = new LinkedHashSet<>();
 
             // Check result item
             if (hasResult) {
                 String resultNexoId = nexoHook.getNexoItemId(result);
-                if (debug) {
-                    this.plugin.getLogger().info("[SMITHING DEBUG] Result Nexo ID: " + resultNexoId);
-                }
                 if (resultNexoId != null) {
                     nexoIds.add(resultNexoId);
                 }
             }
 
-            // Always check input items too (slots 0=template, 1=base item, 2=addition)
-            // The result may be a different Nexo item than the inputs, and the user
-            // may configure actions based on any item involved in the smithing.
+            // Check input items (slots 0=template, 1=base item, 2=addition)
+            // Use cached items when the live inventory was cleared by Nexo
             for (int slot = 0; slot <= 2; slot++) {
-                ItemStack inputItem = inventory.getItem(slot);
+                ItemStack inputItem = usingCache ? cachedItems[slot + 1] : inventory.getItem(slot);
                 if (inputItem != null) {
                     String inputNexoId = nexoHook.getNexoItemId(inputItem);
-                    if (debug) {
-                        this.plugin.getLogger().info("[SMITHING DEBUG] Slot " + slot + ": " + inputItem.getType() + " x" + inputItem.getAmount() + ", Nexo ID: " + inputNexoId);
-                    }
                     if (inputNexoId != null) {
                         nexoIds.add(inputNexoId);
                     }
-                } else if (debug) {
-                    this.plugin.getLogger().info("[SMITHING DEBUG] Slot " + slot + ": empty");
                 }
             }
 
@@ -355,9 +377,6 @@ public class JobListener implements Listener {
             }
 
             if (!nexoIds.isEmpty()) {
-                // Fire actions if there's a valid result (normal case), or if the event
-                // was cancelled AND Nexo items are in inputs (Nexo likely handled the
-                // smithing itself and consumed the result before our handler ran).
                 if (hasResult || event.isCancelled()) {
                     for (String nexoId : nexoIds) {
                         if (debug) {
@@ -366,12 +385,8 @@ public class JobListener implements Listener {
                         this.jobManager.action(player, "nexo:" + nexoId, JobActionType.SMITHING);
                     }
                     return;
-                } else if (debug) {
-                    this.plugin.getLogger().info("[SMITHING DEBUG] Nexo IDs found but skipped: hasResult=" + hasResult + ", isCancelled=" + event.isCancelled());
                 }
             }
-        } else if (debug) {
-            this.plugin.getLogger().info("[SMITHING DEBUG] NexoHook is null (Nexo not loaded)");
         }
 
         // For vanilla items, require a valid result and non-cancelled event
