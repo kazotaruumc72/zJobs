@@ -259,6 +259,13 @@ public class JobListener implements Listener {
         NexoHook nexoHook = this.plugin.getNexoHook();
         if (nexoHook != null) {
             String nexoId = nexoHook.getNexoItemId(result);
+            // If result doesn't have Nexo data, check the first input item (slot 0)
+            if (nexoId == null) {
+                ItemStack firstItem = inventory.getItem(0);
+                if (firstItem != null) {
+                    nexoId = nexoHook.getNexoItemId(firstItem);
+                }
+            }
             if (nexoId != null) {
                 this.jobManager.action(player, "nexo:" + nexoId, JobActionType.ANVIL_REPAIR);
                 return;
@@ -278,6 +285,18 @@ public class JobListener implements Listener {
         NexoHook nexoHook = this.plugin.getNexoHook();
         if (nexoHook != null) {
             String nexoId = nexoHook.getNexoItemId(result);
+            // If result doesn't have Nexo data, check the input items
+            // Smithing table slots: 0=template, 1=base item, 2=addition
+            if (nexoId == null) {
+                var inventory = event.getInventory();
+                for (int slot = 0; slot <= 2; slot++) {
+                    ItemStack inputItem = inventory.getItem(slot);
+                    if (inputItem != null) {
+                        nexoId = nexoHook.getNexoItemId(inputItem);
+                        if (nexoId != null) break;
+                    }
+                }
+            }
             if (nexoId != null) {
                 this.jobManager.action(player, "nexo:" + nexoId, JobActionType.SMITHING);
                 return;
