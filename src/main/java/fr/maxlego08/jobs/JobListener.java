@@ -36,6 +36,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EnchantingInventory;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.SmithingInventory;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -276,7 +277,7 @@ public class JobListener implements Listener {
         this.jobManager.action(player, result.getType(), JobActionType.ANVIL_REPAIR);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = false)
     public void onSmithItem(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player player)) return;
 
@@ -285,16 +286,25 @@ public class JobListener implements Listener {
         if (event.getSlotType() != InventoryType.SlotType.RESULT) return;
 
         ItemStack result = event.getCurrentItem();
-        if (result == null || result.getType() == Material.AIR) return;
+
+        // Fallback: use SmithingInventory.getResult() if getCurrentItem() is empty
+        // This handles cases where another plugin (e.g. Nexo) modified the inventory during event processing
+        if ((result == null || result.getType() == Material.AIR) && inventory instanceof SmithingInventory smithingInventory) {
+            result = smithingInventory.getResult();
+        }
+
+        boolean hasResult = result != null && result.getType() != Material.AIR;
 
         NexoHook nexoHook = this.plugin.getNexoHook();
         if (nexoHook != null) {
             Set<String> nexoIds = new LinkedHashSet<>();
 
             // Check result item
-            String resultNexoId = nexoHook.getNexoItemId(result);
-            if (resultNexoId != null) {
-                nexoIds.add(resultNexoId);
+            if (hasResult) {
+                String resultNexoId = nexoHook.getNexoItemId(result);
+                if (resultNexoId != null) {
+                    nexoIds.add(resultNexoId);
+                }
             }
 
             // Always check input items too (slots 0=template, 1=base item, 2=addition)
@@ -311,13 +321,19 @@ public class JobListener implements Listener {
             }
 
             if (!nexoIds.isEmpty()) {
-                for (String nexoId : nexoIds) {
-                    this.jobManager.action(player, "nexo:" + nexoId, JobActionType.SMITHING);
+                // Fire actions if there's a valid result, or if the event was cancelled
+                // (cancelled means Nexo likely handled the smithing and consumed the result)
+                if (hasResult || event.isCancelled()) {
+                    for (String nexoId : nexoIds) {
+                        this.jobManager.action(player, "nexo:" + nexoId, JobActionType.SMITHING);
+                    }
+                    return;
                 }
-                return;
             }
         }
 
+        // For vanilla items, require a valid result
+        if (!hasResult) return;
         this.jobManager.action(player, result.getType(), JobActionType.SMITHING);
     }
 
