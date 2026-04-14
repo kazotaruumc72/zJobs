@@ -256,6 +256,15 @@ public class JobListener implements Listener {
         ItemStack result = event.getCurrentItem();
         if (result == null || result.getType() == Material.AIR) return;
 
+        NexoHook nexoHook = this.plugin.getNexoHook();
+        if (nexoHook != null) {
+            String nexoId = nexoHook.getNexoItemId(result);
+            if (nexoId != null) {
+                this.jobManager.action(player, "nexo:" + nexoId, JobActionType.ANVIL_REPAIR);
+                return;
+            }
+        }
+
         this.jobManager.action(player, result.getType(), JobActionType.ANVIL_REPAIR);
     }
 
@@ -265,6 +274,15 @@ public class JobListener implements Listener {
 
         ItemStack result = event.getCurrentItem();
         if (result == null || result.getType() == Material.AIR) return;
+
+        NexoHook nexoHook = this.plugin.getNexoHook();
+        if (nexoHook != null) {
+            String nexoId = nexoHook.getNexoItemId(result);
+            if (nexoId != null) {
+                this.jobManager.action(player, "nexo:" + nexoId, JobActionType.SMITHING);
+                return;
+            }
+        }
 
         this.jobManager.action(player, result.getType(), JobActionType.SMITHING);
     }

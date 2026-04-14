@@ -21,4 +21,8 @@ public class NexoHook {
         var itemBuilder = NexoItems.itemFromId(nexoId);
         return itemBuilder != null ? itemBuilder.build() : null;
     }
+
+    public String getNexoItemId(ItemStack itemStack) {
+        return NexoItems.idFromItem(itemStack);
+    }
 }
