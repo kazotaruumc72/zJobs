@@ -18,6 +18,6 @@ public class NexoAction extends ZJobAction<String> {
 
     @Override
     public boolean isAction(Object target) {
-        return target instanceof String s && s.equals(this.target);
+        return target instanceof String s && s.equalsIgnoreCase(this.target);
     }
 }
