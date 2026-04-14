@@ -40,6 +40,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.UUID;
 
 public class JobListener implements Listener {
@@ -284,21 +286,32 @@ public class JobListener implements Listener {
 
         NexoHook nexoHook = this.plugin.getNexoHook();
         if (nexoHook != null) {
-            String nexoId = nexoHook.getNexoItemId(result);
-            // If result doesn't have Nexo data, check the input items
-            // Smithing table slots: 0=template, 1=base item, 2=addition
-            if (nexoId == null) {
-                var inventory = event.getInventory();
-                for (int slot = 0; slot <= 2; slot++) {
-                    ItemStack inputItem = inventory.getItem(slot);
-                    if (inputItem != null) {
-                        nexoId = nexoHook.getNexoItemId(inputItem);
-                        if (nexoId != null) break;
+            Set<String> nexoIds = new LinkedHashSet<>();
+
+            // Check result item
+            String resultNexoId = nexoHook.getNexoItemId(result);
+            if (resultNexoId != null) {
+                nexoIds.add(resultNexoId);
+            }
+
+            // Always check input items too (slots 0=template, 1=base item, 2=addition)
+            // The result may be a different Nexo item than the inputs, and the user
+            // may configure actions based on any item involved in the smithing.
+            var inventory = event.getInventory();
+            for (int slot = 0; slot <= 2; slot++) {
+                ItemStack inputItem = inventory.getItem(slot);
+                if (inputItem != null) {
+                    String inputNexoId = nexoHook.getNexoItemId(inputItem);
+                    if (inputNexoId != null) {
+                        nexoIds.add(inputNexoId);
                     }
                 }
             }
-            if (nexoId != null) {
-                this.jobManager.action(player, "nexo:" + nexoId, JobActionType.SMITHING);
+
+            if (!nexoIds.isEmpty()) {
+                for (String nexoId : nexoIds) {
+                    this.jobManager.action(player, "nexo:" + nexoId, JobActionType.SMITHING);
+                }
                 return;
             }
         }
