@@ -5,12 +5,13 @@ import fr.maxlego08.jobs.component.PaperComponent;
 import fr.maxlego08.jobs.zcore.enums.Message;
 import fr.maxlego08.jobs.zcore.enums.MessageType;
 import fr.maxlego08.jobs.zcore.utils.nms.NmsVersion;
-import fr.maxlego08.menu.api.utils.MetaUpdater;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
+import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,6 +25,7 @@ import java.util.regex.Pattern;
 public abstract class MessageUtils extends LocationUtils {
 
     private final static int CENTER_PX = 154;
+    private static final long MILLIS_PER_TICK = 50L;
     private static final PaperComponent PAPER_COMPONENT = new PaperComponent();
 
     /**
@@ -51,40 +53,27 @@ public abstract class MessageUtils extends LocationUtils {
     }
 
     /**
-     * Sends a message with prefix to the specified command sender.
+     * Sends a message to the specified command sender using MiniMessage formatting.
      *
-     * @param updater the meta updater used to send the message.
      * @param sender  the command sender to send the message to.
-     * @param message the message to send.
-     * @param args    the arguments for the message.
+     * @param message the message to send (already formatted with prefix if needed).
      */
-    protected void message(MetaUpdater updater, CommandSender sender, String message, Object... args) {
-        message(updater, sender, Message.PREFIX.msg() + getMessage(message, args));
+    private void sendComponent(CommandSender sender, String message) {
+        sender.sendMessage(PAPER_COMPONENT.getComponent(message));
     }
 
     /**
-     * Sends a message to the specified command sender.
-     *
-     * @param sender  the command sender to send the message to.
-     * @param message the message to send.
-     */
-    private void message(MetaUpdater updater, CommandSender sender, String message) {
-        updater.sendMessage(sender, message);
-        // sender.sendMessage(color(message));
-    }
-
-    /**
-     * Sends a chat message to the specified player.
+     * Sends a chat message to the specified player using MiniMessage formatting.
      *
      * @param player  the player to send the message to.
      * @param message the message to send.
      * @param args    the arguments for the message.
      */
-    private void sendTchatMessage(MetaUpdater updater, Player player, Message message, Object... args) {
+    private void sendTchatMessage(Player player, Message message, Object... args) {
         if (message.getMessages().size() > 1) {
-            message.getMessages().forEach(msg -> message(updater, player, this.papi(getMessage(msg, args), player)));
+            message.getMessages().forEach(msg -> sendComponent(player, this.papi(getMessage(msg, args), player)));
         } else {
-            message(updater, player, this.papi((message.getType() == MessageType.WITHOUT_PREFIX ? "" : Message.PREFIX.msg()) + getMessage(message, args), player));
+            sendComponent(player, this.papi((message.getType() == MessageType.WITHOUT_PREFIX ? "" : Message.PREFIX.msg()) + getMessage(message, args), player));
         }
     }
 
@@ -98,13 +87,11 @@ public abstract class MessageUtils extends LocationUtils {
      */
     protected void message(JobsPlugin plugin, CommandSender sender, Message message, Object... args) {
 
-        var updater = plugin.getInventoryManager().getMeta();
-
         if (sender instanceof ConsoleCommandSender) {
             if (!message.getMessages().isEmpty()) {
-                message.getMessages().forEach(msg -> message(updater, sender, getMessage(msg, args)));
+                message.getMessages().forEach(msg -> sendComponent(sender, getMessage(msg, args)));
             } else {
-                message(updater, sender, Message.PREFIX.msg() + getMessage(message, args));
+                sendComponent(sender, Message.PREFIX.msg() + getMessage(message, args));
             }
         } else {
             Player player = (Player) sender;
@@ -117,19 +104,19 @@ public abstract class MessageUtils extends LocationUtils {
                         sender.sendMessage(paperComponent.getComponent(this.getCenteredMessage(this.papi(getMessage(message, args), player))));
                     }
                 }
-                case ACTION -> this.actionMessage(updater, player, message, args);
+                case ACTION -> this.actionMessage(player, message, args);
                 case TCHAT_AND_ACTION -> {
-                    this.actionMessage(updater, player, message, args);
-                    sendTchatMessage(updater, player, message, args);
+                    this.actionMessage(player, message, args);
+                    sendTchatMessage(player, message, args);
                 }
-                case TCHAT, WITHOUT_PREFIX -> sendTchatMessage(updater, player, message, args);
+                case TCHAT, WITHOUT_PREFIX -> sendTchatMessage(player, message, args);
                 case TITLE -> {
                     String title = message.getTitle();
                     String subTitle = message.getSubTitle();
                     int fadeInTime = message.getStart();
                     int showTime = message.getTime();
                     int fadeOutTime = message.getEnd();
-                    this.title(updater, player, this.papi(this.getMessage(title, args), player), this.papi(this.getMessage(subTitle, args), player), fadeInTime, showTime, fadeOutTime);
+                    this.title(player, this.papi(this.getMessage(title, args), player), this.papi(this.getMessage(subTitle, args), player), fadeInTime, showTime, fadeOutTime);
                 }
                 default -> {
                 }
@@ -138,16 +125,14 @@ public abstract class MessageUtils extends LocationUtils {
     }
 
     /**
-     * Sends an action bar message to the specified player.
+     * Sends an action bar message to the specified player using MiniMessage formatting.
      *
-     * @param updater the meta updater used to send the action bar message.
      * @param player  the player to send the message to.
      * @param message the message to send.
      * @param args    the arguments for the message.
      */
-    protected void actionMessage(MetaUpdater updater, Player player, Message message, Object... args) {
-        updater.sendAction(player, this.papi(getMessage(message, args), player));
-        // ActionBar.sendActionBar(player, color(this.papi(getMessage(message, args), player)));
+    protected void actionMessage(Player player, Message message, Object... args) {
+        player.sendActionBar(PAPER_COMPONENT.getComponent(this.papi(getMessage(message, args), player)));
     }
 
     /**
@@ -198,9 +183,8 @@ public abstract class MessageUtils extends LocationUtils {
     }
 
     /**
-     * Sends a title to the player.
+     * Sends a title to the player using MiniMessage formatting.
      *
-     * @param updater     the meta updater used to send the title.
      * @param player      the player to send the title to.
      * @param title       the title text.
      * @param subtitle    the subtitle text.
@@ -208,8 +192,16 @@ public abstract class MessageUtils extends LocationUtils {
      * @param showTime    the showtime in ticks.
      * @param fadeOutTime the fade-out time in ticks.
      */
-    protected void title(MetaUpdater updater, Player player, String title, String subtitle, int fadeInTime, int showTime, int fadeOutTime) {
-        updater.sendTitle(player, title, subtitle, fadeInTime, showTime, fadeOutTime);
+    protected void title(Player player, String title, String subtitle, int fadeInTime, int showTime, int fadeOutTime) {
+        player.showTitle(Title.title(
+                PAPER_COMPONENT.getComponent(title),
+                PAPER_COMPONENT.getComponent(subtitle),
+                Title.Times.times(
+                        Duration.ofMillis(fadeInTime * MILLIS_PER_TICK),
+                        Duration.ofMillis(showTime * MILLIS_PER_TICK),
+                        Duration.ofMillis(fadeOutTime * MILLIS_PER_TICK)
+                )
+        ));
     }
 
     /**
