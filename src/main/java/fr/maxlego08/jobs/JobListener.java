@@ -149,6 +149,12 @@ public class JobListener implements Listener {
 
         LivingEntity entity = event.getEntity();
         if (entity.getKiller() != null) {
+            if (this.plugin.isMythicMobsEnabled()) {
+                try {
+                    if (io.lumine.mythic.bukkit.MythicBukkit.inst().getMobManager().isActiveMob(entity.getUniqueId())) return;
+                } catch (Exception ignored) {
+                }
+            }
             this.jobManager.action(entity.getKiller(), entity, JobActionType.KILL_ENTITY);
         }
     }

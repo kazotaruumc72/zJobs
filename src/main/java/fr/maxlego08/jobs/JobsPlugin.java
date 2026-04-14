@@ -9,6 +9,7 @@ import fr.maxlego08.jobs.command.commands.CommandJobs;
 import fr.maxlego08.jobs.component.PaperComponent;
 import fr.maxlego08.jobs.hooks.BlockTrackerHook;
 import fr.maxlego08.jobs.hooks.EmptyHook;
+import fr.maxlego08.jobs.hooks.MythicMobsListener;
 import fr.maxlego08.jobs.hooks.NexoHook;
 import fr.maxlego08.jobs.hooks.NexoListener;
 import fr.maxlego08.jobs.placeholder.LocalPlaceholder;
@@ -63,6 +64,7 @@ public class JobsPlugin extends ZPlugin {
     private ButtonManager buttonManager;
     private BlockHook blockHook = new EmptyHook();
     private NexoHook nexoHook;
+    private boolean mythicMobsEnabled = false;
     private CurrencyProvider currencyProvider;
 
     @Override
@@ -104,6 +106,12 @@ public class JobsPlugin extends ZPlugin {
             getLogger().info("Using Nexo");
             this.nexoHook = new NexoHook();
             this.addListener(new NexoListener(this));
+        }
+
+        if (isEnable(Plugins.MYTHICMOBS)) {
+            getLogger().info("Using MythicMobs");
+            this.mythicMobsEnabled = true;
+            this.addListener(new MythicMobsListener(this));
         }
 
         this.loadInventories();
@@ -163,6 +171,10 @@ public class JobsPlugin extends ZPlugin {
 
     public NexoHook getNexoHook() {
         return nexoHook;
+    }
+
+    public boolean isMythicMobsEnabled() {
+        return mythicMobsEnabled;
     }
 
     private void loadActions() {

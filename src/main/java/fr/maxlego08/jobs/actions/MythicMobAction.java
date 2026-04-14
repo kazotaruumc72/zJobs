@@ -19,6 +19,9 @@ public class MythicMobAction extends ZJobAction<String> {
 
     @Override
       public boolean isAction(Object target) {
+                if (target instanceof String s) {
+                              return s.equalsIgnoreCase(this.target);
+                }
                 if (target instanceof Entity entity) {
                               try {
                                                 var activeMob = io.lumine.mythic.bukkit.MythicBukkit.inst().getMobManager().getActiveMob(entity.getUniqueId());
