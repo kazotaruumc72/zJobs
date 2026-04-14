@@ -152,7 +152,7 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
             elapsedTime.endDisplay();
 
             var actionInfo = type.toAction(target);
-            var result = this.boosts.processBoost(job, action, target);
+            var result = this.boosts.processBoost(job, action, target, player);
 
             if (result.hasBoost()) {
 

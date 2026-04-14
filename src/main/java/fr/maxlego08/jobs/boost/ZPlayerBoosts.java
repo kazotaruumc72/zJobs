@@ -6,6 +6,7 @@ import fr.maxlego08.jobs.api.JobAction;
 import fr.maxlego08.jobs.api.boost.Boost;
 import fr.maxlego08.jobs.api.boost.BoostResult;
 import fr.maxlego08.jobs.api.boost.PlayerBoosts;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -33,16 +34,24 @@ public class ZPlayerBoosts implements PlayerBoosts {
 
     @Override
     public BoostResult processBoost(Job job, JobAction<?> jobAction, Object element) {
+        return processBoost(job, jobAction, element, null);
+    }
+
+    @Override
+    public BoostResult processBoost(Job job, JobAction<?> jobAction, Object element, Player player) {
 
         var optional = this.boosts.stream().filter(boost -> boost.canProcess(job, jobAction, element)).max(Comparator.comparingDouble(Boost::getExperienceBoost));
+        double experience = jobAction.getExperience(player);
+        double money = jobAction.getMoney(player);
+
         if (optional.isEmpty()) {
-            return new BoostResult(jobAction.getExperience(), jobAction.getMoney(), null);
+            return new BoostResult(experience, money, null);
         }
 
         var boost = optional.get();
         boost.removeRemainingBoost(1);
 
-        return new BoostResult(jobAction.getExperience() * boost.getExperienceBoost(), jobAction.getMoney() * boost.getMoneyBoost(), boost);
+        return new BoostResult(experience * boost.getExperienceBoost(), money * boost.getMoneyBoost(), boost);
     }
 
     @Override
