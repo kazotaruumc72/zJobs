@@ -321,8 +321,9 @@ public class JobListener implements Listener {
             }
 
             if (!nexoIds.isEmpty()) {
-                // Fire actions if there's a valid result, or if the event was cancelled
-                // (cancelled means Nexo likely handled the smithing and consumed the result)
+                // Fire actions if there's a valid result (normal case), or if the event
+                // was cancelled AND Nexo items are in inputs (Nexo likely handled the
+                // smithing itself and consumed the result before our handler ran).
                 if (hasResult || event.isCancelled()) {
                     for (String nexoId : nexoIds) {
                         this.jobManager.action(player, "nexo:" + nexoId, JobActionType.SMITHING);
@@ -332,8 +333,8 @@ public class JobListener implements Listener {
             }
         }
 
-        // For vanilla items, require a valid result
-        if (!hasResult) return;
+        // For vanilla items, require a valid result and non-cancelled event
+        if (!hasResult || event.isCancelled()) return;
         this.jobManager.action(player, result.getType(), JobActionType.SMITHING);
     }
 
