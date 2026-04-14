@@ -286,6 +286,7 @@ public class JobListener implements Listener {
         if (nexoHook != null) {
             String nexoId = nexoHook.getNexoItemId(result);
             // If result doesn't have Nexo data, check the input items
+            // Smithing table slots: 0=template, 1=base item, 2=addition
             if (nexoId == null) {
                 var inventory = event.getInventory();
                 for (int slot = 0; slot <= 2; slot++) {
