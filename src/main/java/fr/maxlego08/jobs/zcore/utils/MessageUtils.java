@@ -25,6 +25,7 @@ import java.util.regex.Pattern;
 public abstract class MessageUtils extends LocationUtils {
 
     private final static int CENTER_PX = 154;
+    private static final long MILLIS_PER_TICK = 50L;
     private static final PaperComponent PAPER_COMPONENT = new PaperComponent();
 
     /**
@@ -196,9 +197,9 @@ public abstract class MessageUtils extends LocationUtils {
                 PAPER_COMPONENT.getComponent(title),
                 PAPER_COMPONENT.getComponent(subtitle),
                 Title.Times.times(
-                        Duration.ofMillis(fadeInTime * 50L),
-                        Duration.ofMillis(showTime * 50L),
-                        Duration.ofMillis(fadeOutTime * 50L)
+                        Duration.ofMillis(fadeInTime * MILLIS_PER_TICK),
+                        Duration.ofMillis(showTime * MILLIS_PER_TICK),
+                        Duration.ofMillis(fadeOutTime * MILLIS_PER_TICK)
                 )
         ));
     }
