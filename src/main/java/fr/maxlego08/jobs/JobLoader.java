@@ -89,6 +89,14 @@ public class JobLoader implements Loader<Job> {
             TypedMapAccessor accessor = new TypedMapAccessor((Map<String, Object>) map);
             double experience = accessor.getDouble("experience", 0);
             double money = accessor.getDouble("money", 0);
+
+            // Read raw values for PlaceholderAPI placeholder support (e.g. "%math_1+1%")
+            // A valid PlaceholderAPI placeholder requires at least two '%' characters
+            Object rawExperience = map.get("experience");
+            Object rawMoney = map.get("money");
+            String experienceFormula = rawExperience instanceof String s && isPlaceholder(s) ? s : null;
+            String moneyFormula = rawMoney instanceof String s && isPlaceholder(s) ? s : null;
+
             try {
 
                 JobActionType jobActionType = JobActionType.valueOf(accessor.getString("type").toUpperCase());
@@ -139,6 +147,8 @@ public class JobLoader implements Loader<Job> {
 
                 if (jobAction != null) {
                     ((ZJobAction<?>) jobAction).setDisplayName(displayName);
+                    if (experienceFormula != null) ((ZJobAction<?>) jobAction).setExperienceFormula(experienceFormula);
+                    if (moneyFormula != null) ((ZJobAction<?>) jobAction).setMoneyFormula(moneyFormula);
                     jobActions.add(jobAction);
                 }
 
@@ -152,6 +162,18 @@ public class JobLoader implements Loader<Job> {
     @Override
     public void save(Job object, YamlConfiguration configuration, String path) {
 
+    }
+
+    /**
+     * Checks if a string contains a valid PlaceholderAPI placeholder pattern.
+     * A valid placeholder requires at least two '%' characters (e.g. "%math_1+1%").
+     *
+     * @param value the string to check
+     * @return true if the string contains a placeholder pattern
+     */
+    private boolean isPlaceholder(String value) {
+        int firstIndex = value.indexOf('%');
+        return firstIndex >= 0 && value.indexOf('%', firstIndex + 1) > firstIndex;
     }
 
 

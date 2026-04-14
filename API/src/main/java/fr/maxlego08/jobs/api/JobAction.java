@@ -3,6 +3,7 @@ package fr.maxlego08.jobs.api;
 import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.api.utils.ValueInformation;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public interface JobAction<T> {
@@ -34,6 +35,28 @@ public interface JobAction<T> {
      * @return the money given
      */
     double getMoney();
+
+    /**
+     * Get the experience given for this action, resolved for a specific player.
+     * Supports PlaceholderAPI placeholders in experience values.
+     *
+     * @param player the player to resolve placeholders for
+     * @return the experience given
+     */
+    default double getExperience(Player player) {
+        return getExperience();
+    }
+
+    /**
+     * Get the money given for this action, resolved for a specific player.
+     * Supports PlaceholderAPI placeholders in money values.
+     *
+     * @param player the player to resolve placeholders for
+     * @return the money given
+     */
+    default double getMoney(Player player) {
+        return getMoney();
+    }
 
     /**
      * Checks if the given object is the target of this action.
