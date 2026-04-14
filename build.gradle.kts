@@ -32,6 +32,101 @@ allprojects {
         maven(url = "https://repo.groupez.dev/releases")
         // maven(url = "https://repo.groupez.dev/snapshots")
         maven(url = "https://repo.nexomc.com/releases/")
+        maven(url = "https://mvn.lumine.io/repository/maven-public/")
+    }
+
+    java {
+        withSourcesJar()
+        withJavadocJar()
+    }
+
+    tasks.compileJava {
+        options.encoding = "UTF-8"
+    }
+
+    tasks.javadoc {
+        options.encoding = "UTF-8"
+    }
+
+    dependencies {
+
+        compileOnly("io.papermc.paper:paper-api:1.21.3-R0.1-SNAPSHOT")
+        compileOnly("me.clip:placeholderapi:2.11.6")
+        compileOnly("com.mojang:authlib:3.11.50")
+        compileOnly("dev.krakenied:blocktracker:1.0.6")
+        compileOnly("com.nexomc:nexo:1.6.0")
+        compileOnly("io.lumine:Mythic-Dist:5.7.2")
+
+        compileOnly("fr.maxlego08.menu:zmenu-api:1.1.0.4")
+        implementation("fr.maxlego08.sarah:sarah:1.20")
+    }
+}
+
+dependencies {
+    api(projects.api)
+    // api(projects.hooks)
+}
+
+tasks {
+    shadowJar {
+        relocate("fr.maxlego08.sarah", "fr.maxlego08.jobs.libs.sarah")
+
+        rootProject.extra.properties["sha"]?.let { sha ->
+            archiveClassifier.set("${rootProject.extra.properties["classifier"]}-${sha}")
+        } ?: run {
+            archiveClassifier.set(rootProject.extra.properties["classifier"] as String?)
+        }
+        destinationDirectory.set(rootProject.extra["targetFolder"] as File)
+    }
+
+    build {
+        dependsOn(shadowJar)
+    }
+
+    compileJava {
+        options.release = 21
+    }
+
+    processResources {
+        from("resources")
+        filesMatching("plugin.yml") {
+            expand("version" to project.version)
+        }
+    }
+}plugins {
+    `java-library`
+    id("com.gradleup.shadow") version "9.0.0-beta11"
+}
+
+group = "fr.maxlego08.jobs"
+version = "1.0.0"
+
+extra.set("targetFolder", file("target/"))
+extra.set("apiFolder", file("target-api/"))
+extra.set("classifier", System.getProperty("archive.classifier"))
+extra.set("sha", System.getProperty("github.sha"))
+
+allprojects {
+
+    apply(plugin = "java-library")
+    apply(plugin = "com.gradleup.shadow")
+
+    group = "fr.maxlego08.jobs"
+    version = rootProject.version
+
+    repositories {
+        mavenLocal()
+        mavenCentral()
+
+        maven(url = "https://jitpack.io")
+        maven(url = "https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+        maven(url = "https://repo.papermc.io/repository/maven-public/")
+        maven(url = "https://oss.sonatype.org/content/groups/public/")
+        maven(url = "https://repo.extendedclip.com/content/repositories/placeholderapi/")
+        maven(url = "https://repo.bg-software.com/repository/api/")
+        maven(url = "https://repo.groupez.dev/releases")
+        // maven(url = "https://repo.groupez.dev/snapshots")
+        maven(url = "https://repo.nexomc.com/releases/")
     }
 
     java {
