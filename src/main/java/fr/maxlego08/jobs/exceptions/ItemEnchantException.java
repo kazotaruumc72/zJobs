@@ -4,8 +4,9 @@
 package fr.maxlego08.jobs.exceptions;
 
 /**
- * @author Maxlego08
+ * Exception thrown when an item enchantment operation fails.
  *
+ * @author Maxlego08
  */
 public class ItemEnchantException extends Exception {
 

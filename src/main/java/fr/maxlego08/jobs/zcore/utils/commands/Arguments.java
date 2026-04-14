@@ -14,7 +14,9 @@ import org.bukkit.entity.Player;
  */
 public abstract class Arguments extends ZUtils {
 
+	/** The command arguments array. */
 	protected String[] args;
+	/** The number of parent command levels to offset argument indexing. */
 	protected int parentCount = 0;
 
 	/**

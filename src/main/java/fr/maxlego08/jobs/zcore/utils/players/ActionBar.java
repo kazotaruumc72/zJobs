@@ -10,7 +10,15 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+/**
+ * Utility class for sending action bar messages to players.
+ * Supports both modern Spigot API and legacy NMS packet-based approaches.
+ */
 public class ActionBar {
+
+    /** No-argument constructor. */
+    private ActionBar() {
+    }
 
     private static Class<?> craftPlayerClass;
     private static Class<?> packetClass;
@@ -40,6 +48,12 @@ public class ActionBar {
         }
     }
 
+    /**
+     * Sends an action bar message to the specified player.
+     *
+     * @param player  the player to send the action bar message to.
+     * @param message the message to display in the action bar.
+     */
     public static void sendActionBar(Player player, String message) {
 
         if (!player.isOnline()) {

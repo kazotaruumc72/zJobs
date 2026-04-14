@@ -8,10 +8,18 @@ import fr.maxlego08.menu.api.utils.TypedMapAccessor;
 
 import java.io.File;
 
+/**
+ * Loader for the {@code zjobs_add_points} menu action.
+ */
 public class AddPointLoader extends ActionLoader {
 
     private final JobsPlugin plugin;
 
+    /**
+     * Constructs a new {@code AddPointLoader}.
+     *
+     * @param plugin the jobs plugin instance.
+     */
     public AddPointLoader(JobsPlugin plugin) {
         super("zjobs_add_points", "zjobs add points");
         this.plugin = plugin;
