@@ -138,7 +138,7 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
             var optionalAction = job.getAction(type, target);
             if (optionalAction.isEmpty()) {
                 if (debug) {
-                    this.plugin.getLogger().info("[ACTION DEBUG] No matching action in job " + job.getFileName() + " for type=" + type + ", target=" + target + " (class: " + target.getClass().getSimpleName() + ")");
+                    this.plugin.getLogger().info("[ACTION DEBUG] No matching action in job " + job.getFileName() + " for type=" + type + ", target=" + target + " (class: " + (target != null ? target.getClass().getSimpleName() : "null") + ")");
                 }
                 continue;
             }
