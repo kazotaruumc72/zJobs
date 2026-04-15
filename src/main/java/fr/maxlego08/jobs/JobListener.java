@@ -160,7 +160,7 @@ public class JobListener implements Listener {
                 } catch (Exception ignored) {
                 }
             }
-            this.jobManager.action(entity.getKiller(), entity, JobActionType.KILL_ENTITY);
+            this.jobManager.action(entity.getKiller(), entity.getType(), JobActionType.KILL_ENTITY);
         }
     }
 

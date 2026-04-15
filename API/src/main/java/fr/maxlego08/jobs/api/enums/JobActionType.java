@@ -9,6 +9,7 @@ import fr.maxlego08.jobs.api.actions.EntityAction;
 import fr.maxlego08.jobs.api.actions.MaterialAction;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.event.enchantment.EnchantItemEvent;
 import org.bukkit.event.inventory.BrewEvent;
 
@@ -38,7 +39,9 @@ public enum JobActionType {
             }
             case KILL_ENTITY, TAME -> {
                 if (target instanceof String s) yield new CustomAction(this, s);
-                yield new EntityAction(this, (Entity) target);
+                if (target instanceof EntityType et) yield new EntityAction(this, et);
+                if (target instanceof Entity e) yield new EntityAction(this, e.getType());
+                yield new EntityAction(this, EntityType.UNKNOWN);
             }
             case COMMAND -> new CommandAction(target == null ? "" : (String) target);
             case ENCHANT -> new EnchantAction(this, (EnchantItemEvent) target);
