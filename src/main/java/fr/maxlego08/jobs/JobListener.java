@@ -149,26 +149,29 @@ public class JobListener implements Listener {
     public void onDeath(EntityDeathEvent event) {
 
         LivingEntity entity = event.getEntity();
-        if (entity.getKiller() != null) {
-            // Store all entity data immediately at HIGHEST priority to avoid issues with plugins
-            // that modify entity metadata (MythicMobs, ModelEngine, etc.) causing packet encoding errors
-            EntityType entityType = entity.getType();
-            UUID entityUuid = entity.getUniqueId();
-            Player killer = entity.getKiller();
 
-            if (this.plugin.isMythicMobsEnabled()) {
-                try {
-                    var activeMob = io.lumine.mythic.bukkit.MythicBukkit.inst().getMobManager().getActiveMob(entityUuid);
-                    if (activeMob.isPresent()) {
-                        String mobType = activeMob.get().getMobType();
-                        this.jobManager.action(killer, "mm:" + mobType, JobActionType.KILL_ENTITY);
-                        return;
-                    }
-                } catch (Exception ignored) {
+        // Cache ALL entity data immediately before any operations to prevent packet encoding errors.
+        // Accessing entity.getKiller() or other entity methods can trigger entity metadata updates
+        // and packet sends by plugins like MythicMobs/ModelEngine, causing NullPointerException
+        // in ByteBufCodecs when encoding set_entity_data packets.
+        Player killer = entity.getKiller();
+        if (killer == null) return;
+
+        EntityType entityType = entity.getType();
+        UUID entityUuid = entity.getUniqueId();
+
+        if (this.plugin.isMythicMobsEnabled()) {
+            try {
+                var activeMob = io.lumine.mythic.bukkit.MythicBukkit.inst().getMobManager().getActiveMob(entityUuid);
+                if (activeMob.isPresent()) {
+                    String mobType = activeMob.get().getMobType();
+                    this.jobManager.action(killer, "mm:" + mobType, JobActionType.KILL_ENTITY);
+                    return;
                 }
+            } catch (Exception ignored) {
             }
-            this.jobManager.action(killer, entityType, JobActionType.KILL_ENTITY);
         }
+        this.jobManager.action(killer, entityType, JobActionType.KILL_ENTITY);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
