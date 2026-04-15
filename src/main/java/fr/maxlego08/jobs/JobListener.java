@@ -144,11 +144,14 @@ public class JobListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDeath(EntityDeathEvent event) {
 
         LivingEntity entity = event.getEntity();
         if (entity.getKiller() != null) {
+            // Store EntityType immediately to avoid issues with plugins that modify entity metadata
+            EntityType entityType = entity.getType();
+
             if (this.plugin.isMythicMobsEnabled()) {
                 try {
                     var activeMob = io.lumine.mythic.bukkit.MythicBukkit.inst().getMobManager().getActiveMob(entity.getUniqueId());
@@ -160,7 +163,7 @@ public class JobListener implements Listener {
                 } catch (Exception ignored) {
                 }
             }
-            this.jobManager.action(entity.getKiller(), entity.getType(), JobActionType.KILL_ENTITY);
+            this.jobManager.action(entity.getKiller(), entityType, JobActionType.KILL_ENTITY);
         }
     }
 
