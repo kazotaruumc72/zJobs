@@ -13,6 +13,7 @@ import org.bukkit.block.BrewingStand;
 import org.bukkit.block.Container;
 import org.bukkit.block.Furnace;
 import org.bukkit.block.data.Ageable;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
