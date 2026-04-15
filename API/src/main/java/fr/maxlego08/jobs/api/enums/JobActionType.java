@@ -36,7 +36,10 @@ public enum JobActionType {
                 if (target instanceof String s) yield new CustomAction(this, s);
                 yield new MaterialAction(this, (Material) target);
             }
-            case KILL_ENTITY, TAME -> new EntityAction(this, (Entity) target);
+            case KILL_ENTITY, TAME -> {
+                if (target instanceof String s) yield new CustomAction(this, s);
+                yield new EntityAction(this, (Entity) target);
+            }
             case COMMAND -> new CommandAction(target == null ? "" : (String) target);
             case ENCHANT -> new EnchantAction(this, (EnchantItemEvent) target);
             case BREW -> new BrewAction(this, (BrewEvent) target);
