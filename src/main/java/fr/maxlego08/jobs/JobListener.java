@@ -145,26 +145,29 @@ public class JobListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDeath(EntityDeathEvent event) {
 
         LivingEntity entity = event.getEntity();
         if (entity.getKiller() != null) {
-            // Store EntityType immediately to avoid issues with plugins that modify entity metadata
+            // Store all entity data immediately at HIGHEST priority to avoid issues with plugins
+            // that modify entity metadata (MythicMobs, ModelEngine, etc.) causing packet encoding errors
             EntityType entityType = entity.getType();
+            UUID entityUuid = entity.getUniqueId();
+            Player killer = entity.getKiller();
 
             if (this.plugin.isMythicMobsEnabled()) {
                 try {
-                    var activeMob = io.lumine.mythic.bukkit.MythicBukkit.inst().getMobManager().getActiveMob(entity.getUniqueId());
+                    var activeMob = io.lumine.mythic.bukkit.MythicBukkit.inst().getMobManager().getActiveMob(entityUuid);
                     if (activeMob.isPresent()) {
                         String mobType = activeMob.get().getMobType();
-                        this.jobManager.action(entity.getKiller(), "mm:" + mobType, JobActionType.KILL_ENTITY);
+                        this.jobManager.action(killer, "mm:" + mobType, JobActionType.KILL_ENTITY);
                         return;
                     }
                 } catch (Exception ignored) {
                 }
             }
-            this.jobManager.action(entity.getKiller(), entityType, JobActionType.KILL_ENTITY);
+            this.jobManager.action(killer, entityType, JobActionType.KILL_ENTITY);
         }
     }
 
