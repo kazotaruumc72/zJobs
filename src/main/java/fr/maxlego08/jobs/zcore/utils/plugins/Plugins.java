@@ -11,7 +11,6 @@ public enum Plugins {
 	ZTRANSLATOR("zTranslator"),
 	BLOCKTRACKER("BlockTracker"),
 	NEXO("Nexo"),
-	MYTHICMOBS("MythicMobs"),
 
 	;
 

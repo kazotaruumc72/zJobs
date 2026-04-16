@@ -4,7 +4,6 @@ import fr.maxlego08.jobs.actions.BrewAction;
 import fr.maxlego08.jobs.actions.CustomAction;
 import fr.maxlego08.jobs.actions.EnchantmentAction;
 import fr.maxlego08.jobs.actions.EntityAction;
-import fr.maxlego08.jobs.actions.MythicMobAction;
 import fr.maxlego08.jobs.actions.MaterialAction;
 import fr.maxlego08.jobs.actions.NexoAction;
 import fr.maxlego08.jobs.actions.TagAction;
@@ -126,14 +125,8 @@ public class JobLoader implements Loader<Job> {
                     }
 
                 } else if (jobActionType.isEntityType()) {
-                    String entityName = accessor.getString("entity");
-                    if (entityName.toLowerCase().startsWith("mm:")) {
-                        String mythicMobId = "mm:" + entityName.substring(3);
-                        jobAction = new MythicMobAction(mythicMobId, experience, money, jobActionType, displayMaterial == null ? "ZOMBIE_SPAWN_EGG" : displayMaterial);
-                    } else {
-                        EntityType entityType = EntityType.valueOf(entityName.toUpperCase());
-                        jobAction = new EntityAction(entityType, experience, money, jobActionType, displayMaterial == null ? EntityTypeToEggConverter.getSpawnEgg(entityType).name() : displayMaterial);
-                    }
+                    EntityType entityType = EntityType.valueOf(accessor.getString("entity").toUpperCase());
+                    jobAction = new EntityAction(entityType, experience, money, jobActionType, displayMaterial == null ? EntityTypeToEggConverter.getSpawnEgg(entityType).name() : displayMaterial);
 
                 } else if (jobActionType == JobActionType.ENCHANT) {
 
