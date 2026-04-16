@@ -199,6 +199,7 @@ public class CommandManager extends ZUtils implements CommandExecutor, TabComple
      * Allows you to check if all commands are correct If an command does not
      * have
      */
+    @SuppressWarnings("removal")
     private void commandChecking() {
         this.commands.forEach(command -> {
             if (command.sameSubCommands()) {
