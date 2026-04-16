@@ -151,7 +151,7 @@ public class JobListener implements Listener {
         LivingEntity entity = event.getEntity();
 
         // Defer ALL entity access to the next tick to prevent packet encoding errors.
-        // Plugins like MythicMobs/ModelEngine modify entity metadata during EntityDeathEvent,
+        // Plugins like ModelEngine may modify entity metadata during EntityDeathEvent,
         // and ANY entity method call (including getKiller()) can trigger entity metadata updates
         // and packet sends through the Netty pipeline, causing NullPointerException
         // in ByteBufCodecs when encoding set_entity_data packets because the entity is in an
