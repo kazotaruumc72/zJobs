@@ -32,7 +32,6 @@ allprojects {
         maven(url = "https://repo.groupez.dev/releases")
         // maven(url = "https://repo.groupez.dev/snapshots")
         maven(url = "https://repo.nexomc.com/releases/")
-        maven(url = "https://mvn.lumine.io/repository/maven-public/")
     }
 
     java {
@@ -55,7 +54,6 @@ allprojects {
         compileOnly("com.mojang:authlib:3.11.50")
         compileOnly("dev.krakenied:blocktracker:1.0.6")
         compileOnly("com.nexomc:nexo:1.6.0")
-        compileOnly("io.lumine:Mythic-Dist:5.7.2")
 
         compileOnly("fr.maxlego08.menu:zmenu-api:1.1.0.4")
         implementation("fr.maxlego08.sarah:sarah:1.20")
