@@ -150,20 +150,19 @@ public class JobListener implements Listener {
 
         LivingEntity entity = event.getEntity();
 
-        // Defer ALL entity access to the next tick to prevent packet encoding errors.
-        // Plugins like ModelEngine may modify entity metadata during EntityDeathEvent,
+        // Cache ALL entity data IMMEDIATELY before any processing.
+        // Plugins like ModelEngine/MythicMobs modify entity metadata during EntityDeathEvent,
         // and ANY entity method call (including getKiller()) can trigger entity metadata updates
         // and packet sends through the Netty pipeline, causing NullPointerException
         // in ByteBufCodecs when encoding set_entity_data packets because the entity is in an
-        // invalid state during cleanup. By deferring to next tick, we ensure all plugins have
-        // finished their entity cleanup before we access any entity data.
+        // invalid state during cleanup. We must cache killer HERE before deferring, as the
+        // entity reference becomes invalid by next tick.
         EntityType entityType = entity.getType();
-        UUID entityUuid = entity.getUniqueId();
+        Player killer = entity.getKiller();
+
+        if (killer == null) return;
 
         this.plugin.getScheduler().runNextTick(w -> {
-            Player killer = entity.getKiller();
-            if (killer == null) return;
-
             this.jobManager.action(killer, entityType, JobActionType.KILL_ENTITY);
         });
     }
