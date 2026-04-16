@@ -157,8 +157,22 @@ public class JobListener implements Listener {
         // in ByteBufCodecs when encoding set_entity_data packets because the entity is in an
         // invalid state during cleanup. We must cache killer HERE before deferring, as the
         // entity reference becomes invalid by next tick.
-        EntityType entityType = entity.getType();
-        Player killer = entity.getKiller();
+        //
+        // We wrap this in a try-catch to gracefully handle any metadata corruption errors
+        // from MythicMobs/ModelEngine entities. If we can't get the entity data safely,
+        // we skip processing rather than crashing the plugin or disconnecting players.
+        EntityType entityType;
+        Player killer;
+
+        try {
+            entityType = entity.getType();
+            killer = entity.getKiller();
+        } catch (Exception e) {
+            // Entity metadata is corrupted - skip processing to avoid crashes
+            this.plugin.getLogger().warning("Failed to get entity data in EntityDeathEvent (entity: " +
+                entity.getClass().getSimpleName() + "). This may indicate corrupted entity metadata from MythicMobs/ModelEngine.");
+            return;
+        }
 
         if (killer == null) return;
 
