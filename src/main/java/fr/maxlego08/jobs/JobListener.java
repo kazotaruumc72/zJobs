@@ -150,6 +150,12 @@ public class JobListener implements Listener {
 
         LivingEntity entity = event.getEntity();
 
+        // Skip MythicMobs entities - they are handled by MythicMobsListener
+        // to ensure proper custom entity identification (mm:MobInternalName)
+        if (this.plugin.getMythicMobsHook() != null && this.plugin.getMythicMobsHook().isMythicMob(entity)) {
+            return;
+        }
+
         // Cache ALL entity data IMMEDIATELY before any processing.
         // Plugins like ModelEngine/MythicMobs modify entity metadata during EntityDeathEvent,
         // and ANY entity method call (including getKiller()) can trigger entity metadata updates
