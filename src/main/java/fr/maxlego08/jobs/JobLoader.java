@@ -129,7 +129,7 @@ public class JobLoader implements Loader<Job> {
                     if (entityName.toLowerCase().startsWith("mm:")) {
                         // MythicMobs entity
                         String mythicMobId = "mm:" + entityName.substring(3);
-                        jobAction = new CustomAction(mythicMobId, experience, money, displayMaterial == null ? "PAPER" : displayMaterial);
+                        jobAction = new CustomAction(mythicMobId, experience, money, displayMaterial == null ? "PAPER" : displayMaterial, jobActionType);
                     } else {
                         // Vanilla entity
                         EntityType entityType = EntityType.valueOf(entityName.toUpperCase());
