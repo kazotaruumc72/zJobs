@@ -850,6 +850,7 @@ public abstract class ZUtils extends MessageUtils {
      * @param player    the player whose head is to be represented.
      * @return the modified item stack representing the player's head.
      */
+    @SuppressWarnings("deprecation")
     public ItemStack playerHead(ItemStack itemStack, OfflinePlayer player) {
         String name = itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName() ? itemStack.getItemMeta().getDisplayName() : null;
         if (NmsVersion.nmsVersion.isNewMaterial()) {
