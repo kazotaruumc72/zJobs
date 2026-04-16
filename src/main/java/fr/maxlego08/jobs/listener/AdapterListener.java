@@ -110,7 +110,13 @@ public class AdapterListener extends ZUtils implements Listener {
      */
     @EventHandler
     public void onEntityDeath(EntityDeathEvent event) {
-        this.plugin.getListenerAdapters().forEach(adapter -> adapter.onEntityDeath(event, event.getEntity()));
+        try {
+            this.plugin.getListenerAdapters().forEach(adapter -> adapter.onEntityDeath(event, event.getEntity()));
+        } catch (Exception e) {
+            // Catch any exceptions to prevent entity metadata corruption from crashing the plugin
+            // or disconnecting players. MythicMobs/ModelEngine entities may have corrupted metadata.
+            this.plugin.getLogger().warning("Error in EntityDeathEvent adapter: " + e.getMessage());
+        }
     }
 
     /**
