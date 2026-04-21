@@ -87,6 +87,17 @@ public class RafineInputButton extends Button {
     }
 
     @Override
+    public void onInventoryClick(org.bukkit.event.inventory.InventoryClickEvent event, Player player, InventoryEngine inventory) {
+        // See RafineResultButton#onInventoryClick for the rationale: zMenu
+        // does not wire Button#onClick for hasSpecialRender() buttons, so
+        // we must route the click here.
+        if (event.getClickedInventory() == null) return;
+        if (event.getClickedInventory() != event.getView().getTopInventory()) return;
+        if (event.getRawSlot() != getSlot()) return;
+        onClick(player, event, inventory, getSlot(), new Placeholders());
+    }
+
+    @Override
     public void onClick(Player player, InventoryClickEvent event, InventoryEngine inventory, int slot, Placeholders placeholders) {
         event.setCancelled(true);
 
