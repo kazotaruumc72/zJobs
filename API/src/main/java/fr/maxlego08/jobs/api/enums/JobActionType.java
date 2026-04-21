@@ -29,7 +29,8 @@ public enum JobActionType {
     ANVIL_REPAIR,
     SMITHING,
     CUSTOM,
-    RAFINE
+    RAFINE,
+    FORGE
     ;
 
     public ActionInfo<?> toAction(Object target) {
@@ -47,14 +48,14 @@ public enum JobActionType {
             case COMMAND -> new CommandAction(target == null ? "" : (String) target);
             case ENCHANT -> new EnchantAction(this, (EnchantItemEvent) target);
             case BREW -> new BrewAction(this, (BrewEvent) target);
-            case CUSTOM, RAFINE -> new CustomAction(this, target == null ? "" : target.toString());
+            case CUSTOM, RAFINE, FORGE -> new CustomAction(this, target == null ? "" : target.toString());
         };
     }
 
     public boolean isMaterial() {
         return switch (this) {
             case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS, ANVIL_REPAIR, SMITHING -> true;
-            case COMMAND, KILL_ENTITY, TAME, ENCHANT, BREW, CUSTOM, RAFINE -> false;
+            case COMMAND, KILL_ENTITY, TAME, ENCHANT, BREW, CUSTOM, RAFINE, FORGE -> false;
         };
     }
 
