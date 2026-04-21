@@ -14,6 +14,11 @@ import fr.maxlego08.jobs.hooks.MythicMobsListener;
 import fr.maxlego08.jobs.hooks.NexoHook;
 import fr.maxlego08.jobs.hooks.NexoListener;
 import fr.maxlego08.jobs.placeholder.LocalPlaceholder;
+import fr.maxlego08.jobs.forge.ForgeClickListener;
+import fr.maxlego08.jobs.forge.ForgeInputButton;
+import fr.maxlego08.jobs.forge.ForgeManager;
+import fr.maxlego08.jobs.forge.ForgeResultButton;
+import fr.maxlego08.jobs.forge.ForgeTimerButton;
 import fr.maxlego08.jobs.rafine.RafineClickListener;
 import fr.maxlego08.jobs.rafine.RafineInputButton;
 import fr.maxlego08.jobs.rafine.RafineManager;
@@ -65,6 +70,7 @@ public class JobsPlugin extends ZPlugin {
     private final StorageManager storageManager = new ZStorageManager(this);
     private final PaperComponent paperComponent = new PaperComponent();
     private final RafineManager rafineManager = new RafineManager(this);
+    private final ForgeManager forgeManager = new ForgeManager(this);
     private final Set<String> knowRewards = new HashSet<>();
     private PatternManager patternManager;
     private InventoryManager inventoryManager;
@@ -98,6 +104,7 @@ public class JobsPlugin extends ZPlugin {
         this.addSave(new MessageLoader(this));
         this.addListener(new JobListener(this));
         this.addListener(new RafineClickListener(this));
+        this.addListener(new ForgeClickListener(this));
 
         this.jobManager.loadJobs();
         Config.getInstance().loadConfiguration(getConfig(), this);
@@ -107,6 +114,10 @@ public class JobsPlugin extends ZPlugin {
 
         this.rafineManager.load();
         this.rafineManager.startCompletionWatcher();
+
+        this.forgeManager.load();
+        this.forgeManager.startCompletionWatcher();
+        this.registerForgePlaceholders(placeholder);
 
         if (isEnable(Plugins.BLOCKTRACKER)) {
             getLogger().info("Using BlockTracker");
@@ -137,6 +148,7 @@ public class JobsPlugin extends ZPlugin {
         this.preDisable();
 
         this.rafineManager.stopCompletionWatcher();
+        this.forgeManager.stopCompletionWatcher();
         this.storageManager.onDisable();
         this.saveFiles();
 
@@ -163,7 +175,26 @@ public class JobsPlugin extends ZPlugin {
         Config.getInstance().loadConfiguration(getConfig(), this);
         this.loadInventories();
         this.rafineManager.load();
+        this.forgeManager.load();
         super.reloadFiles();
+    }
+
+    /**
+     * Register the PlaceholderAPI placeholders used by the FORGE feature YAML.
+     */
+    private void registerForgePlaceholders(LocalPlaceholder placeholder) {
+        placeholder.register("forge_time", (player) -> {
+            ForgeManager.Session session = this.forgeManager.getSession(player);
+            if (session == null || !session.hasTimer()) return "--:--";
+            if (session.isReady()) return "0:00";
+            return ForgeManager.formatTime(session.getRemainingSeconds());
+        });
+        placeholder.register("forge_status", (player) -> this.forgeManager.getStatus(player));
+        placeholder.register("forge_percent", (player) -> {
+            ForgeManager.Session session = this.forgeManager.getSession(player);
+            if (session == null || session.getRecipe() == null) return "0";
+            return String.valueOf(session.getRecipe().getFailPercent());
+        });
     }
 
     public StorageManager getStorageManager() {
@@ -205,6 +236,9 @@ public class JobsPlugin extends ZPlugin {
         this.buttonManager.register(new NoneLoader(this, RafineInputButton.class, "ZJOBS_ITEM_RAFINE"));
         this.buttonManager.register(new NoneLoader(this, RafineResultButton.class, "ZJOBS_ITEM_RAFINE_RESULT"));
         this.buttonManager.register(new NoneLoader(this, RafineTimerButton.class, "ZJOBS_ITEM_RAFINE_TIMER"));
+        this.buttonManager.register(new NoneLoader(this, ForgeInputButton.class, "ZJOBS_ITEM_FORGE"));
+        this.buttonManager.register(new NoneLoader(this, ForgeResultButton.class, "ZJOBS_ITEM_FORGE_RESULT"));
+        this.buttonManager.register(new NoneLoader(this, ForgeTimerButton.class, "ZJOBS_ITEM_FORGE_TIMER"));
     }
 
     public void loadInventories() {
@@ -223,6 +257,13 @@ public class JobsPlugin extends ZPlugin {
         File rafineFile = new File(folder, "rafine.yml");
         if (!rafineFile.exists()) {
             saveResource("inventories/rafine.yml", false);
+        }
+
+        // Always ensure the default forge inventory exists
+        File forgeSwordsFile = new File(folder, "forge/weapons/swords.yml");
+        if (!forgeSwordsFile.exists()) {
+            forgeSwordsFile.getParentFile().mkdirs();
+            saveResource("inventories/forge/weapons/swords.yml", false);
         }
 
         this.inventoryManager.deleteInventories(this);
@@ -283,5 +324,9 @@ public class JobsPlugin extends ZPlugin {
 
     public RafineManager getRafineManager() {
         return rafineManager;
+    }
+
+    public ForgeManager getForgeManager() {
+        return forgeManager;
     }
 }

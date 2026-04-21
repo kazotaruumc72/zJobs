@@ -1,0 +1,112 @@
+name: "&8ꜰᴏʀɢᴇ &7- &fᴇ́ᴘᴇ́ᴇs"
+size: 27
+# Refresh every second so the remaining-time lore stays up-to-date.
+updateInterval: 20
+items:
+
+  # ───────────────────────────────────────────
+  #  Décoration : bordure noire
+  # ───────────────────────────────────────────
+  border:
+    isPermanent: true
+    item:
+      material: BLACK_STAINED_GLASS_PANE
+      name: ""
+    slots:
+      - 0-9
+      - 17
+      - 18-26
+
+  # ───────────────────────────────────────────
+  #  Slots de dépôt (ZJOBS_ITEM_FORGE)
+  #  Le joueur clique sur un item dans son
+  #  inventaire pour le placer ici. Un clic sur
+  #  un slot déposé démarre le forgeage si la
+  #  recette est satisfaite, sinon rend l'item.
+  # ───────────────────────────────────────────
+  input_1:
+    type: ZJOBS_ITEM_FORGE
+    isPermanent: true
+    slot: 10
+    item:
+      material: LIGHT_GRAY_STAINED_GLASS_PANE
+      name: "#3f3f3fSlot de dépôt"
+      lore:
+        - ""
+        - "#3f3f3fCliquez sur un matériel dans votre"
+        - "#3f3f3finventaire pour le placer ici."
+
+  input_2:
+    type: ZJOBS_ITEM_FORGE
+    isPermanent: true
+    slot: 11
+    item:
+      material: LIGHT_GRAY_STAINED_GLASS_PANE
+      name: "#3f3f3fSlot de dépôt"
+      lore:
+        - ""
+        - "#3f3f3fCliquez sur un matériel dans votre"
+        - "#3f3f3finventaire pour le placer ici."
+
+  input_3:
+    type: ZJOBS_ITEM_FORGE
+    isPermanent: true
+    slot: 12
+    item:
+      material: LIGHT_GRAY_STAINED_GLASS_PANE
+      name: "#3f3f3fSlot de dépôt"
+      lore:
+        - ""
+        - "#3f3f3fCliquez sur un matériel dans votre"
+        - "#3f3f3finventaire pour le placer ici."
+
+  # ───────────────────────────────────────────
+  #  Slot timer (ZJOBS_ITEM_FORGE_TIMER)
+  #  Affiche le temps restant en temps réel.
+  # ───────────────────────────────────────────
+  timer:
+    type: ZJOBS_ITEM_FORGE_TIMER
+    isPermanent: true
+    slot: 13
+    item:
+      material: GOLD_NUGGET
+      name: "#ffd353⏳ %zjobs_forge_time%"
+      lore:
+        - ""
+        - "#3f3f3fStatut: &f%zjobs_forge_status%"
+        - "#3f3f3fÉchec: &c%zjobs_forge_percent%#3f3f3f%"
+
+  arrow:
+    isPermanent: true
+    slot: 14
+    item:
+      material: ORANGE_STAINED_GLASS_PANE
+      name: "#ffd353→"
+
+  # ───────────────────────────────────────────
+  #  Slot résultat (ZJOBS_ITEM_FORGE_RESULT)
+  #  Barrière par défaut, item forgé quand
+  #  le timer arrive à zéro. Clic = récupérer.
+  # ───────────────────────────────────────────
+  result:
+    type: ZJOBS_ITEM_FORGE_RESULT
+    isPermanent: true
+    slot: 15
+    item:
+      material: BARRIER
+      name: "#ff6b6bAucun résultat"
+      lore:
+        - ""
+        - "#3f3f3fL'item forgé apparaîtra ici"
+        - "#3f3f3fune fois le timer terminé."
+
+  close:
+    isPermanent: true
+    slot: 16
+    item:
+      material: BARRIER
+      name: "#ff6b6bFermer"
+      lore:
+        - ""
+        - "#3f3f3fFerme ce menu."
+    close-inventory: true
