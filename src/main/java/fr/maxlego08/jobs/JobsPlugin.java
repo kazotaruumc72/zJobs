@@ -19,6 +19,7 @@ import fr.maxlego08.jobs.forge.ForgeInputButton;
 import fr.maxlego08.jobs.forge.ForgeManager;
 import fr.maxlego08.jobs.forge.ForgeResultButton;
 import fr.maxlego08.jobs.forge.ForgeTimerButton;
+import fr.maxlego08.jobs.forge.ForgeValidateButton;
 import fr.maxlego08.jobs.rafine.RafineClickListener;
 import fr.maxlego08.jobs.rafine.RafineInputButton;
 import fr.maxlego08.jobs.rafine.RafineManager;
@@ -239,6 +240,7 @@ public class JobsPlugin extends ZPlugin {
         this.buttonManager.register(new NoneLoader(this, ForgeInputButton.class, "ZJOBS_ITEM_FORGE"));
         this.buttonManager.register(new NoneLoader(this, ForgeResultButton.class, "ZJOBS_ITEM_FORGE_RESULT"));
         this.buttonManager.register(new NoneLoader(this, ForgeTimerButton.class, "ZJOBS_ITEM_FORGE_TIMER"));
+        this.buttonManager.register(new NoneLoader(this, ForgeValidateButton.class, "ZJOBS_ITEM_FORGE_VALIDATE"));
     }
 
     public void loadInventories() {

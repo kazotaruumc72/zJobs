@@ -76,12 +76,22 @@ items:
         - "#3f3f3fStatut: &f%zjobs_forge_status%"
         - "#3f3f3fÉchec: &c%zjobs_forge_percent%#3f3f3f%"
 
-  arrow:
+  # ───────────────────────────────────────────
+  #  Bouton Valider (ZJOBS_ITEM_FORGE_VALIDATE)
+  #  Cliquez pour lancer le forgeage une fois
+  #  les ingrédients déposés.
+  # ───────────────────────────────────────────
+  validate:
+    type: ZJOBS_ITEM_FORGE_VALIDATE
     isPermanent: true
     slot: 14
     item:
-      material: ORANGE_STAINED_GLASS_PANE
-      name: "#ffd353→"
+      material: LIME_CONCRETE
+      name: "&a✔ Valider"
+      lore:
+        - ""
+        - "#3f3f3fCliquez pour lancer le forgeage"
+        - "#3f3f3favec les ingrédients déposés."
 
   # ───────────────────────────────────────────
   #  Slot résultat (ZJOBS_ITEM_FORGE_RESULT)

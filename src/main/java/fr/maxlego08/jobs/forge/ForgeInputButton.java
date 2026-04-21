@@ -142,7 +142,8 @@ public class ForgeInputButton extends Button {
         for (Button button : engine.getButtons()) {
             if (button instanceof ForgeInputButton
                     || button instanceof ForgeResultButton
-                    || button instanceof ForgeTimerButton) {
+                    || button instanceof ForgeTimerButton
+                    || button instanceof ForgeValidateButton) {
                 engine.displayButton(button);
             }
         }
