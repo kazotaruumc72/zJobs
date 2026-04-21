@@ -16,6 +16,7 @@ import org.bukkit.plugin.Plugin;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Result slot button (yaml type {@code ZJOBS_ITEM_RAFINE_RESULT}).
@@ -89,8 +90,10 @@ public class RafineResultButton extends Button {
             List<String> lore = meta.hasLore() && meta.getLore() != null ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
             lore.add("");
             lore.add(ChatColor.translateAlternateColorCodes('&', "&a✔ Raffinage terminé !"));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Chance de réussite : &e" + deposit.getPercent() + "%"));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7&oSi le raffinage échoue, le minerai sera perdu."));
             lore.add("");
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&eCliquez pour récupérer l'item."));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&eCliquez pour tenter de récupérer l'item."));
             meta.setLore(lore);
             preview.setItemMeta(meta);
         }
@@ -127,6 +130,29 @@ public class RafineResultButton extends Button {
 
         if (ready == null) return;
 
+        // Roll the dice : the percentage written on the ore is its chance of
+        // success. On failure, the ore is consumed (already removed from the
+        // input slot when the deposit was created) and the player gets a red
+        // chat message + a breaking sound. On success, the refined output is
+        // built and given to the player.
+        int percent = ready.getPercent();
+        int roll = ThreadLocalRandom.current().nextInt(1, 101); // 1..100 inclusive
+        boolean success = percent > 0 && roll <= percent;
+
+        if (!success) {
+            manager().clearSlot(player, readySlot);
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    "&c✘ Le raffinage a échoué ! Le minerai s'est brisé &7(" + roll + "/" + percent + "%)&c."));
+            try {
+                player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_GLASS_BREAK, 1.0f, 0.8f);
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+            } catch (Throwable ignored) {
+                // older sound names - silently ignore
+            }
+            RafineInputButton.refreshRafineButtons(inventory);
+            return;
+        }
+
         ItemStack output = manager().buildResult(ready);
         if (output == null || output.getType() == Material.AIR) {
             // No recipe / output could be resolved for this percentage (e.g. the
@@ -154,7 +180,12 @@ public class RafineResultButton extends Button {
         }
 
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                "&a✔ Item raffiné récupéré !"));
+                "&a✔ Item raffiné récupéré ! &7(" + roll + "/" + percent + "%)"));
+        try {
+            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.4f);
+        } catch (Throwable ignored) {
+            // older sound names - silently ignore
+        }
 
         RafineInputButton.refreshRafineButtons(inventory);
     }
