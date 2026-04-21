@@ -7,7 +7,7 @@ import fr.maxlego08.jobs.zcore.utils.ZUtils;
 import org.bukkit.Material;
 import org.bukkit.material.MaterialData;
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation", "removal"})
 public class Button extends ZUtils {
 
 	private final int slot;
