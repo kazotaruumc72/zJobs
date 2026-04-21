@@ -116,8 +116,16 @@ public class RafineResultButton extends Button {
 
         ItemStack output = manager().buildResult(ready);
         if (output == null || output.getType() == Material.AIR) {
+            // No recipe / output could be resolved for this percentage (e.g. the
+            // configured Nexo item id does not exist anymore). Still free the
+            // slot and refund the raw deposited ore so the player isn't stuck
+            // nor robbed of his item.
+            manager().clearSlot(player, readySlot);
+            ItemStack refund = ready.getItemStack().clone();
+            var refundLeftover = player.getInventory().addItem(refund);
+            refundLeftover.values().forEach(i -> player.getWorld().dropItemNaturally(player.getLocation(), i));
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&cAucune recette configurée pour ce pourcentage. Contactez un administrateur."));
+                    "&cAucune recette configurée pour ce pourcentage. Minerai rendu, contactez un administrateur."));
             RafineInputButton.refreshRafineButtons(inventory);
             return;
         }
