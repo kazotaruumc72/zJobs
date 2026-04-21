@@ -98,6 +98,19 @@ public class RafineResultButton extends Button {
     }
 
     @Override
+    public void onInventoryClick(org.bukkit.event.inventory.InventoryClickEvent event, Player player, InventoryEngine inventory) {
+        // zMenu only wires Button#onClick via ItemButton#setClick inside
+        // displayFinalButton, which is skipped for hasSpecialRender()
+        // buttons. For those buttons, zMenu still dispatches
+        // onInventoryClick to every button on every click, so we handle
+        // the click here and delegate to onClick when it targets our slot.
+        if (event.getClickedInventory() == null) return;
+        if (event.getClickedInventory() != event.getView().getTopInventory()) return;
+        if (event.getRawSlot() != getSlot()) return;
+        onClick(player, event, inventory, getSlot(), new Placeholders());
+    }
+
+    @Override
     public void onClick(Player player, InventoryClickEvent event, InventoryEngine inventory, int slot, Placeholders placeholders) {
         event.setCancelled(true);
 

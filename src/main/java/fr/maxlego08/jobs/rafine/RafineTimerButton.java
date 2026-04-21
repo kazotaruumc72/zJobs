@@ -92,6 +92,17 @@ public class RafineTimerButton extends Button {
     }
 
     @Override
+    public void onInventoryClick(org.bukkit.event.inventory.InventoryClickEvent event, Player player, InventoryEngine inventory) {
+        // Same reason as RafineResultButton/RafineInputButton: hasSpecialRender
+        // buttons do not get their onClick wired by zMenu, so cancel here to
+        // prevent the player from extracting the decorative timer item.
+        if (event.getClickedInventory() == null) return;
+        if (event.getClickedInventory() != event.getView().getTopInventory()) return;
+        if (event.getRawSlot() != getSlot()) return;
+        event.setCancelled(true);
+    }
+
+    @Override
     public void onClick(Player player, InventoryClickEvent event, InventoryEngine inventory, int slot, Placeholders placeholders) {
         event.setCancelled(true);
     }
