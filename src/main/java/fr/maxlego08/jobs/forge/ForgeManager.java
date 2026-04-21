@@ -473,12 +473,4 @@ public class ForgeManager {
         if (session.isForging()) return "Forgeage";
         return "Prêt à forger";
     }
-
-    private String getDisplayName(ItemStack itemStack) {
-        if (itemStack == null) return "?";
-        if (itemStack.hasItemMeta() && itemStack.getItemMeta().hasDisplayName()) {
-            return itemStack.getItemMeta().getDisplayName();
-        }
-        return itemStack.getType().name().toLowerCase(Locale.ROOT).replace('_', ' ');
-    }
 }
