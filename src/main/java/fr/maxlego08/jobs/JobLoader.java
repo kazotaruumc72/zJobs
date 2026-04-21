@@ -6,6 +6,7 @@ import fr.maxlego08.jobs.actions.EnchantmentAction;
 import fr.maxlego08.jobs.actions.EntityAction;
 import fr.maxlego08.jobs.actions.MaterialAction;
 import fr.maxlego08.jobs.actions.NexoAction;
+import fr.maxlego08.jobs.actions.RafineAction;
 import fr.maxlego08.jobs.actions.TagAction;
 import fr.maxlego08.jobs.actions.ZJobAction;
 import fr.maxlego08.jobs.api.Job;
@@ -144,6 +145,10 @@ public class JobLoader implements Loader<Job> {
 
                     jobAction = loadBrewAction(accessor, experience, money, displayMaterial);
 
+                } else if (jobActionType == JobActionType.RAFINE) {
+
+                    jobAction = loadRafineAction(accessor, experience, money, displayMaterial);
+
                 } else if (jobActionType == JobActionType.CUSTOM) {
 
                     String data = accessor.getString("data", null);
@@ -225,5 +230,52 @@ public class JobLoader implements Loader<Job> {
         Material potionMaterial = Material.valueOf(potionMaterialName.toUpperCase());
 
         return new BrewAction(potionType, experience, money, potionMaterial, material, displayMaterial == null ? potionMaterial.name() : displayMaterial);
+    }
+
+    /**
+     * Load a {@link JobAction} of type {@link JobActionType#RAFINE} from the given configuration accessor.
+     * <p>
+     * Expected keys :
+     * <ul>
+     *     <li>{@code material}         : the refined output identifier (vanilla material or {@code nexo:xxx}).</li>
+     *     <li>{@code display-material} : the raw source identifier (the block the player mines).</li>
+     *     <li>{@code plugin}           : the name of the external plugin providing the refinement inventory.</li>
+     *     <li>{@code inventory-name}   : the name/title of the refinement inventory.</li>
+     *     <li>{@code display-name}     : the display name that will be used on the raw dropped item.</li>
+     *     <li>{@code min-chance}       : minimum refine chance rolled on drop (default 10).</li>
+     *     <li>{@code max-chance}       : maximum refine chance rolled on drop (default 100).</li>
+     * </ul>
+     *
+     * @param accessor        the configuration accessor
+     * @param experience      experience reward on successful refinement
+     * @param money           money reward on successful refinement
+     * @param displayMaterial the display material used for the GUI (usually the source id)
+     * @return the new RAFINE {@link JobAction}
+     */
+    private JobAction<?> loadRafineAction(TypedMapAccessor accessor, double experience, double money, String displayMaterial) {
+
+        String materialName = accessor.getString("material");
+        String sourceName = accessor.getString("display-material");
+        String pluginName = accessor.getString("plugin", "");
+        String inventoryName = accessor.getString("inventory-name", "");
+        int minChance = accessor.getInt("min-chance", 10);
+        int maxChance = accessor.getInt("max-chance", 100);
+
+        if (materialName == null || sourceName == null) {
+            plugin.getLogger().severe("RAFINE action requires 'material' and 'display-material' in file " + file.getAbsolutePath());
+            return null;
+        }
+
+        String targetId = materialName.toLowerCase().startsWith("nexo:")
+                ? materialName.toLowerCase()
+                : materialName.toUpperCase();
+        String sourceId = sourceName.toLowerCase().startsWith("nexo:")
+                ? sourceName.toLowerCase()
+                : sourceName.toUpperCase();
+
+        // When no explicit display-material was passed to the main loader we fall back to the source id
+        String finalDisplayMaterial = displayMaterial == null ? sourceId : displayMaterial;
+
+        return new RafineAction(targetId, experience, money, finalDisplayMaterial, sourceId, pluginName, inventoryName, minChance, maxChance);
     }
 }

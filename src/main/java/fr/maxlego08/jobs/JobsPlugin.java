@@ -14,6 +14,11 @@ import fr.maxlego08.jobs.hooks.MythicMobsListener;
 import fr.maxlego08.jobs.hooks.NexoHook;
 import fr.maxlego08.jobs.hooks.NexoListener;
 import fr.maxlego08.jobs.placeholder.LocalPlaceholder;
+import fr.maxlego08.jobs.rafine.RafineClickListener;
+import fr.maxlego08.jobs.rafine.RafineInputButton;
+import fr.maxlego08.jobs.rafine.RafineManager;
+import fr.maxlego08.jobs.rafine.RafineResultButton;
+import fr.maxlego08.jobs.rafine.RafineTimerButton;
 import fr.maxlego08.jobs.save.Config;
 import fr.maxlego08.jobs.save.MessageLoader;
 import fr.maxlego08.jobs.storage.ZStorageManager;
@@ -59,6 +64,7 @@ public class JobsPlugin extends ZPlugin {
     private final BoostManager boostManager = new ZBoostManager(this);
     private final StorageManager storageManager = new ZStorageManager(this);
     private final PaperComponent paperComponent = new PaperComponent();
+    private final RafineManager rafineManager = new RafineManager(this);
     private final Set<String> knowRewards = new HashSet<>();
     private PatternManager patternManager;
     private InventoryManager inventoryManager;
@@ -91,12 +97,16 @@ public class JobsPlugin extends ZPlugin {
 
         this.addSave(new MessageLoader(this));
         this.addListener(new JobListener(this));
+        this.addListener(new RafineClickListener(this));
 
         this.jobManager.loadJobs();
         Config.getInstance().loadConfiguration(getConfig(), this);
         this.loadFiles();
 
         this.storageManager.load();
+
+        this.rafineManager.load();
+        this.rafineManager.startCompletionWatcher();
 
         if (isEnable(Plugins.BLOCKTRACKER)) {
             getLogger().info("Using BlockTracker");
@@ -126,6 +136,7 @@ public class JobsPlugin extends ZPlugin {
 
         this.preDisable();
 
+        this.rafineManager.stopCompletionWatcher();
         this.storageManager.onDisable();
         this.saveFiles();
 
@@ -151,6 +162,7 @@ public class JobsPlugin extends ZPlugin {
         this.jobManager.loadJobs();
         Config.getInstance().loadConfiguration(getConfig(), this);
         this.loadInventories();
+        this.rafineManager.load();
         super.reloadFiles();
     }
 
@@ -190,6 +202,9 @@ public class JobsPlugin extends ZPlugin {
     private void loadButtons() {
         this.buttonManager.register(new JobInfoLoader(this));
         this.buttonManager.register(new NoneLoader(this, JobValueButton.class, "ZJOBS_VALUES"));
+        this.buttonManager.register(new NoneLoader(this, RafineInputButton.class, "ZJOBS_ITEM_RAFINE"));
+        this.buttonManager.register(new NoneLoader(this, RafineResultButton.class, "ZJOBS_ITEM_RAFINE_RESULT"));
+        this.buttonManager.register(new NoneLoader(this, RafineTimerButton.class, "ZJOBS_ITEM_RAFINE_TIMER"));
     }
 
     public void loadInventories() {
@@ -202,6 +217,12 @@ public class JobsPlugin extends ZPlugin {
 
             saveResource("inventories/jobs.yml", false);
             saveResource("inventories/job_info.yml", false);
+        }
+
+        // Always ensure rafine.yml exists (added after initial release)
+        File rafineFile = new File(folder, "rafine.yml");
+        if (!rafineFile.exists()) {
+            saveResource("inventories/rafine.yml", false);
         }
 
         this.inventoryManager.deleteInventories(this);
@@ -258,5 +279,9 @@ public class JobsPlugin extends ZPlugin {
 
     public BoostManager getBoostManager() {
         return boostManager;
+    }
+
+    public RafineManager getRafineManager() {
+        return rafineManager;
     }
 }

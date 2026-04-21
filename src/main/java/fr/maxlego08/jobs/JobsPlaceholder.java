@@ -7,6 +7,7 @@ import fr.maxlego08.jobs.api.players.PlayerJobs;
 import fr.maxlego08.jobs.placeholder.BoostPlaceholder;
 import fr.maxlego08.jobs.placeholder.LocalPlaceholder;
 import fr.maxlego08.jobs.placeholder.ReturnConsumer;
+import fr.maxlego08.jobs.rafine.RafineManager;
 import fr.maxlego08.jobs.save.Config;
 import fr.maxlego08.jobs.zcore.utils.ZUtils;
 import org.bukkit.entity.Player;
@@ -62,6 +63,73 @@ public class JobsPlaceholder extends ZUtils {
 
         // Boosts
         placeholder.register("boosts", this.placeholderBoosts(manager));
+
+        // Refine system
+        registerRafinePlaceholders(placeholder, plugin);
+    }
+
+    /**
+     * Registers all placeholders related to the refining system. Every one of
+     * them reflects live state and is therefore automatically updated each
+     * time PlaceholderAPI (or the menu framework) re-parses them.
+     *
+     * <ul>
+     *   <li>{@code %zjobs_rafine_status%} : {@code idle} / {@code refining} / {@code ready}</li>
+     *   <li>{@code %zjobs_rafine_time%} : shortest remaining time formatted as {@code m:ss} (empty when idle)</li>
+     *   <li>{@code %zjobs_rafine_seconds%} : shortest remaining seconds as an integer ({@code 0} when idle)</li>
+     *   <li>{@code %zjobs_rafine_percent%} : refining percentage of the best deposit ({@code 0} when idle)</li>
+     *   <li>{@code %zjobs_rafine_count%} : number of items currently being refined</li>
+     *   <li>{@code %zjobs_rafine_ready%} : {@code true} when at least one deposit is ready, {@code false} otherwise</li>
+     * </ul>
+     */
+    private void registerRafinePlaceholders(LocalPlaceholder placeholder, JobsPlugin plugin) {
+        placeholder.register("rafine_status", (player) -> {
+            RafineManager.Deposit d = bestDeposit(plugin, player);
+            if (d == null) return "idle";
+            return d.isReady() ? "ready" : "refining";
+        });
+        placeholder.register("rafine_time", (player) -> {
+            RafineManager.Deposit d = bestDeposit(plugin, player);
+            if (d == null) return "";
+            if (d.isReady()) return "0:00";
+            return RafineManager.formatTime(d.getRemainingSeconds());
+        });
+        placeholder.register("rafine_seconds", (player) -> {
+            RafineManager.Deposit d = bestDeposit(plugin, player);
+            if (d == null || d.isReady()) return "0";
+            return String.valueOf(d.getRemainingSeconds());
+        });
+        placeholder.register("rafine_percent", (player) -> {
+            RafineManager.Deposit d = bestDeposit(plugin, player);
+            return d == null ? "0" : String.valueOf(d.getPercent());
+        });
+        placeholder.register("rafine_count", (player) -> String.valueOf(plugin.getRafineManager().getDeposits(player).size()));
+        placeholder.register("rafine_ready", (player) -> {
+            for (RafineManager.Deposit d : plugin.getRafineManager().getDeposits(player).values()) {
+                if (d.isReady()) return "true";
+            }
+            return "false";
+        });
+    }
+
+    /**
+     * Returns the most relevant deposit for placeholder display: the one with
+     * the shortest remaining time still refining, or a ready one if nothing
+     * is refining anymore. {@code null} when the player has no deposit.
+     */
+    private RafineManager.Deposit bestDeposit(JobsPlugin plugin, Player player) {
+        RafineManager.Deposit shortest = null;
+        RafineManager.Deposit ready = null;
+        for (RafineManager.Deposit d : plugin.getRafineManager().getDeposits(player).values()) {
+            if (d.isRefining()) {
+                if (shortest == null || d.getRemainingSeconds() < shortest.getRemainingSeconds()) {
+                    shortest = d;
+                }
+            } else if (d.isReady() && ready == null) {
+                ready = d;
+            }
+        }
+        return shortest != null ? shortest : ready;
     }
 
     private ReturnConsumer<Player, String> placeholderBoosts(JobManager manager) {

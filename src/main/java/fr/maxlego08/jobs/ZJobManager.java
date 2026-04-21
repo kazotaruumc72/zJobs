@@ -157,6 +157,15 @@ public class ZJobManager extends ZUtils implements JobManager {
         return this.jobs.stream().map(Job::getFileName).toList();
     }
 
+    /**
+     * Returns the list of all loaded jobs.
+     *
+     * @return loaded jobs
+     */
+    public List<Job> getJobs() {
+        return this.jobs;
+    }
+
     @Override
     public List<String> getJobsName(CommandSender sender) {
         if (sender instanceof Player player) {
