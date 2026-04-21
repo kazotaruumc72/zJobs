@@ -1,0 +1,17 @@
+# Forge recipes used by ZJOBS_ITEM_FORGE / ZJOBS_ITEM_FORGE_RESULT buttons.
+#
+# Format:
+#   items:
+#     "<output-id>":
+#       recipe:
+#         - "<input-id>:<amount>"
+#         - "<input-id>:<amount>"
+#       fail: <0..100>   # percent chance the forge fails on result click
+#
+# Supports vanilla materials and Nexo items (prefix with "nexo:").
+items:
+  "nexo:amethyst_sword_commun":
+    recipe:
+      - "nexo:amethyst_gem_commune:2"
+      - "STICK:1"
+    fail: 20

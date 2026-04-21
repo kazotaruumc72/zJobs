@@ -4,6 +4,7 @@ import fr.maxlego08.jobs.actions.BrewAction;
 import fr.maxlego08.jobs.actions.CustomAction;
 import fr.maxlego08.jobs.actions.EnchantmentAction;
 import fr.maxlego08.jobs.actions.EntityAction;
+import fr.maxlego08.jobs.actions.ForgeAction;
 import fr.maxlego08.jobs.actions.MaterialAction;
 import fr.maxlego08.jobs.actions.NexoAction;
 import fr.maxlego08.jobs.actions.RafineAction;
@@ -149,6 +150,10 @@ public class JobLoader implements Loader<Job> {
 
                     jobAction = loadRafineAction(accessor, experience, money, displayMaterial);
 
+                } else if (jobActionType == JobActionType.FORGE) {
+
+                    jobAction = loadForgeAction(accessor, experience, money, displayMaterial);
+
                 } else if (jobActionType == JobActionType.CUSTOM) {
 
                     String data = accessor.getString("data", null);
@@ -277,5 +282,40 @@ public class JobLoader implements Loader<Job> {
         String finalDisplayMaterial = displayMaterial == null ? sourceId : displayMaterial;
 
         return new RafineAction(targetId, experience, money, finalDisplayMaterial, sourceId, pluginName, inventoryName, minChance, maxChance);
+    }
+
+    /**
+     * Load a {@link JobAction} of type {@link JobActionType#FORGE} from the given configuration accessor.
+     * <p>
+     * Expected keys :
+     * <ul>
+     *     <li>{@code material}         : the forged output identifier (vanilla material or {@code nexo:xxx}).</li>
+     *     <li>{@code display-material} : the item shown in the jobs info GUI (defaults to {@code material}).</li>
+     *     <li>{@code display-name}     : the human-readable name of the action shown in the jobs info GUI.</li>
+     * </ul>
+     * The recipe (ingredients and fail chance) is declared separately in {@code items.yml} and
+     * resolved at runtime by {@link fr.maxlego08.jobs.forge.ForgeManager}.
+     *
+     * @param accessor        the configuration accessor
+     * @param experience      experience reward on successful forging
+     * @param money           money reward on successful forging
+     * @param displayMaterial the display material used for the GUI
+     * @return the new FORGE {@link JobAction}, or {@code null} if required fields are missing
+     */
+    private JobAction<?> loadForgeAction(TypedMapAccessor accessor, double experience, double money, String displayMaterial) {
+
+        String materialName = accessor.getString("material");
+        if (materialName == null) {
+            plugin.getLogger().severe("FORGE action requires 'material' in file " + file.getAbsolutePath());
+            return null;
+        }
+
+        String targetId = materialName.toLowerCase().startsWith("nexo:")
+                ? materialName.toLowerCase()
+                : materialName.toUpperCase();
+
+        String finalDisplayMaterial = displayMaterial == null ? targetId : displayMaterial;
+
+        return new ForgeAction(targetId, experience, money, finalDisplayMaterial);
     }
 }
