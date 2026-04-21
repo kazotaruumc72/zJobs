@@ -1,0 +1,8 @@
+# Ingredients the player is allowed to deposit in a ZJOBS_ITEM_FORGE slot.
+#
+# Supports vanilla materials (e.g. STICK) and Nexo items (prefix with "nexo:").
+# Removing the `whitelist` key entirely disables this gate and falls back to
+# allowing every ingredient used by at least one recipe in items.yml.
+whitelist:
+  - nexo:amethyst_gem_commune
+  - STICK

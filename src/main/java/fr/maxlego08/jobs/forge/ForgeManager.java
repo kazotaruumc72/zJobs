@@ -17,10 +17,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -128,6 +130,14 @@ public class ForgeManager {
 
     /** output-id -&gt; recipe. */
     private final Map<String, Recipe> recipes = new LinkedHashMap<>();
+    /**
+     * Explicit whitelist of ingredient ids (normalised) that the player is
+     * allowed to deposit in a {@code ZJOBS_ITEM_FORGE} slot. When
+     * {@link #whitelistEnabled} is {@code false} the whitelist is ignored and
+     * any ingredient used by a registered recipe is allowed.
+     */
+    private final Set<String> whitelist = new HashSet<>();
+    private boolean whitelistEnabled = false;
     private final Map<UUID, Session> sessions = new HashMap<>();
 
     private BukkitTask completionTask;
@@ -207,6 +217,8 @@ public class ForgeManager {
 
     public void load() {
         this.recipes.clear();
+        this.whitelist.clear();
+        this.whitelistEnabled = false;
 
         File file = new File(this.plugin.getDataFolder(), "items.yml");
         if (!file.exists()) {
@@ -248,7 +260,55 @@ public class ForgeManager {
             }
         }
 
-        this.plugin.getLogger().info("Loaded " + this.recipes.size() + " forge recipes.");
+        loadWhitelistFile();
+
+        this.plugin.getLogger().info("Loaded " + this.recipes.size() + " forge recipes"
+                + (this.whitelistEnabled ? " and " + this.whitelist.size() + " whitelisted ingredients." : "."));
+    }
+
+    /**
+     * Load {@code forge_items_whitelist.yml}. When the file is missing a
+     * default one is written, pre-populated with the ingredients used by the
+     * sample recipe so the feature works out of the box.
+     * <p>
+     * The whitelist is considered enabled as soon as the {@code whitelist}
+     * key is present (even when the list is empty); this lets server owners
+     * explicitly disable forging by writing {@code whitelist: []}. When the
+     * {@code whitelist} key is entirely absent (legacy behaviour / deleted
+     * file) the listener falls back to the recipe-derived allowance.
+     */
+    private void loadWhitelistFile() {
+        File whitelistFile = new File(this.plugin.getDataFolder(), "forge_items_whitelist.yml");
+        if (!whitelistFile.exists()) {
+            writeDefaultWhitelistFile(whitelistFile);
+        }
+
+        YamlConfiguration configuration = YamlConfiguration.loadConfiguration(whitelistFile);
+        if (!configuration.contains("whitelist")) return;
+
+        this.whitelistEnabled = true;
+        for (String raw : configuration.getStringList("whitelist")) {
+            if (raw == null || raw.isBlank()) continue;
+            this.whitelist.add(normalizeId(raw));
+        }
+    }
+
+    private void writeDefaultWhitelistFile(File file) {
+        file.getParentFile().mkdirs();
+        YamlConfiguration def = new YamlConfiguration();
+        def.options().setHeader(List.of(
+                "Ingredients the player is allowed to deposit in a ZJOBS_ITEM_FORGE slot.",
+                "",
+                "Supports vanilla materials (e.g. STICK) and Nexo items (prefix with \"nexo:\").",
+                "Removing the `whitelist` key entirely disables this gate and falls back to",
+                "allowing every ingredient used by at least one recipe in items.yml."
+        ));
+        def.set("whitelist", List.of("nexo:amethyst_gem_commune", "STICK"));
+        try {
+            def.save(file);
+        } catch (IOException e) {
+            this.plugin.getLogger().severe("Could not save default forge_items_whitelist.yml: " + e.getMessage());
+        }
     }
 
     private void writeDefaultItemsFile(File file) {
@@ -336,13 +396,19 @@ public class ForgeManager {
     }
 
     /**
-     * @return {@code true} if the given item is part of at least one registered
-     * forge recipe (i.e. can be deposited in an input slot).
+     * Whether the given item may be deposited in a {@code ZJOBS_ITEM_FORGE} slot.
+     * <p>
+     * When {@code forge_items_whitelist.yml} defines a {@code whitelist} key,
+     * that explicit list is the sole authority. Otherwise the method falls
+     * back to allowing every ingredient used by at least one registered recipe.
      */
     public boolean isAllowedIngredient(ItemStack itemStack) {
         String id = getItemId(itemStack);
         if (id == null) return false;
         String norm = normalizeId(id);
+        if (this.whitelistEnabled) {
+            return this.whitelist.contains(norm);
+        }
         for (Recipe recipe : this.recipes.values()) {
             for (Ingredient ingredient : recipe.getIngredients()) {
                 if (ingredient.getId().equals(norm)) return true;
