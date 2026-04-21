@@ -16,7 +16,6 @@ import org.bukkit.plugin.Plugin;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Result slot button (yaml type {@code ZJOBS_ITEM_RAFINE_RESULT}).
@@ -30,8 +29,8 @@ import java.util.concurrent.ThreadLocalRandom;
  * <ul>
  *     <li><b>No deposit</b> : the yaml placeholder (typically a barrier).</li>
  *     <li><b>REFINING</b> : a furnace-like placeholder with the remaining time.</li>
- *     <li><b>READY</b> : the raw deposited item (&quot;amethyste (30%)&quot;) —
- *     clicking rolls the dice.</li>
+ *     <li><b>READY</b> : a preview of the refined output — clicking
+ *     immediately gives the refined item to the player.</li>
  * </ul>
  */
 public class RafineResultButton extends Button {
@@ -80,21 +79,22 @@ public class RafineResultButton extends Button {
             return inProgress;
         }
 
-        // READY - preview the deposited item with a "click to refine" lore
-        ItemStack raw = deposit.getItemStack().clone();
-        ItemMeta meta = raw.getItemMeta();
+        // READY - preview the refined output so the player sees what he will get.
+        ItemStack output = manager().buildResult(deposit);
+        ItemStack preview = (output != null && output.getType() != Material.AIR)
+                ? output.clone()
+                : deposit.getItemStack().clone();
+        ItemMeta meta = preview.getItemMeta();
         if (meta != null) {
             List<String> lore = meta.hasLore() && meta.getLore() != null ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
             lore.add("");
             lore.add(ChatColor.translateAlternateColorCodes('&', "&a✔ Raffinage terminé !"));
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Chance de réussite : &e" + deposit.getPercent() + "%"));
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7En cas d'échec, le minerai se brise."));
             lore.add("");
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&eCliquez pour tenter le raffinage."));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&eCliquez pour récupérer l'item."));
             meta.setLore(lore);
-            raw.setItemMeta(meta);
+            preview.setItemMeta(meta);
         }
-        return raw;
+        return preview;
     }
 
     @Override
@@ -114,18 +114,6 @@ public class RafineResultButton extends Button {
 
         if (ready == null) return;
 
-        manager().clearSlot(player, readySlot);
-
-        int roll = ThreadLocalRandom.current().nextInt(1, 101);
-        boolean success = roll <= ready.getPercent();
-
-        if (!success) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&c✖ Le minerai s'est brisé pendant le raffinage ! &7(&e" + ready.getPercent() + "%&7 - tirage &f" + roll + "&7)"));
-            RafineInputButton.refreshRafineButtons(inventory);
-            return;
-        }
-
         ItemStack output = manager().buildResult(ready);
         if (output == null || output.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
@@ -133,6 +121,8 @@ public class RafineResultButton extends Button {
             RafineInputButton.refreshRafineButtons(inventory);
             return;
         }
+
+        manager().clearSlot(player, readySlot);
 
         var leftover = player.getInventory().addItem(output);
         leftover.values().forEach(i -> player.getWorld().dropItemNaturally(player.getLocation(), i));
@@ -143,7 +133,7 @@ public class RafineResultButton extends Button {
         }
 
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                "&a✔ Raffinage réussi ! &7(&e" + ready.getPercent() + "%&7 - tirage &f" + roll + "&7)"));
+                "&a✔ Item raffiné récupéré !"));
 
         RafineInputButton.refreshRafineButtons(inventory);
     }
