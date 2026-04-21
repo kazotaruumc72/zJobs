@@ -8,7 +8,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.material.MaterialData;
 
-@SuppressWarnings("deprecation")
+@SuppressWarnings({"deprecation", "removal"})
 public class ButtonLoader extends ZUtils implements Loader<Button> {
 
 	@Override
