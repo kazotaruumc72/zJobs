@@ -26,6 +26,7 @@ import fr.maxlego08.jobs.zcore.utils.ZUtils;
 import fr.maxlego08.menu.api.engine.InventoryEngine;
 import fr.maxlego08.menu.api.requirement.Action;
 import fr.maxlego08.menu.api.utils.Placeholders;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.math.BigDecimal;
@@ -337,7 +338,7 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
     public void updateJobEconomies() {
         if (this.updateMoney <= 0) return;
 
-        this.plugin.getCurrencyProvider().deposit(this.uniqueId, BigDecimal.valueOf(this.updateMoney), Config.moneyReason);
+        this.plugin.getCurrencyProvider().deposit(Bukkit.getOfflinePlayer(this.uniqueId), BigDecimal.valueOf(this.updateMoney), Config.moneyReason);
 
         this.updateMoney = 0;
     }
