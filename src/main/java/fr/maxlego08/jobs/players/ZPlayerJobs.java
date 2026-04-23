@@ -18,6 +18,7 @@ import fr.maxlego08.jobs.api.players.PlayerJobs;
 import fr.maxlego08.jobs.api.storage.StorageManager;
 import fr.maxlego08.jobs.boost.ZPlayerBoosts;
 import fr.maxlego08.jobs.bossbar.JobBossBar;
+import fr.maxlego08.jobs.economy.CurrencyBridge;
 import fr.maxlego08.jobs.placeholder.BoostPlaceholder;
 import fr.maxlego08.jobs.save.Config;
 import fr.maxlego08.jobs.zcore.enums.Message;
@@ -26,7 +27,6 @@ import fr.maxlego08.jobs.zcore.utils.ZUtils;
 import fr.maxlego08.menu.api.engine.InventoryEngine;
 import fr.maxlego08.menu.api.requirement.Action;
 import fr.maxlego08.menu.api.utils.Placeholders;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.math.BigDecimal;
@@ -338,9 +338,21 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
     public void updateJobEconomies() {
         if (this.updateMoney <= 0) return;
 
-        this.plugin.getCurrencyProvider().deposit(Bukkit.getOfflinePlayer(this.uniqueId), BigDecimal.valueOf(this.updateMoney), Config.moneyReason);
-
+        double amount = this.updateMoney;
         this.updateMoney = 0;
+
+        try {
+            CurrencyBridge.deposit(this.plugin.getCurrencyProvider(), this.uniqueId, BigDecimal.valueOf(amount), Config.moneyReason);
+        } catch (ReflectiveOperationException e) {
+            // Put the money back in the pending bucket so it isn't lost on a
+            // transient failure, and make the error visible (the deposit runs
+            // from the async storage task, where stack traces are otherwise
+            // swallowed).
+            this.updateMoney += amount;
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            this.plugin.getLogger().log(java.util.logging.Level.SEVERE,
+                    "Could not deposit job earnings for " + this.uniqueId, cause);
+        }
     }
 
     @Override
