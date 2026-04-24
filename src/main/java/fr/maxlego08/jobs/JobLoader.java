@@ -93,11 +93,18 @@ public class JobLoader implements Loader<Job> {
             double money = accessor.getDouble("money", 0);
 
             // Read raw values for PlaceholderAPI placeholder support (e.g. "%math_1+1%")
-            // A valid PlaceholderAPI placeholder requires at least two '%' characters
+            // A valid PlaceholderAPI placeholder requires at least two '%' characters.
+            // Two equivalent ways are supported:
+            //   - explicit dedicated key: experience-formula / money-formula (preferred, documented)
+            //   - placeholder put directly inside experience / money as a string
+            Object rawExperienceFormula = map.get("experience-formula");
+            Object rawMoneyFormula = map.get("money-formula");
             Object rawExperience = map.get("experience");
             Object rawMoney = map.get("money");
-            String experienceFormula = rawExperience instanceof String s && isPlaceholder(s) ? s : null;
-            String moneyFormula = rawMoney instanceof String s && isPlaceholder(s) ? s : null;
+            String experienceFormula = rawExperienceFormula instanceof String ef && isPlaceholder(ef) ? ef
+                    : (rawExperience instanceof String s && isPlaceholder(s) ? s : null);
+            String moneyFormula = rawMoneyFormula instanceof String mf && isPlaceholder(mf) ? mf
+                    : (rawMoney instanceof String s && isPlaceholder(s) ? s : null);
 
             try {
 
