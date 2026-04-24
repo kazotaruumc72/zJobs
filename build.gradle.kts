@@ -63,8 +63,8 @@ allprojects {
 }
 
 dependencies {
-    api(projects.api)
-    // api(projects.hooks)
+    api(project(":API"))
+    // api(project(":Hooks"))
 }
 
 tasks {
