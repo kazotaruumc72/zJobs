@@ -78,6 +78,7 @@ public class JobsPlaceholder extends ZUtils {
      *   <li>{@code %zjobs_rafine_time%} : shortest remaining time formatted as {@code m:ss} (empty when idle)</li>
      *   <li>{@code %zjobs_rafine_seconds%} : shortest remaining seconds as an integer ({@code 0} when idle)</li>
      *   <li>{@code %zjobs_rafine_percent%} : refining percentage of the best deposit ({@code 0} when idle)</li>
+     *   <li>{@code %zjobs_rafine_percent_inverse%} : inverse of the refining percentage ({@code 100 - percent}, {@code 0} when idle), without the {@code %} sign</li>
      *   <li>{@code %zjobs_rafine_count%} : number of items currently being refined</li>
      *   <li>{@code %zjobs_rafine_ready%} : {@code true} when at least one deposit is ready, {@code false} otherwise</li>
      * </ul>
@@ -98,6 +99,10 @@ public class JobsPlaceholder extends ZUtils {
             RafineManager.Deposit d = bestDeposit(plugin, player);
             if (d == null || d.isReady()) return "0";
             return String.valueOf(d.getRemainingSeconds());
+        });
+        placeholder.register("rafine_percent_inverse", (player) -> {
+            RafineManager.Deposit d = bestDeposit(plugin, player);
+            return d == null ? "0" : String.valueOf(100 - d.getPercent());
         });
         placeholder.register("rafine_percent", (player) -> {
             RafineManager.Deposit d = bestDeposit(plugin, player);
