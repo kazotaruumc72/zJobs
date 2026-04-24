@@ -176,7 +176,14 @@ public class RafineResultButton extends Button {
 
         String outputId = manager().getItemId(output);
         if (outputId != null) {
-            this.plugin.getJobManager().action(player, outputId, JobActionType.RAFINE);
+            // Dispatch the RAFINE action with the just-completed deposit as the
+            // current context, so placeholders like %zjobs_rafine_percent% and
+            // %zjobs_rafine_percent_inverse% used in experience/money formulas
+            // reflect THIS deposit and not the player's remaining deposits
+            // (the slot above has just been cleared).
+            RafineManager.Deposit context = ready;
+            RafineManager.withActionContext(context, () ->
+                    this.plugin.getJobManager().action(player, outputId, JobActionType.RAFINE));
         }
 
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',

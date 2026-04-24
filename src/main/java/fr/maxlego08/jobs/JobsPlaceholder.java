@@ -78,7 +78,7 @@ public class JobsPlaceholder extends ZUtils {
      *   <li>{@code %zjobs_rafine_time%} : shortest remaining time formatted as {@code m:ss} (empty when idle)</li>
      *   <li>{@code %zjobs_rafine_seconds%} : shortest remaining seconds as an integer ({@code 0} when idle)</li>
      *   <li>{@code %zjobs_rafine_percent%} : refining percentage of the best deposit ({@code 0} when idle)</li>
-     *   <li>{@code %zjobs_rafine_percent_inverse%} : inverse of the refining percentage ({@code 100 - percent}, {@code 0} when idle), without the {@code %} sign</li>
+     *   <li>{@code %zjobs_rafine_percent_inverse%} : inverse of the refining percentage ({@code 100 - percent}, {@code 0} when idle), without the {@code %} sign. While a RAFINE action is being processed (e.g. inside an {@code experience-formula}), this resolves to the inverse of the deposit that triggered the action.</li>
      *   <li>{@code %zjobs_rafine_count%} : number of items currently being refined</li>
      *   <li>{@code %zjobs_rafine_ready%} : {@code true} when at least one deposit is ready, {@code false} otherwise</li>
      * </ul>
@@ -118,11 +118,21 @@ public class JobsPlaceholder extends ZUtils {
     }
 
     /**
-     * Returns the most relevant deposit for placeholder display: the one with
-     * the shortest remaining time still refining, or a ready one if nothing
-     * is refining anymore. {@code null} when the player has no deposit.
+     * Returns the most relevant deposit for placeholder display.
+     * <p>
+     * When a RAFINE action is being processed, {@link RafineManager#getActionContext()}
+     * returns the deposit that triggered the action; this takes precedence so
+     * placeholders used in {@code experience-formula} / {@code money-formula}
+     * reflect the just-completed deposit even though it has already been
+     * removed from the player's slot.
+     * <p>
+     * Otherwise the chosen deposit is the one with the shortest remaining
+     * time still refining, or a ready one if nothing is refining anymore.
+     * Returns {@code null} when the player has no deposit.
      */
     private RafineManager.Deposit bestDeposit(JobsPlugin plugin, Player player) {
+        RafineManager.Deposit context = RafineManager.getActionContext();
+        if (context != null) return context;
         RafineManager.Deposit shortest = null;
         RafineManager.Deposit ready = null;
         for (RafineManager.Deposit d : plugin.getRafineManager().getDeposits(player).values()) {
