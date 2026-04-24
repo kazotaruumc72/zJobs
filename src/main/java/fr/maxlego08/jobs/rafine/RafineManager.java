@@ -128,6 +128,46 @@ public class RafineManager {
     private final Map<String, List<RecipeRange>> recipes = new LinkedHashMap<>();
     private final Map<UUID, Map<Integer, Deposit>> deposited = new HashMap<>();
 
+    /**
+     * Thread-local pointer to the deposit currently driving a RAFINE action
+     * (e.g. while {@code RafineResultButton} is collecting a refined item and
+     * the {@code JobManager.action(...)} call evaluates experience/money
+     * formulas). When set, placeholders such as
+     * {@code %zjobs_rafine_percent%} and {@code %zjobs_rafine_percent_inverse%}
+     * must reflect this deposit instead of the player's other live deposits,
+     * because the deposit is removed from the player's slot before the action
+     * is dispatched.
+     */
+    private static final ThreadLocal<Deposit> ACTION_CONTEXT = new ThreadLocal<>();
+
+    /**
+     * @return the deposit currently driving a RAFINE action on this thread,
+     * or {@code null} when no such action is being processed.
+     */
+    public static Deposit getActionContext() {
+        return ACTION_CONTEXT.get();
+    }
+
+    /**
+     * Run {@code runnable} with the given deposit installed as the current
+     * RAFINE action context, restoring the previous value (typically
+     * {@code null}) when it returns. Used so placeholders evaluated during
+     * action processing reflect the deposit that triggered the action.
+     */
+    public static void withActionContext(Deposit deposit, Runnable runnable) {
+        Deposit previous = ACTION_CONTEXT.get();
+        ACTION_CONTEXT.set(deposit);
+        try {
+            runnable.run();
+        } finally {
+            if (previous == null) {
+                ACTION_CONTEXT.remove();
+            } else {
+                ACTION_CONTEXT.set(previous);
+            }
+        }
+    }
+
     private BukkitTask completionTask;
 
     public RafineManager(JobsPlugin plugin) {
