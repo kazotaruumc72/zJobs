@@ -902,6 +902,32 @@ public class ForgeManager {
     }
 
     /**
+     * Aggregate the highest forge tier across the input buttons of an open
+     * inventory. Used by {@link ForgeInputButton#onClick} and
+     * {@link ForgeValidateButton#onClick} to feed the same
+     * {@code (maxSeconds, bonusPercent)} pair into
+     * {@link #tryStartForging(Player, int, int)}.
+     *
+     * @param engine the open inventory engine, may be {@code null}
+     * @return the {@code int[2]} pair {@code {maxSeconds, bonusPercent}}
+     * defaulting to {@code {MAX_FORGE_SECONDS, 0}} when no input button is
+     * present.
+     */
+    public static int[] aggregateInputTier(fr.maxlego08.menu.api.engine.InventoryEngine engine) {
+        int maxSeconds = MAX_FORGE_SECONDS;
+        int bonusPercent = 0;
+        if (engine != null) {
+            for (fr.maxlego08.menu.api.button.Button btn : engine.getButtons()) {
+                if (btn instanceof ForgeInputButton input) {
+                    if (input.getMaxSeconds() > maxSeconds) maxSeconds = input.getMaxSeconds();
+                    if (input.getBonusPercent() > bonusPercent) bonusPercent = input.getBonusPercent();
+                }
+            }
+        }
+        return new int[]{maxSeconds, bonusPercent};
+    }
+
+    /**
      * Human-readable status string used by the {@code %zjobs_forge_status%} placeholder.
      */
     public String getStatus(Player player) {

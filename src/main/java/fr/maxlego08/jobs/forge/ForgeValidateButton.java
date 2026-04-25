@@ -134,15 +134,8 @@ public class ForgeValidateButton extends Button {
 
         // The forging duration and rarity bonus are taken from the highest
         // tier among the input buttons present in the open menu.
-        int maxSeconds = ForgeManager.MAX_FORGE_SECONDS;
-        int bonusPercent = 0;
-        for (Button btn : inventory.getButtons()) {
-            if (btn instanceof ForgeInputButton input) {
-                maxSeconds = Math.max(maxSeconds, input.getMaxSeconds());
-                bonusPercent = Math.max(bonusPercent, input.getBonusPercent());
-            }
-        }
-        ForgeManager.Recipe recipe = mgr.tryStartForging(player, maxSeconds, bonusPercent);
+        int[] tier = ForgeManager.aggregateInputTier(inventory);
+        ForgeManager.Recipe recipe = mgr.tryStartForging(player, tier[0], tier[1]);
         if (recipe == null) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                     "&cAucune recette ne correspond aux ingrédients déposés."));

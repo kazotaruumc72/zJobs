@@ -136,15 +136,8 @@ public class ForgeInputButton extends Button {
         // the timer begins and the slot becomes read-only. The forging duration
         // and rarity bonus are taken from the highest tier among input buttons
         // currently present in the open menu.
-        int maxSeconds = ForgeManager.MAX_FORGE_SECONDS;
-        int bonusPercent = 0;
-        for (Button btn : inventory.getButtons()) {
-            if (btn instanceof ForgeInputButton input) {
-                maxSeconds = Math.max(maxSeconds, input.getMaxSeconds());
-                bonusPercent = Math.max(bonusPercent, input.getBonusPercent());
-            }
-        }
-        ForgeManager.Recipe recipe = mgr.tryStartForging(player, maxSeconds, bonusPercent);
+        int[] tier = ForgeManager.aggregateInputTier(inventory);
+        ForgeManager.Recipe recipe = mgr.tryStartForging(player, tier[0], tier[1]);
         if (recipe != null) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                     "&a✚ &eForgeage démarré &7(" + ForgeManager.formatTime(session.getRemainingSeconds()) + "&7)."));

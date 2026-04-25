@@ -107,13 +107,9 @@ public class RafineClickListener implements Listener {
             event.setCurrentItem(null);
         }
 
-        int bonus = freeButton.getBonusPercent();
-        int effectivePercent = Math.max(0, Math.min(100, percent + bonus));
-        String chanceText = bonus > 0
-                ? "&e" + effectivePercent + "% &7(&e" + percent + "&7+&a" + bonus + "&7)"
-                : "&e" + percent + "%";
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                "&a✚ &eRaffinage démarré &7(&f" + RafineManager.formatTime(seconds) + "&7, " + chanceText + "&7)."));
+                "&a✚ &eRaffinage démarré &7(&f" + RafineManager.formatTime(seconds) + "&7, "
+                        + RafineManager.formatChance(percent, freeButton.getBonusPercent()) + "&7)."));
         try {
             player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_FURNACE_FIRE_CRACKLE, 0.6f, 1.0f);
         } catch (Throwable ignored) {}

@@ -548,5 +548,31 @@ public class RafineManager {
         long s = seconds % 60L;
         return String.format("%d:%02d", m, s);
     }
+
+    /**
+     * Render a deposit's success chance, optionally exposing the input slot
+     * tier bonus (e.g. {@code "&e35% &7(&e30&7+&a5&7)"}). Used by all RAFINE
+     * lores and chat messages so the formatting stays consistent.
+     */
+    public static String formatChance(Deposit deposit) {
+        int bonus = deposit.getBonusPercent();
+        if (bonus <= 0) {
+            return "&e" + deposit.getPercent() + "%";
+        }
+        return "&e" + deposit.getEffectivePercent() + "% &7(&e" + deposit.getPercent() + "&7+&a" + bonus + "&7)";
+    }
+
+    /**
+     * Variant of {@link #formatChance(Deposit)} used by
+     * {@link RafineClickListener} where no {@link Deposit} instance exists
+     * yet, only the raw percent and bonus.
+     */
+    public static String formatChance(int percent, int bonusPercent) {
+        if (bonusPercent <= 0) {
+            return "&e" + percent + "%";
+        }
+        int eff = Math.max(0, Math.min(100, percent + bonusPercent));
+        return "&e" + eff + "% &7(&e" + percent + "&7+&a" + bonusPercent + "&7)";
+    }
 }
 

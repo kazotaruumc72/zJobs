@@ -99,11 +99,7 @@ public class RafineInputButton extends Button {
         lore.add("");
         lore.add(ChatColor.translateAlternateColorCodes('&', "&e⌛ Raffinage en cours..."));
         lore.add(ChatColor.translateAlternateColorCodes('&', "&7Temps restant : &f" + RafineManager.formatTime(deposit.getRemainingSeconds())));
-        int bonus = deposit.getBonusPercent();
-        String chance = bonus > 0
-                ? "&e" + deposit.getEffectivePercent() + "% &7(&e" + deposit.getPercent() + "&7+&a" + bonus + "&7)"
-                : "&e" + deposit.getPercent() + "%";
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&7Chance de réussite : " + chance));
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&7Chance de réussite : " + RafineManager.formatChance(deposit)));
         lore.add("");
         lore.add(ChatColor.translateAlternateColorCodes('&', "&cCliquez pour annuler le raffinage."));
         meta.setLore(lore);
