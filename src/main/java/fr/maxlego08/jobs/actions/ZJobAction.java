@@ -3,6 +3,7 @@ package fr.maxlego08.jobs.actions;
 import fr.maxlego08.jobs.api.JobAction;
 import fr.maxlego08.jobs.api.utils.ValueInformation;
 import fr.maxlego08.jobs.placeholder.Placeholder;
+import fr.maxlego08.menu.hooks.exp4j.ExpressionBuilder;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -53,10 +54,25 @@ public abstract class ZJobAction<T> implements JobAction<T> {
             return fallback;
         }
         String resolved = Placeholder.getPlaceholder().setPlaceholders(player, formula);
-        try {
-            return Double.parseDouble(resolved);
-        } catch (NumberFormatException e) {
+        if (resolved == null) {
             return fallback;
+        }
+        String trimmed = resolved.trim();
+        if (trimmed.isEmpty()) {
+            return fallback;
+        }
+        try {
+            return Double.parseDouble(trimmed);
+        } catch (NumberFormatException ignored) {
+            // Fall back to evaluating the resolved string as a math expression
+            // (e.g. "(100 - 25) * 5"). This lets users write formulas like
+            // `money: "%zjobs_rafine_percent_inverse% * 5"` and have the value
+            // properly scaled, instead of getting only the raw placeholder.
+            try {
+                return new ExpressionBuilder(trimmed).build().evaluate();
+            } catch (Exception ignored2) {
+                return fallback;
+            }
         }
     }
 

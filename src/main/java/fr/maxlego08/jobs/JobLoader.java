@@ -93,18 +93,20 @@ public class JobLoader implements Loader<Job> {
             double money = accessor.getDouble("money", 0);
 
             // Read raw values for PlaceholderAPI placeholder support (e.g. "%math_1+1%")
-            // A valid PlaceholderAPI placeholder requires at least two '%' characters.
+            // and arithmetic expression support (e.g. "%zjobs_rafine_percent_inverse% * 5").
             // Two equivalent ways are supported:
             //   - explicit dedicated key: experience-formula / money-formula (preferred, documented)
-            //   - placeholder put directly inside experience / money as a string
+            //   - placeholder/expression put directly inside experience / money as a string
+            // A string value is treated as a formula whenever it can't be parsed as a
+            // plain number (i.e. it contains a placeholder or any operator/space).
             Object rawExperienceFormula = map.get("experience-formula");
             Object rawMoneyFormula = map.get("money-formula");
             Object rawExperience = map.get("experience");
             Object rawMoney = map.get("money");
-            String experienceFormula = rawExperienceFormula instanceof String ef && isPlaceholder(ef) ? ef
-                    : (rawExperience instanceof String s && isPlaceholder(s) ? s : null);
-            String moneyFormula = rawMoneyFormula instanceof String mf && isPlaceholder(mf) ? mf
-                    : (rawMoney instanceof String s && isPlaceholder(s) ? s : null);
+            String experienceFormula = rawExperienceFormula instanceof String ef && isFormulaString(ef) ? ef
+                    : (rawExperience instanceof String s && isFormulaString(s) ? s : null);
+            String moneyFormula = rawMoneyFormula instanceof String mf && isFormulaString(mf) ? mf
+                    : (rawMoney instanceof String s && isFormulaString(s) ? s : null);
 
             try {
 
@@ -198,6 +200,29 @@ public class JobLoader implements Loader<Job> {
     private boolean isPlaceholder(String value) {
         int firstIndex = value.indexOf('%');
         return firstIndex >= 0 && value.indexOf('%', firstIndex + 1) > firstIndex;
+    }
+
+    /**
+     * Returns {@code true} when the given string should be treated as a
+     * dynamic formula (placeholder substitution and/or arithmetic expression)
+     * rather than a plain numeric literal. A value qualifies as a formula as
+     * soon as it cannot be parsed as a plain {@code double}, which covers:
+     * <ul>
+     *     <li>strings containing a PlaceholderAPI pattern (e.g. {@code %xxx%}),</li>
+     *     <li>strings containing arithmetic operators or spaces
+     *     (e.g. {@code "100 - 25"} or {@code "%zjobs_rafine_percent_inverse% * 5"}).</li>
+     * </ul>
+     */
+    private boolean isFormulaString(String value) {
+        if (value == null) return false;
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) return false;
+        try {
+            Double.parseDouble(trimmed);
+            return false;
+        } catch (NumberFormatException ignored) {
+            return true;
+        }
     }
 
 
