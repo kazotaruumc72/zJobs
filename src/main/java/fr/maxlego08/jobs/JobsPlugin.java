@@ -16,12 +16,20 @@ import fr.maxlego08.jobs.hooks.NexoListener;
 import fr.maxlego08.jobs.placeholder.LocalPlaceholder;
 import fr.maxlego08.jobs.forge.ForgeClickListener;
 import fr.maxlego08.jobs.forge.ForgeInputButton;
+import fr.maxlego08.jobs.forge.ForgeInputButton1;
+import fr.maxlego08.jobs.forge.ForgeInputButton2;
+import fr.maxlego08.jobs.forge.ForgeInputButton3;
+import fr.maxlego08.jobs.forge.ForgeInputButton4;
 import fr.maxlego08.jobs.forge.ForgeManager;
 import fr.maxlego08.jobs.forge.ForgeResultButton;
 import fr.maxlego08.jobs.forge.ForgeTimerButton;
 import fr.maxlego08.jobs.forge.ForgeValidateButton;
 import fr.maxlego08.jobs.rafine.RafineClickListener;
 import fr.maxlego08.jobs.rafine.RafineInputButton;
+import fr.maxlego08.jobs.rafine.RafineInputButton1;
+import fr.maxlego08.jobs.rafine.RafineInputButton2;
+import fr.maxlego08.jobs.rafine.RafineInputButton3;
+import fr.maxlego08.jobs.rafine.RafineInputButton4;
 import fr.maxlego08.jobs.rafine.RafineManager;
 import fr.maxlego08.jobs.rafine.RafineResultButton;
 import fr.maxlego08.jobs.rafine.RafineTimerButton;
@@ -235,9 +243,17 @@ public class JobsPlugin extends ZPlugin {
         this.buttonManager.register(new JobInfoLoader(this));
         this.buttonManager.register(new NoneLoader(this, JobValueButton.class, "ZJOBS_VALUES"));
         this.buttonManager.register(new NoneLoader(this, RafineInputButton.class, "ZJOBS_ITEM_RAFINE"));
+        this.buttonManager.register(new NoneLoader(this, RafineInputButton1.class, "ZJOBS_ITEM_RAFINE_1"));
+        this.buttonManager.register(new NoneLoader(this, RafineInputButton2.class, "ZJOBS_ITEM_RAFINE_2"));
+        this.buttonManager.register(new NoneLoader(this, RafineInputButton3.class, "ZJOBS_ITEM_RAFINE_3"));
+        this.buttonManager.register(new NoneLoader(this, RafineInputButton4.class, "ZJOBS_ITEM_RAFINE_4"));
         this.buttonManager.register(new NoneLoader(this, RafineResultButton.class, "ZJOBS_ITEM_RAFINE_RESULT"));
         this.buttonManager.register(new NoneLoader(this, RafineTimerButton.class, "ZJOBS_ITEM_RAFINE_TIMER"));
         this.buttonManager.register(new NoneLoader(this, ForgeInputButton.class, "ZJOBS_ITEM_FORGE"));
+        this.buttonManager.register(new NoneLoader(this, ForgeInputButton1.class, "ZJOBS_ITEM_FORGE_1"));
+        this.buttonManager.register(new NoneLoader(this, ForgeInputButton2.class, "ZJOBS_ITEM_FORGE_2"));
+        this.buttonManager.register(new NoneLoader(this, ForgeInputButton3.class, "ZJOBS_ITEM_FORGE_3"));
+        this.buttonManager.register(new NoneLoader(this, ForgeInputButton4.class, "ZJOBS_ITEM_FORGE_4"));
         this.buttonManager.register(new NoneLoader(this, ForgeResultButton.class, "ZJOBS_ITEM_FORGE_RESULT"));
         this.buttonManager.register(new NoneLoader(this, ForgeTimerButton.class, "ZJOBS_ITEM_FORGE_TIMER"));
         this.buttonManager.register(new NoneLoader(this, ForgeValidateButton.class, "ZJOBS_ITEM_FORGE_VALIDATE"));
@@ -255,17 +271,30 @@ public class JobsPlugin extends ZPlugin {
             saveResource("inventories/job_info.yml", false);
         }
 
-        // Always ensure rafine.yml exists (added after initial release)
+        // Always ensure rafine.yml + tier variants exist (added after initial release)
         File rafineFile = new File(folder, "rafine.yml");
         if (!rafineFile.exists()) {
             saveResource("inventories/rafine.yml", false);
         }
+        for (int tier = 1; tier <= 4; tier++) {
+            File tierFile = new File(folder, "rafine_" + tier + ".yml");
+            if (!tierFile.exists()) {
+                saveResource("inventories/rafine_" + tier + ".yml", false);
+            }
+        }
 
-        // Always ensure the default forge inventory exists
+        // Always ensure the default forge inventory + tier variants exist
         File forgeSwordsFile = new File(folder, "forge/weapons/swords.yml");
         if (!forgeSwordsFile.exists()) {
             forgeSwordsFile.getParentFile().mkdirs();
             saveResource("inventories/forge/weapons/swords.yml", false);
+        }
+        for (int tier = 1; tier <= 4; tier++) {
+            File tierFile = new File(folder, "forge/weapons/swords_" + tier + ".yml");
+            if (!tierFile.exists()) {
+                tierFile.getParentFile().mkdirs();
+                saveResource("inventories/forge/weapons/swords_" + tier + ".yml", false);
+            }
         }
 
         this.inventoryManager.deleteInventories(this);

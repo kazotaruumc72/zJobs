@@ -132,7 +132,10 @@ public class ForgeValidateButton extends Button {
             return;
         }
 
-        ForgeManager.Recipe recipe = mgr.tryStartForging(player);
+        // The forging duration and rarity bonus are taken from the highest
+        // tier among the input buttons present in the open menu.
+        int[] tier = ForgeManager.aggregateInputTier(inventory);
+        ForgeManager.Recipe recipe = mgr.tryStartForging(player, tier[0], tier[1]);
         if (recipe == null) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                     "&cAucune recette ne correspond aux ingrédients déposés."));

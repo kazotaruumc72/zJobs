@@ -93,17 +93,34 @@ public class RafineManager {
     public static final class Deposit {
         private final ItemStack itemStack;
         private final int percent;
+        private final int bonusPercent;
         private final long finishTime;
         private boolean completionNotified;
 
-        public Deposit(ItemStack itemStack, int percent, long finishTime) {
+        public Deposit(ItemStack itemStack, int percent, int bonusPercent, long finishTime) {
             this.itemStack = itemStack;
             this.percent = percent;
+            this.bonusPercent = Math.max(0, bonusPercent);
             this.finishTime = finishTime;
         }
 
         public ItemStack getItemStack() { return itemStack; }
         public int getPercent() { return percent; }
+
+        /**
+         * @return additive bonus (in percent points) granted by the input
+         * slot tier on top of {@link #getPercent()}. Always {@code >= 0}.
+         */
+        public int getBonusPercent() { return bonusPercent; }
+
+        /**
+         * @return the success chance of the refining roll, clamped to
+         * {@code [0, 100]}. Equal to {@code percent + bonusPercent} bounded.
+         */
+        public int getEffectivePercent() {
+            return Math.max(0, Math.min(100, percent + bonusPercent));
+        }
+
         public long getFinishTime() { return finishTime; }
 
         public boolean isRefining() { return System.currentTimeMillis() < finishTime; }
@@ -498,11 +515,18 @@ public class RafineManager {
     /**
      * Put a new deposit in the given slot. The refine timer starts immediately.
      *
+     * @param maxSeconds   the inclusive upper bound of the random refine
+     *                     duration (in seconds). Must be greater than or equal
+     *                     to {@link #MIN_REFINE_SECONDS}.
+     * @param bonusPercent additive bonus to the success chance (in percent
+     *                     points) granted by the input slot tier. Negative
+     *                     values are clamped to {@code 0}.
      * @return the random refine duration in seconds
      */
-    public long setDeposited(Player player, int slot, ItemStack itemStack, int percent) {
-        long seconds = ThreadLocalRandom.current().nextInt(MIN_REFINE_SECONDS, MAX_REFINE_SECONDS + 1);
-        Deposit deposit = new Deposit(itemStack.clone(), percent, System.currentTimeMillis() + seconds * 1000L);
+    public long setDeposited(Player player, int slot, ItemStack itemStack, int percent, int maxSeconds, int bonusPercent) {
+        int upper = Math.max(MIN_REFINE_SECONDS, maxSeconds);
+        long seconds = ThreadLocalRandom.current().nextInt(MIN_REFINE_SECONDS, upper + 1);
+        Deposit deposit = new Deposit(itemStack.clone(), percent, bonusPercent, System.currentTimeMillis() + seconds * 1000L);
         getDeposits(player).put(slot, deposit);
         return seconds;
     }
@@ -523,6 +547,32 @@ public class RafineManager {
         long m = seconds / 60L;
         long s = seconds % 60L;
         return String.format("%d:%02d", m, s);
+    }
+
+    /**
+     * Render a deposit's success chance, optionally exposing the input slot
+     * tier bonus (e.g. {@code "&e35% &7(&e30&7+&a5&7)"}). Used by all RAFINE
+     * lores and chat messages so the formatting stays consistent.
+     */
+    public static String formatChance(Deposit deposit) {
+        int bonus = deposit.getBonusPercent();
+        if (bonus <= 0) {
+            return "&e" + deposit.getPercent() + "%";
+        }
+        return "&e" + deposit.getEffectivePercent() + "% &7(&e" + deposit.getPercent() + "&7+&a" + bonus + "&7)";
+    }
+
+    /**
+     * Variant of {@link #formatChance(Deposit)} used by
+     * {@link RafineClickListener} where no {@link Deposit} instance exists
+     * yet, only the raw percent and bonus.
+     */
+    public static String formatChance(int percent, int bonusPercent) {
+        if (bonusPercent <= 0) {
+            return "&e" + percent + "%";
+        }
+        int eff = Math.max(0, Math.min(100, percent + bonusPercent));
+        return "&e" + eff + "% &7(&e" + percent + "&7+&a" + bonusPercent + "&7)";
     }
 }
 

@@ -12,8 +12,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Watches clicks in the player's own inventory while a refinement menu is
@@ -37,19 +37,20 @@ public class RafineClickListener implements Listener {
         var topInv = event.getView().getTopInventory();
         if (!(topInv.getHolder() instanceof InventoryEngine engine)) return;
 
-        // Collect all RAFINE input slots in this menu
-        List<Integer> inputSlots = new ArrayList<>();
+        // Collect all RAFINE input slots in this menu, mapping each slot to
+        // its bound input button so we know its max-duration tier later on.
+        Map<Integer, RafineInputButton> inputButtons = new LinkedHashMap<>();
         boolean isRafineMenu = false;
         for (Button button : engine.getButtons()) {
-            if (button instanceof RafineInputButton) {
-                inputSlots.add(button.getSlot());
+            if (button instanceof RafineInputButton input) {
+                inputButtons.put(input.getSlot(), input);
                 isRafineMenu = true;
             } else if (button instanceof RafineResultButton || button instanceof RafineTimerButton) {
                 isRafineMenu = true;
             }
         }
         if (!isRafineMenu) return; // not a refinement menu
-        if (inputSlots.isEmpty()) return; // nowhere to deposit
+        if (inputButtons.isEmpty()) return; // nowhere to deposit
 
         // Only handle clicks that originate from the player's own inventory
         int raw = event.getRawSlot();
@@ -79,9 +80,12 @@ public class RafineClickListener implements Listener {
 
         // Find the first free RAFINE input slot
         int free = -1;
-        for (int s : inputSlots) {
+        RafineInputButton freeButton = null;
+        for (Map.Entry<Integer, RafineInputButton> entry : inputButtons.entrySet()) {
+            int s = entry.getKey();
             if (manager.getDeposit(player, s) == null) {
                 free = s;
+                freeButton = entry.getValue();
                 break;
             }
         }
@@ -94,7 +98,7 @@ public class RafineClickListener implements Listener {
         // Transfer exactly one item from the clicked stack to the refine slot
         ItemStack deposited = current.clone();
         deposited.setAmount(1);
-        long seconds = manager.setDeposited(player, free, deposited, percent);
+        long seconds = manager.setDeposited(player, free, deposited, percent, freeButton.getMaxSeconds(), freeButton.getBonusPercent());
 
         if (current.getAmount() > 1) {
             current.setAmount(current.getAmount() - 1);
@@ -104,7 +108,8 @@ public class RafineClickListener implements Listener {
         }
 
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                "&a✚ &eRaffinage démarré &7(&f" + RafineManager.formatTime(seconds) + "&7, &e" + percent + "%&7)."));
+                "&a✚ &eRaffinage démarré &7(&f" + RafineManager.formatTime(seconds) + "&7, "
+                        + RafineManager.formatChance(percent, freeButton.getBonusPercent()) + "&7)."));
         try {
             player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_FURNACE_FIRE_CRACKLE, 0.6f, 1.0f);
         } catch (Throwable ignored) {}
