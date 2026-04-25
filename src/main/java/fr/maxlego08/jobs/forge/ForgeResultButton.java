@@ -67,7 +67,10 @@ public class ForgeResultButton extends Button {
                 meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&e⌛ Forgeage en cours..."));
                 List<String> lore = new ArrayList<>();
                 lore.add(ChatColor.translateAlternateColorCodes('&', "&7Temps restant : &f" + ForgeManager.formatTime(session.getRemainingSeconds())));
-                if (session.getRecipe() != null) {
+                ForgeManager.LuckResult luck = manager().computeLuckResult(session);
+                if (luck.isSubstituted()) {
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&7Chance : &a" + luck.getLuckPercent() + "%"));
+                } else if (session.getRecipe() != null) {
                     lore.add(ChatColor.translateAlternateColorCodes('&', "&7Échec : &c" + session.getRecipe().getFailPercent() + "%"));
                 }
                 meta.setLore(lore);
@@ -87,10 +90,21 @@ public class ForgeResultButton extends Button {
             List<String> lore = meta.hasLore() && meta.getLore() != null ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
             lore.add("");
             lore.add(ChatColor.translateAlternateColorCodes('&', "&a✔ Forgeage terminé !"));
-            if (recipe != null) {
+            ForgeManager.LuckResult luck = manager().computeLuckResult(session);
+            if (luck.isSubstituted()) {
+                lore.add(ChatColor.translateAlternateColorCodes('&',
+                        "&7Chance : &a" + luck.getLuckPercent() + "%"));
+                if (luck.getDowngradedOutputId() != null) {
+                    lore.add(ChatColor.translateAlternateColorCodes('&',
+                            "&7&oEn cas d'échec, l'item est dégradé d'un rang."));
+                } else {
+                    lore.add(ChatColor.translateAlternateColorCodes('&',
+                            "&7&oEn cas d'échec, l'item est tout de même livré."));
+                }
+            } else if (recipe != null) {
                 lore.add(ChatColor.translateAlternateColorCodes('&', "&7Échec : &c" + recipe.getFailPercent() + "%"));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&7&oEn cas d'échec, les ingrédients sont perdus."));
             }
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7&oEn cas d'échec, les ingrédients sont perdus."));
             lore.add("");
             lore.add(ChatColor.translateAlternateColorCodes('&', "&eCliquez pour tenter de récupérer l'item."));
             meta.setLore(lore);
@@ -122,27 +136,73 @@ public class ForgeResultButton extends Button {
             return;
         }
 
-        // Roll the dice on the fail chance. On failure, ingredients are lost.
-        int fail = recipe.getFailPercent();
-        int roll = ThreadLocalRandom.current().nextInt(1, 101); // 1..100 inclusive
-        boolean success = roll > fail;
+        // Determine which outcome model applies. If the player substituted any
+        // ingredient with a different tier, the substitution chance replaces
+        // the recipe's fixed `fail` value, and on failure the item is
+        // downgraded by one rank instead of losing the ingredients.
+        ForgeManager.LuckResult luck = mgr.computeLuckResult(session);
 
-        if (!success) {
-            mgr.clearSession(player);
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&c✘ Le forgeage a échoué ! Les ingrédients sont perdus &7(" + roll + "/" + fail + "%)&c."));
-            try {
-                player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_GLASS_BREAK, 1.0f, 0.8f);
-                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
-            } catch (Throwable ignored) {}
-            ForgeInputButton.refreshForgeButtons(inventory);
+        int roll = ThreadLocalRandom.current().nextInt(1, 101); // 1..100 inclusive
+
+        if (!luck.isSubstituted()) {
+            // Legacy path: fixed fail chance, ingredients lost on failure.
+            int fail = recipe.getFailPercent();
+            boolean success = roll > fail;
+            if (!success) {
+                mgr.clearSession(player);
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                        "&c✘ Le forgeage a échoué ! Les ingrédients sont perdus &7(" + roll + "/" + fail + "%)&c."));
+                try {
+                    player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_GLASS_BREAK, 1.0f, 0.8f);
+                    player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
+                } catch (Throwable ignored) {}
+                ForgeInputButton.refreshForgeButtons(inventory);
+                return;
+            }
+
+            giveOutput(player, mgr, session, inventory, recipe, recipe.getOutputId(), false, roll, fail);
             return;
         }
 
-        ItemStack output = mgr.buildItem(recipe.getOutputId());
+        // Substitution path: roll against the computed luck percent.
+        int luckPercent = luck.getLuckPercent();
+        boolean success = roll <= luckPercent;
+        String outputId;
+        boolean downgraded;
+        if (success) {
+            outputId = recipe.getOutputId();
+            downgraded = false;
+        } else if (luck.getDowngradedOutputId() != null) {
+            outputId = luck.getDowngradedOutputId();
+            downgraded = true;
+        } else {
+            // Output not tierable / already at lowest tier: still deliver the
+            // recipe output (no ingredients lost — that's the substitution rule).
+            outputId = recipe.getOutputId();
+            downgraded = false;
+        }
+        giveOutput(player, mgr, session, inventory, recipe, outputId, downgraded, roll, luckPercent);
+    }
+
+    /**
+     * Build and deliver the chosen output to the player, fire the FORGE job
+     * action and clear the session. Used by both the legacy fail path and
+     * the substitution path.
+     */
+    private void giveOutput(Player player, ForgeManager mgr, ForgeManager.Session session,
+                            InventoryEngine inventory, ForgeManager.Recipe recipe,
+                            String outputId, boolean downgraded, int roll, int chancePercent) {
+        ItemStack output = mgr.buildItem(outputId);
         if (output == null || output.getType() == Material.AIR) {
-            // Unresolved output (e.g. missing Nexo id). Refund ingredients so the
-            // player isn't stuck nor robbed.
+            // Unresolved output (e.g. missing Nexo id). Fall back to the original recipe output.
+            if (downgraded) {
+                output = mgr.buildItem(recipe.getOutputId());
+                downgraded = false;
+                outputId = recipe.getOutputId();
+            }
+        }
+        if (output == null || output.getType() == Material.AIR) {
+            // Still nothing: refund ingredients to avoid trapping the player.
             for (ItemStack ingredient : session.getDeposits().values()) {
                 ItemStack refund = ingredient.clone();
                 var leftover = player.getInventory().addItem(refund);
@@ -162,11 +222,21 @@ public class ForgeResultButton extends Button {
         // Fire the FORGE job action so the player earns xp/money declared in the job yaml.
         this.plugin.getJobManager().action(player, recipe.getOutputId(), JobActionType.FORGE);
 
-        player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                "&a✔ Item forgé récupéré ! &7(" + roll + "/" + fail + "%)"));
-        try {
-            player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.4f);
-        } catch (Throwable ignored) {}
+        if (downgraded) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    "&e⚠ Forgeage partiellement réussi ! &7(" + roll + "/" + chancePercent + "%)"));
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    "&7Item dégradé : &f" + outputId));
+            try {
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
+            } catch (Throwable ignored) {}
+        } else {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    "&a✔ Item forgé récupéré ! &7(" + roll + "/" + chancePercent + "%)"));
+            try {
+                player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.4f);
+            } catch (Throwable ignored) {}
+        }
 
         ForgeInputButton.refreshForgeButtons(inventory);
     }

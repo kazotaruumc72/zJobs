@@ -55,6 +55,125 @@ public class ForgeManager {
     /** Default fail chance applied when a recipe does not declare one. */
     public static final int DEFAULT_FAIL_PERCENT = 20;
 
+    // ---------------------------------------------------------------------
+    // Tier detection (for substitution chance)
+    // ---------------------------------------------------------------------
+
+    /**
+     * Known item tiers, ordered from lowest quality to highest. The order is
+     * used for substitution comparisons (e.g. depositing a higher tier than
+     * required is considered a perfect match).
+     */
+    public enum Tier {
+        COMMUN, PEU_COMMUNE, RARE, EPIQUE, LEGENDAIRE
+    }
+
+    /**
+     * Mapping of accepted Nexo id suffixes to a tier. The list is searched in
+     * <i>longest-suffix-first</i> order so that {@code _peu_commune} is
+     * matched before {@code _commune}.
+     */
+    private static final List<String[]> TIER_SUFFIXES = List.of(
+            new String[]{"_legendaire", Tier.LEGENDAIRE.name()},
+            new String[]{"_epique", Tier.EPIQUE.name()},
+            new String[]{"_rare", Tier.RARE.name()},
+            new String[]{"_peu_commune", Tier.PEU_COMMUNE.name()},
+            new String[]{"_peu_commun", Tier.PEU_COMMUNE.name()},
+            new String[]{"_commune", Tier.COMMUN.name()},
+            new String[]{"_commun", Tier.COMMUN.name()}
+    );
+
+    /**
+     * Result of parsing a normalized id into a tier component. Stores the
+     * family root (id stripped of its tier suffix), the matched tier and the
+     * exact suffix that was matched (so the masculine/feminine gender can be
+     * preserved when reconstructing a downgraded id).
+     */
+    public static final class TieredId {
+        private final String family;
+        private final Tier tier;
+        private final String matchedSuffix;
+
+        TieredId(String family, Tier tier, String matchedSuffix) {
+            this.family = family;
+            this.tier = tier;
+            this.matchedSuffix = matchedSuffix;
+        }
+
+        public String getFamily() { return family; }
+        public Tier getTier() { return tier; }
+        public String getMatchedSuffix() { return matchedSuffix; }
+
+        /** Whether the matched suffix is a feminine form ({@code _commune}, {@code _peu_commune}). */
+        public boolean isFeminine() {
+            return matchedSuffix.equals("_commune") || matchedSuffix.equals("_peu_commune");
+        }
+    }
+
+    /**
+     * Parse a normalized id into a tiered representation. Vanilla materials
+     * and Nexo ids without a recognised tier suffix return {@code null}.
+     */
+    public static TieredId parseTieredId(String normalizedId) {
+        if (normalizedId == null) return null;
+        if (!normalizedId.startsWith("nexo:")) return null;
+        for (String[] entry : TIER_SUFFIXES) {
+            String suffix = entry[0];
+            if (normalizedId.endsWith(suffix) && normalizedId.length() > "nexo:".length() + suffix.length()) {
+                String family = normalizedId.substring(0, normalizedId.length() - suffix.length());
+                return new TieredId(family, Tier.valueOf(entry[1]), suffix);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Build a downgraded id one tier below the given one, preserving the
+     * gender of the original suffix when possible. Returns {@code null} when
+     * the id is not tierable or already at the lowest tier.
+     */
+    public static String downgradeId(String normalizedId) {
+        TieredId t = parseTieredId(normalizedId);
+        if (t == null || t.tier == Tier.COMMUN) return null;
+        Tier lower = Tier.values()[t.tier.ordinal() - 1];
+        String suffix;
+        switch (lower) {
+            case COMMUN:
+                suffix = t.isFeminine() ? "_commune" : "_commun";
+                break;
+            case PEU_COMMUNE:
+                suffix = t.isFeminine() ? "_peu_commune" : "_peu_commun";
+                break;
+            case RARE: suffix = "_rare"; break;
+            case EPIQUE: suffix = "_epique"; break;
+            case LEGENDAIRE: suffix = "_legendaire"; break;
+            default: return null;
+        }
+        return t.getFamily() + suffix;
+    }
+
+    /**
+     * Outcome of evaluating a session's deposits against its bound recipe to
+     * compute the substitution chance. When {@link #isSubstituted()} is
+     * {@code false} no tier mismatch was detected and the recipe's regular
+     * {@code fail} mechanic should apply unchanged.
+     */
+    public static final class LuckResult {
+        private final boolean substituted;
+        private final int luckPercent;
+        private final String downgradedOutputId;
+
+        LuckResult(boolean substituted, int luckPercent, String downgradedOutputId) {
+            this.substituted = substituted;
+            this.luckPercent = Math.max(0, Math.min(100, luckPercent));
+            this.downgradedOutputId = downgradedOutputId;
+        }
+
+        public boolean isSubstituted() { return substituted; }
+        public int getLuckPercent() { return luckPercent; }
+        public String getDowngradedOutputId() { return downgradedOutputId; }
+    }
+
     /**
      * Single ingredient of a forge recipe.
      */
@@ -190,8 +309,14 @@ public class ForgeManager {
         if (session.getRecipe() != null) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                     "   &7Recette : &f" + session.getRecipe().getOutputId()));
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "   &7Échec : &c" + session.getRecipe().getFailPercent() + "%"));
+            ForgeManager.LuckResult luck = computeLuckResult(session);
+            if (luck.isSubstituted()) {
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                        "   &7Chance : &a" + luck.getLuckPercent() + "%"));
+            } else {
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                        "   &7Échec : &c" + session.getRecipe().getFailPercent() + "%"));
+            }
         }
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                 "   &7➥ &fCliquez sur le slot résultat pour récupérer."));
@@ -406,12 +531,26 @@ public class ForgeManager {
         String id = getItemId(itemStack);
         if (id == null) return false;
         String norm = normalizeId(id);
+        TieredId depTier = parseTieredId(norm);
         if (this.whitelistEnabled) {
-            return this.whitelist.contains(norm);
+            if (this.whitelist.contains(norm)) return true;
+            // Same-family substitution: a deposit of any tier in the family of
+            // a whitelisted ingredient is accepted (substitution up or down).
+            if (depTier != null) {
+                for (String allowed : this.whitelist) {
+                    TieredId allowedTier = parseTieredId(allowed);
+                    if (allowedTier != null && allowedTier.getFamily().equals(depTier.getFamily())) return true;
+                }
+            }
+            return false;
         }
         for (Recipe recipe : this.recipes.values()) {
             for (Ingredient ingredient : recipe.getIngredients()) {
                 if (ingredient.getId().equals(norm)) return true;
+                if (depTier != null) {
+                    TieredId reqTier = parseTieredId(ingredient.getId());
+                    if (reqTier != null && reqTier.getFamily().equals(depTier.getFamily())) return true;
+                }
             }
         }
         return false;
@@ -491,16 +630,20 @@ public class ForgeManager {
         Session session = getOrCreateSession(player);
         if (session.hasTimer()) return session.getRecipe();
 
-        Map<String, Integer> deposited = new HashMap<>();
+        // Group deposits by recipe key (family for tiered ids, exact id otherwise).
+        Map<String, Integer> depositedByKey = new HashMap<>();
         for (ItemStack stack : session.getDeposits().values()) {
             String id = getItemId(stack);
             if (id == null) continue;
-            deposited.merge(normalizeId(id), stack.getAmount(), Integer::sum);
+            String norm = normalizeId(id);
+            TieredId tiered = parseTieredId(norm);
+            String key = tiered == null ? norm : tiered.getFamily();
+            depositedByKey.merge(key, stack.getAmount(), Integer::sum);
         }
-        if (deposited.isEmpty()) return null;
+        if (depositedByKey.isEmpty()) return null;
 
         for (Recipe recipe : this.recipes.values()) {
-            if (matches(recipe, deposited)) {
+            if (matches(recipe, depositedByKey)) {
                 long seconds = ThreadLocalRandom.current().nextInt(MIN_FORGE_SECONDS, MAX_FORGE_SECONDS + 1);
                 session.setRecipe(recipe);
                 session.setFinishTime(System.currentTimeMillis() + seconds * 1000L);
@@ -510,17 +653,98 @@ public class ForgeManager {
         return null;
     }
 
-    private boolean matches(Recipe recipe, Map<String, Integer> deposited) {
+    /**
+     * Match a recipe against a deposit map keyed by family (tiered ids) or
+     * exact id (non-tiered). For each required key the deposited total must
+     * be at least the required total, and no extra unrelated keys may have
+     * been deposited.
+     */
+    private boolean matches(Recipe recipe, Map<String, Integer> depositedByKey) {
         Map<String, Integer> required = new HashMap<>();
         for (Ingredient ingredient : recipe.getIngredients()) {
-            required.merge(ingredient.getId(), ingredient.getAmount(), Integer::sum);
+            TieredId tiered = parseTieredId(ingredient.getId());
+            String key = tiered == null ? ingredient.getId() : tiered.getFamily();
+            required.merge(key, ingredient.getAmount(), Integer::sum);
         }
-        if (deposited.size() != required.size()) return false;
+        if (depositedByKey.size() != required.size()) return false;
         for (Map.Entry<String, Integer> entry : required.entrySet()) {
-            Integer have = deposited.get(entry.getKey());
+            Integer have = depositedByKey.get(entry.getKey());
             if (have == null || have < entry.getValue()) return false;
         }
         return true;
+    }
+
+    /**
+     * Compute the substitution-luck result of the given session against its
+     * bound recipe. The returned object indicates whether any tier mismatch
+     * was detected; when none is, callers should keep using the recipe's
+     * regular {@code fail} mechanic. When a substitution was detected, the
+     * computed {@code luckPercent} is the chance (0..100) that the produced
+     * item is the recipe output; on the complementary chance the produced
+     * item should be the {@code downgradedOutputId} (which falls back to the
+     * original output id when the output is not tierable or already at the
+     * lowest tier).
+     *
+     * <p>Per family, the chance is {@code matching / total} where
+     * {@code matching} is the count of deposited units whose tier is greater
+     * than or equal to the required tier, and {@code total} is the recipe's
+     * required quantity for that family. Multiple tierable families are
+     * combined multiplicatively.
+     */
+    public LuckResult computeLuckResult(Session session) {
+        if (session == null) return new LuckResult(false, 100, null);
+        Recipe recipe = session.getRecipe();
+        if (recipe == null) return new LuckResult(false, 100, null);
+
+        // Tally deposits per family with per-tier counts.
+        Map<String, Map<Tier, Integer>> depositedByFamily = new HashMap<>();
+        for (ItemStack stack : session.getDeposits().values()) {
+            String id = getItemId(stack);
+            if (id == null) continue;
+            String norm = normalizeId(id);
+            TieredId tiered = parseTieredId(norm);
+            if (tiered == null) continue;
+            depositedByFamily
+                    .computeIfAbsent(tiered.getFamily(), k -> new HashMap<>())
+                    .merge(tiered.getTier(), stack.getAmount(), Integer::sum);
+        }
+
+        // Aggregate recipe requirements per family.
+        Map<String, int[]> requiredByFamily = new LinkedHashMap<>(); // family -> [requiredAmount, requiredTierOrdinal]
+        for (Ingredient ingredient : recipe.getIngredients()) {
+            TieredId tiered = parseTieredId(ingredient.getId());
+            if (tiered == null) continue;
+            int[] cur = requiredByFamily.get(tiered.getFamily());
+            if (cur == null) {
+                requiredByFamily.put(tiered.getFamily(), new int[]{ingredient.getAmount(), tiered.getTier().ordinal()});
+            } else {
+                cur[0] += ingredient.getAmount();
+                // If the recipe lists multiple tiers in the same family, use the highest as required.
+                cur[1] = Math.max(cur[1], tiered.getTier().ordinal());
+            }
+        }
+
+        boolean substituted = false;
+        double chance = 1.0;
+        for (Map.Entry<String, int[]> entry : requiredByFamily.entrySet()) {
+            String family = entry.getKey();
+            int requiredAmount = entry.getValue()[0];
+            int requiredTierOrdinal = entry.getValue()[1];
+            Map<Tier, Integer> deposits = depositedByFamily.getOrDefault(family, Collections.emptyMap());
+
+            int matching = 0;
+            for (Map.Entry<Tier, Integer> dep : deposits.entrySet()) {
+                if (dep.getKey().ordinal() != requiredTierOrdinal) substituted = true;
+                if (dep.getKey().ordinal() >= requiredTierOrdinal) matching += dep.getValue();
+            }
+            // Cap matching to required to avoid >100% from over-deposit.
+            int effectiveMatching = Math.min(matching, requiredAmount);
+            chance *= (double) effectiveMatching / (double) requiredAmount;
+        }
+
+        int luckPercent = (int) Math.round(chance * 100.0);
+        String downgraded = downgradeId(normalizeId(recipe.getOutputId()));
+        return new LuckResult(substituted, luckPercent, downgraded);
     }
 
     public static String formatTime(long seconds) {
