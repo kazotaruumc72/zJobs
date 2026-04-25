@@ -59,6 +59,9 @@ public class ForgeManager {
     // Tier detection (for substitution chance)
     // ---------------------------------------------------------------------
 
+    /** Prefix used by Nexo-backed item ids in the codebase. */
+    private static final String NEXO_PREFIX = "nexo:";
+
     /**
      * Known item tiers, ordered from lowest quality to highest. The order is
      * used for substitution comparisons (e.g. depositing a higher tier than
@@ -83,6 +86,9 @@ public class ForgeManager {
             new String[]{"_commun", Tier.COMMUN.name()}
     );
 
+    /** Subset of {@link #TIER_SUFFIXES} that denote a feminine grammatical form. */
+    private static final Set<String> FEMININE_SUFFIXES = Set.of("_commune", "_peu_commune");
+
     /**
      * Result of parsing a normalized id into a tier component. Stores the
      * family root (id stripped of its tier suffix), the matched tier and the
@@ -106,7 +112,7 @@ public class ForgeManager {
 
         /** Whether the matched suffix is a feminine form ({@code _commune}, {@code _peu_commune}). */
         public boolean isFeminine() {
-            return matchedSuffix.equals("_commune") || matchedSuffix.equals("_peu_commune");
+            return FEMININE_SUFFIXES.contains(matchedSuffix);
         }
     }
 
@@ -116,10 +122,10 @@ public class ForgeManager {
      */
     public static TieredId parseTieredId(String normalizedId) {
         if (normalizedId == null) return null;
-        if (!normalizedId.startsWith("nexo:")) return null;
+        if (!normalizedId.startsWith(NEXO_PREFIX)) return null;
         for (String[] entry : TIER_SUFFIXES) {
             String suffix = entry[0];
-            if (normalizedId.endsWith(suffix) && normalizedId.length() > "nexo:".length() + suffix.length()) {
+            if (normalizedId.endsWith(suffix) && normalizedId.length() > NEXO_PREFIX.length() + suffix.length()) {
                 String family = normalizedId.substring(0, normalizedId.length() - suffix.length());
                 return new TieredId(family, Tier.valueOf(entry[1]), suffix);
             }
