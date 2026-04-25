@@ -271,17 +271,30 @@ public class JobsPlugin extends ZPlugin {
             saveResource("inventories/job_info.yml", false);
         }
 
-        // Always ensure rafine.yml exists (added after initial release)
+        // Always ensure rafine.yml + tier variants exist (added after initial release)
         File rafineFile = new File(folder, "rafine.yml");
         if (!rafineFile.exists()) {
             saveResource("inventories/rafine.yml", false);
         }
+        for (int tier = 1; tier <= 4; tier++) {
+            File tierFile = new File(folder, "rafine_" + tier + ".yml");
+            if (!tierFile.exists()) {
+                saveResource("inventories/rafine_" + tier + ".yml", false);
+            }
+        }
 
-        // Always ensure the default forge inventory exists
+        // Always ensure the default forge inventory + tier variants exist
         File forgeSwordsFile = new File(folder, "forge/weapons/swords.yml");
         if (!forgeSwordsFile.exists()) {
             forgeSwordsFile.getParentFile().mkdirs();
             saveResource("inventories/forge/weapons/swords.yml", false);
+        }
+        for (int tier = 1; tier <= 4; tier++) {
+            File tierFile = new File(folder, "forge/weapons/swords_" + tier + ".yml");
+            if (!tierFile.exists()) {
+                tierFile.getParentFile().mkdirs();
+                saveResource("inventories/forge/weapons/swords_" + tier + ".yml", false);
+            }
         }
 
         this.inventoryManager.deleteInventories(this);
