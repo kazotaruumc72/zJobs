@@ -68,10 +68,15 @@ public class ForgeResultButton extends Button {
                 List<String> lore = new ArrayList<>();
                 lore.add(ChatColor.translateAlternateColorCodes('&', "&7Temps restant : &f" + ForgeManager.formatTime(session.getRemainingSeconds())));
                 ForgeManager.LuckResult luck = manager().computeLuckResult(session);
+                int bonus = session.getBonusPercent();
                 if (luck.isSubstituted()) {
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&7Chance : &a" + luck.getLuckPercent() + "%"));
+                    int eff = Math.min(100, luck.getLuckPercent() + bonus);
+                    String tail = bonus > 0 ? " &7(&a+" + bonus + "%&7)" : "";
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&7Chance : &a" + eff + "%" + tail));
                 } else if (session.getRecipe() != null) {
-                    lore.add(ChatColor.translateAlternateColorCodes('&', "&7Échec : &c" + session.getRecipe().getFailPercent() + "%"));
+                    int fail = Math.max(0, session.getRecipe().getFailPercent() - bonus);
+                    String tail = bonus > 0 ? " &7(&a-" + bonus + "%&7)" : "";
+                    lore.add(ChatColor.translateAlternateColorCodes('&', "&7Échec : &c" + fail + "%" + tail));
                 }
                 meta.setLore(lore);
                 inProgress.setItemMeta(meta);
@@ -91,9 +96,12 @@ public class ForgeResultButton extends Button {
             lore.add("");
             lore.add(ChatColor.translateAlternateColorCodes('&', "&a✔ Forgeage terminé !"));
             ForgeManager.LuckResult luck = manager().computeLuckResult(session);
+            int bonus = session.getBonusPercent();
             if (luck.isSubstituted()) {
+                int eff = Math.min(100, luck.getLuckPercent() + bonus);
+                String tail = bonus > 0 ? " &7(&a+" + bonus + "%&7)" : "";
                 lore.add(ChatColor.translateAlternateColorCodes('&',
-                        "&7Chance : &a" + luck.getLuckPercent() + "%"));
+                        "&7Chance : &a" + eff + "%" + tail));
                 if (luck.getDowngradedOutputId() != null) {
                     lore.add(ChatColor.translateAlternateColorCodes('&',
                             "&7&oEn cas d'échec, l'item est dégradé d'un rang."));
@@ -102,7 +110,9 @@ public class ForgeResultButton extends Button {
                             "&7&oEn cas d'échec, l'item est tout de même livré."));
                 }
             } else if (recipe != null) {
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&7Échec : &c" + recipe.getFailPercent() + "%"));
+                int fail = Math.max(0, recipe.getFailPercent() - bonus);
+                String tail = bonus > 0 ? " &7(&a-" + bonus + "%&7)" : "";
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&7Échec : &c" + fail + "%" + tail));
                 lore.add(ChatColor.translateAlternateColorCodes('&', "&7&oEn cas d'échec, les ingrédients sont perdus."));
             }
             lore.add("");
@@ -141,12 +151,14 @@ public class ForgeResultButton extends Button {
         // the recipe's fixed `fail` value, and on failure the item is
         // downgraded by one rank instead of losing the ingredients.
         ForgeManager.LuckResult luck = mgr.computeLuckResult(session);
+        int bonus = session.getBonusPercent();
 
         int roll = ThreadLocalRandom.current().nextInt(1, 101); // 1..100 inclusive
 
         if (!luck.isSubstituted()) {
             // Legacy path: fixed fail chance, ingredients lost on failure.
-            int fail = recipe.getFailPercent();
+            // The input slot tier bonus reduces the effective fail chance.
+            int fail = Math.max(0, recipe.getFailPercent() - bonus);
             boolean success = roll > fail;
             if (!success) {
                 mgr.clearSession(player);
@@ -164,8 +176,9 @@ public class ForgeResultButton extends Button {
             return;
         }
 
-        // Substitution path: roll against the computed luck percent.
-        int luckPercent = luck.getLuckPercent();
+        // Substitution path: roll against the computed luck percent, plus the
+        // input slot tier bonus (capped at 100%).
+        int luckPercent = Math.min(100, luck.getLuckPercent() + bonus);
         boolean success = roll <= luckPercent;
         String outputId;
         boolean downgraded;

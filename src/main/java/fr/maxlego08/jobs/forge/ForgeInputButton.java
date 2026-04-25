@@ -30,7 +30,7 @@ import java.util.List;
  * </ul>
  * Clicking on a deposited ingredient while the timer is not running :
  * <ul>
- *     <li>First tries to {@link ForgeManager#tryStartForging(Player)}: if the current deposits
+ *     <li>First tries to {@link ForgeManager#tryStartForging(Player, int, int)}: if the current deposits
  *     match a known recipe, the forge timer starts immediately.</li>
  *     <li>Otherwise, the deposited ingredient is refunded to the player.</li>
  * </ul>
@@ -44,6 +44,29 @@ public class ForgeInputButton extends Button {
         this.plugin = (JobsPlugin) plugin;
         setUseCache(false);
         setUpdated(true);
+    }
+
+    /**
+     * Maximum forge duration (in seconds) contributed by this slot when the
+     * forging starts. The actual session timer uses the maximum value across
+     * every {@link ForgeInputButton} present in the open menu, so a menu can
+     * mix tiers and the longest one wins. Subclasses (e.g.
+     * {@link ForgeInputButton1}) override this to provide longer ranges. The
+     * minimum is always {@link ForgeManager#MIN_FORGE_SECONDS}.
+     */
+    public int getMaxSeconds() {
+        return ForgeManager.MAX_FORGE_SECONDS;
+    }
+
+    /**
+     * Bonus (in percent points) that this slot contributes to the chance of
+     * producing the recipe's highest-rarity output. The session uses the
+     * maximum bonus across every {@link ForgeInputButton} present in the open
+     * menu. Subclasses (e.g. {@link ForgeInputButton1}) override this to
+     * provide values between 1 and 4.
+     */
+    public int getBonusPercent() {
+        return 0;
     }
 
     private ForgeManager manager() {
@@ -110,8 +133,18 @@ public class ForgeInputButton extends Button {
         if (deposited == null) return;
 
         // Attempt to start forging first. If the current deposit matches a recipe,
-        // the timer begins and the slot becomes read-only.
-        ForgeManager.Recipe recipe = mgr.tryStartForging(player);
+        // the timer begins and the slot becomes read-only. The forging duration
+        // and rarity bonus are taken from the highest tier among input buttons
+        // currently present in the open menu.
+        int maxSeconds = ForgeManager.MAX_FORGE_SECONDS;
+        int bonusPercent = 0;
+        for (Button btn : inventory.getButtons()) {
+            if (btn instanceof ForgeInputButton input) {
+                maxSeconds = Math.max(maxSeconds, input.getMaxSeconds());
+                bonusPercent = Math.max(bonusPercent, input.getBonusPercent());
+            }
+        }
+        ForgeManager.Recipe recipe = mgr.tryStartForging(player, maxSeconds, bonusPercent);
         if (recipe != null) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                     "&a✚ &eForgeage démarré &7(" + ForgeManager.formatTime(session.getRemainingSeconds()) + "&7)."));

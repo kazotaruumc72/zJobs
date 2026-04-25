@@ -272,6 +272,7 @@ public class ForgeManager {
         private Recipe recipe;
         private long finishTime;
         private boolean completionNotified;
+        private int bonusPercent;
 
         public Map<Integer, ItemStack> getDeposits() { return deposits; }
 
@@ -280,6 +281,15 @@ public class ForgeManager {
 
         public long getFinishTime() { return finishTime; }
         public void setFinishTime(long finishTime) { this.finishTime = finishTime; }
+
+        /**
+         * @return additive bonus (in percent points) granted by the input
+         * slot tier on top of the computed substitution-luck percentage. Set
+         * by {@link #tryStartForging(Player, int, int)} when the forge starts
+         * and read back by {@link #computeLuckResult(Session)}.
+         */
+        public int getBonusPercent() { return bonusPercent; }
+        public void setBonusPercent(int bonusPercent) { this.bonusPercent = Math.max(0, bonusPercent); }
 
         public boolean hasTimer() { return this.finishTime > 0L; }
         public boolean isForging() { return hasTimer() && System.currentTimeMillis() < finishTime; }
@@ -362,12 +372,17 @@ public class ForgeManager {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                     "   &7Recette : &f" + session.getRecipe().getOutputId()));
             ForgeManager.LuckResult luck = computeLuckResult(session);
+            int bonus = session.getBonusPercent();
             if (luck.isSubstituted()) {
+                int eff = Math.min(100, luck.getLuckPercent() + bonus);
+                String tail = bonus > 0 ? " &7(&a+" + bonus + "%&7)" : "";
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        "   &7Chance : &a" + luck.getLuckPercent() + "%"));
+                        "   &7Chance : &a" + eff + "%" + tail));
             } else {
+                int fail = Math.max(0, session.getRecipe().getFailPercent() - bonus);
+                String tail = bonus > 0 ? " &7(&a-" + bonus + "%&7)" : "";
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                        "   &7Échec : &c" + session.getRecipe().getFailPercent() + "%"));
+                        "   &7Échec : &c" + fail + "%" + tail));
             }
         }
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
@@ -746,10 +761,18 @@ public class ForgeManager {
      * deposits. If found, the recipe is recorded on the session and the
      * timer starts immediately.
      *
+     * @param maxSeconds   the inclusive upper bound of the random forge
+     *                     duration (in seconds). Bounded by
+     *                     {@link #MIN_FORGE_SECONDS} below.
+     * @param bonusPercent additive bonus to the success chance of producing
+     *                     the recipe's highest-rarity output (in percent
+     *                     points). Stored on the session and read back by
+     *                     {@link #computeLuckResult(Session)}. Negative
+     *                     values are clamped to {@code 0}.
      * @return the matched recipe, or {@code null} if no recipe matches the
      * current deposits.
      */
-    public Recipe tryStartForging(Player player) {
+    public Recipe tryStartForging(Player player, int maxSeconds, int bonusPercent) {
         Session session = getOrCreateSession(player);
         if (session.hasTimer()) return session.getRecipe();
 
@@ -765,11 +788,13 @@ public class ForgeManager {
         }
         if (depositedByKey.isEmpty()) return null;
 
+        int upper = Math.max(MIN_FORGE_SECONDS, maxSeconds);
         for (Recipe recipe : this.recipes.values()) {
             if (matches(recipe, depositedByKey)) {
-                long seconds = ThreadLocalRandom.current().nextInt(MIN_FORGE_SECONDS, MAX_FORGE_SECONDS + 1);
+                long seconds = ThreadLocalRandom.current().nextInt(MIN_FORGE_SECONDS, upper + 1);
                 session.setRecipe(recipe);
                 session.setFinishTime(System.currentTimeMillis() + seconds * 1000L);
+                session.setBonusPercent(bonusPercent);
                 return recipe;
             }
         }

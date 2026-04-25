@@ -45,6 +45,27 @@ public class RafineInputButton extends Button {
         setUpdated(true);
     }
 
+    /**
+     * Maximum refine duration (in seconds) applied when an item is deposited
+     * in this slot. Subclasses (e.g. {@link RafineInputButton1}) override this
+     * to provide longer ranges. The minimum is always
+     * {@link RafineManager#MIN_REFINE_SECONDS}.
+     */
+    public int getMaxSeconds() {
+        return RafineManager.MAX_REFINE_SECONDS;
+    }
+
+    /**
+     * Bonus (in percent points) added to the deposit's success chance when
+     * the player tries to collect the refined item. Subclasses (e.g.
+     * {@link RafineInputButton1}) override this to provide values between 1
+     * and 4. The bonus is applied on top of the percentage written in the
+     * deposited item's name and the resulting roll target is capped at 100.
+     */
+    public int getBonusPercent() {
+        return 0;
+    }
+
     private RafineManager manager() {
         return this.plugin.getRafineManager();
     }
@@ -78,7 +99,11 @@ public class RafineInputButton extends Button {
         lore.add("");
         lore.add(ChatColor.translateAlternateColorCodes('&', "&e⌛ Raffinage en cours..."));
         lore.add(ChatColor.translateAlternateColorCodes('&', "&7Temps restant : &f" + RafineManager.formatTime(deposit.getRemainingSeconds())));
-        lore.add(ChatColor.translateAlternateColorCodes('&', "&7Chance de réussite : &e" + deposit.getPercent() + "%"));
+        int bonus = deposit.getBonusPercent();
+        String chance = bonus > 0
+                ? "&e" + deposit.getEffectivePercent() + "% &7(&e" + deposit.getPercent() + "&7+&a" + bonus + "&7)"
+                : "&e" + deposit.getPercent() + "%";
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&7Chance de réussite : " + chance));
         lore.add("");
         lore.add(ChatColor.translateAlternateColorCodes('&', "&cCliquez pour annuler le raffinage."));
         meta.setLore(lore);

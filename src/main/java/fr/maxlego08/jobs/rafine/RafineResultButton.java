@@ -73,7 +73,7 @@ public class RafineResultButton extends Button {
                 meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&e⌛ Raffinage en cours..."));
                 List<String> lore = new ArrayList<>();
                 lore.add(ChatColor.translateAlternateColorCodes('&', "&7Temps restant : &f" + RafineManager.formatTime(deposit.getRemainingSeconds())));
-                lore.add(ChatColor.translateAlternateColorCodes('&', "&7Chance de réussite : &e" + deposit.getPercent() + "%"));
+                lore.add(ChatColor.translateAlternateColorCodes('&', "&7Chance de réussite : " + formatChance(deposit)));
                 meta.setLore(lore);
                 inProgress.setItemMeta(meta);
             }
@@ -90,7 +90,7 @@ public class RafineResultButton extends Button {
             List<String> lore = meta.hasLore() && meta.getLore() != null ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
             lore.add("");
             lore.add(ChatColor.translateAlternateColorCodes('&', "&a✔ Raffinage terminé !"));
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Chance de réussite : &e" + deposit.getPercent() + "%"));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&7Chance de réussite : " + formatChance(deposit)));
             lore.add(ChatColor.translateAlternateColorCodes('&', "&7&oSi le raffinage échoue, le minerai sera perdu."));
             lore.add("");
             lore.add(ChatColor.translateAlternateColorCodes('&', "&eCliquez pour tenter de récupérer l'item."));
@@ -131,18 +131,19 @@ public class RafineResultButton extends Button {
         if (ready == null) return;
 
         // Roll the dice : the percentage written on the ore is its chance of
-        // success. On failure, the ore is consumed (already removed from the
-        // input slot when the deposit was created) and the player gets a red
-        // chat message + a breaking sound. On success, the refined output is
-        // built and given to the player.
-        int percent = ready.getPercent();
+        // success, plus the input slot's tier bonus (capped at 100%). On
+        // failure, the ore is consumed (already removed from the input slot
+        // when the deposit was created) and the player gets a red chat
+        // message + a breaking sound. On success, the refined output is built
+        // and given to the player.
+        int effectivePercent = ready.getEffectivePercent();
         int roll = ThreadLocalRandom.current().nextInt(1, 101); // 1..100 inclusive
-        boolean success = percent > 0 && roll <= percent;
+        boolean success = effectivePercent > 0 && roll <= effectivePercent;
 
         if (!success) {
             manager().clearSlot(player, readySlot);
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&c✘ Le raffinage a échoué ! Le minerai s'est brisé &7(" + roll + "/" + percent + "%)&c."));
+                    "&c✘ Le raffinage a échoué ! Le minerai s'est brisé &7(" + roll + "/" + effectivePercent + "%)&c."));
             try {
                 player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_GLASS_BREAK, 1.0f, 0.8f);
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
@@ -187,7 +188,7 @@ public class RafineResultButton extends Button {
         }
 
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                "&a✔ Item raffiné récupéré ! &7(" + roll + "/" + percent + "%)"));
+                "&a✔ Item raffiné récupéré ! &7(" + roll + "/" + effectivePercent + "%)"));
         try {
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.4f);
         } catch (Throwable ignored) {
@@ -204,5 +205,17 @@ public class RafineResultButton extends Button {
             if (refining == null) refining = deposit;
         }
         return refining;
+    }
+
+    /**
+     * Render the chance of a deposit, showing the input slot tier bonus when
+     * applicable (e.g. {@code &e35% &7(&e30&7+&a5&7)}).
+     */
+    private static String formatChance(RafineManager.Deposit deposit) {
+        int bonus = deposit.getBonusPercent();
+        if (bonus <= 0) {
+            return "&e" + deposit.getPercent() + "%";
+        }
+        return "&e" + deposit.getEffectivePercent() + "% &7(&e" + deposit.getPercent() + "&7+&a" + bonus + "&7)";
     }
 }
