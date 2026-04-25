@@ -38,7 +38,7 @@ items:
         - ""
         - "#34ebb7+4% #3f3f3fde chance d'obtenir"
         - "#3f3f3fl'item de la rareté la plus haute"
-        - "#3f3f3fdurée max#3f3f3f: &f420#3f3f3fs"
+        - "#3f3f3fdurée max: &f420#3f3f3fs"
 
   input_2:
     type: ZJOBS_ITEM_FORGE_4
@@ -54,7 +54,7 @@ items:
         - ""
         - "#34ebb7+4% #3f3f3fde chance d'obtenir"
         - "#3f3f3fl'item de la rareté la plus haute"
-        - "#3f3f3fdurée max#3f3f3f: &f420#3f3f3fs"
+        - "#3f3f3fdurée max: &f420#3f3f3fs"
 
   input_3:
     type: ZJOBS_ITEM_FORGE_4
@@ -70,7 +70,7 @@ items:
         - ""
         - "#34ebb7+4% #3f3f3fde chance d'obtenir"
         - "#3f3f3fl'item de la rareté la plus haute"
-        - "#3f3f3fdurée max#3f3f3f: &f420#3f3f3fs"
+        - "#3f3f3fdurée max: &f420#3f3f3fs"
 
   # ───────────────────────────────────────────
   #  Slot timer (ZJOBS_ITEM_FORGE_TIMER)

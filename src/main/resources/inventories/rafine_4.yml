@@ -37,7 +37,7 @@ items:
         - "#3f3f3finventaire pour le placer ici."
         - ""
         - "#34ebb7+4% #3f3f3fde chance de réussite"
-        - "#3f3f3fdurée max#3f3f3f: &f420#3f3f3fs"
+        - "#3f3f3fdurée max: &f420#3f3f3fs"
 
   # ───────────────────────────────────────────
   #  Slot timer (ZJOBS_ITEM_RAFINE_TIMER)
