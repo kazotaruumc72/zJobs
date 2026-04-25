@@ -1,0 +1,45 @@
+# Classify forge items by rarity.
+#
+# Maps Nexo id suffixes to a rarity tier. When a player deposits an
+# ingredient in a ZJOBS_ITEM_FORGE slot, the manager strips the suffix to
+# recover the item's "family" and reads the matched tier to compute the
+# substitution chance and the one-rank downgrade applied on a failed forge.
+#
+# Notes:
+#   * Tiers are listed from lowest rarity to highest. The order is used by
+#     substitution comparisons (depositing >= the required tier counts as a
+#     perfect match).
+#   * Suffixes are matched longest-first, so compound forms such as
+#     "_peu_commune" take precedence over their shorter prefix "_commune".
+#   * `feminine: true` marks a feminine grammatical form. The flag is used
+#     to preserve the original gender when the manager rebuilds a
+#     downgraded id (e.g. "_peu_commune" -> "_commune").
+#   * Only tier names declared by the plugin are accepted: COMMUN,
+#     PEU_COMMUNE, RARE, EPIQUE, LEGENDAIRE. Unknown entries are ignored.
+#   * Deleting this file restores the defaults below on the next reload.
+
+tiers:
+  COMMUN:
+    suffixes:
+      - value: "_commun"
+        feminine: false
+      - value: "_commune"
+        feminine: true
+  PEU_COMMUNE:
+    suffixes:
+      - value: "_peu_commun"
+        feminine: false
+      - value: "_peu_commune"
+        feminine: true
+  RARE:
+    suffixes:
+      - value: "_rare"
+        feminine: false
+  EPIQUE:
+    suffixes:
+      - value: "_epique"
+        feminine: false
+  LEGENDAIRE:
+    suffixes:
+      - value: "_legendaire"
+        feminine: false

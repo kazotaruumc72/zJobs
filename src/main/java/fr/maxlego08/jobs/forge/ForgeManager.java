@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -72,22 +73,71 @@ public class ForgeManager {
     }
 
     /**
-     * Mapping of accepted Nexo id suffixes to a tier. The list is searched in
-     * <i>longest-suffix-first</i> order so that {@code _peu_commune} is
-     * matched before {@code _commune}.
+     * Mapping of accepted Nexo id suffixes to a tier. Loaded from
+     * {@code forge_tiers.yml} at {@link #load()}; populated with the
+     * historical defaults via {@link #applyDefaultTierTables()} so the
+     * feature still works when the file is missing or malformed.
+     * <p>
+     * The list is searched in <i>longest-suffix-first</i> order so that
+     * {@code _peu_commune} is matched before {@code _commune}.
      */
-    private static final List<String[]> TIER_SUFFIXES = List.of(
-            new String[]{"_legendaire", Tier.LEGENDAIRE.name()},
-            new String[]{"_epique", Tier.EPIQUE.name()},
-            new String[]{"_rare", Tier.RARE.name()},
-            new String[]{"_peu_commune", Tier.PEU_COMMUNE.name()},
-            new String[]{"_peu_commun", Tier.PEU_COMMUNE.name()},
-            new String[]{"_commune", Tier.COMMUN.name()},
-            new String[]{"_commun", Tier.COMMUN.name()}
-    );
+    private static final List<String[]> TIER_SUFFIXES = new ArrayList<>();
 
     /** Subset of {@link #TIER_SUFFIXES} that denote a feminine grammatical form. */
-    private static final Set<String> FEMININE_SUFFIXES = Set.of("_commune", "_peu_commune");
+    private static final Set<String> FEMININE_SUFFIXES = new HashSet<>();
+
+    /**
+     * Per-tier suffix used to rebuild a downgraded id. Index 0 is the
+     * masculine form, index 1 is the feminine form (falling back to index 0
+     * when no feminine suffix is declared).
+     */
+    private static final Map<Tier, String[]> DOWNGRADE_SUFFIXES = new EnumMap<>(Tier.class);
+
+    static {
+        applyDefaultTierTables();
+    }
+
+    /**
+     * Reset {@link #TIER_SUFFIXES}, {@link #FEMININE_SUFFIXES} and
+     * {@link #DOWNGRADE_SUFFIXES} to the historical defaults shipped with
+     * PR #17. Used both as the initial state (so the manager works without a
+     * config file) and as a clean slate before loading {@code forge_tiers.yml}.
+     */
+    private static void applyDefaultTierTables() {
+        TIER_SUFFIXES.clear();
+        FEMININE_SUFFIXES.clear();
+        DOWNGRADE_SUFFIXES.clear();
+
+        registerTierSuffix(Tier.LEGENDAIRE, "_legendaire", false);
+        registerTierSuffix(Tier.EPIQUE, "_epique", false);
+        registerTierSuffix(Tier.RARE, "_rare", false);
+        registerTierSuffix(Tier.PEU_COMMUNE, "_peu_commune", true);
+        registerTierSuffix(Tier.PEU_COMMUNE, "_peu_commun", false);
+        registerTierSuffix(Tier.COMMUN, "_commune", true);
+        registerTierSuffix(Tier.COMMUN, "_commun", false);
+        sortTierSuffixesLongestFirst();
+    }
+
+    /**
+     * Register a single suffix → tier mapping into the static tables. The
+     * first masculine suffix declared for a tier is treated as its
+     * canonical downgrade form; the first feminine suffix is the canonical
+     * feminine form.
+     */
+    private static void registerTierSuffix(Tier tier, String suffix, boolean feminine) {
+        if (suffix == null || suffix.isEmpty()) return;
+        TIER_SUFFIXES.add(new String[]{suffix, tier.name()});
+        if (feminine) FEMININE_SUFFIXES.add(suffix);
+
+        String[] downgrade = DOWNGRADE_SUFFIXES.computeIfAbsent(tier, t -> new String[]{null, null});
+        int index = feminine ? 1 : 0;
+        if (downgrade[index] == null) downgrade[index] = suffix;
+    }
+
+    /** Re-sort {@link #TIER_SUFFIXES} so the longest suffix is matched first. */
+    private static void sortTierSuffixesLongestFirst() {
+        TIER_SUFFIXES.sort((a, b) -> Integer.compare(b[0].length(), a[0].length()));
+    }
 
     /**
      * Result of parsing a normalized id into a tier component. Stores the
@@ -142,19 +192,15 @@ public class ForgeManager {
         TieredId t = parseTieredId(normalizedId);
         if (t == null || t.tier == Tier.COMMUN) return null;
         Tier lower = Tier.values()[t.tier.ordinal() - 1];
-        String suffix;
-        switch (lower) {
-            case COMMUN:
-                suffix = t.isFeminine() ? "_commune" : "_commun";
-                break;
-            case PEU_COMMUNE:
-                suffix = t.isFeminine() ? "_peu_commune" : "_peu_commun";
-                break;
-            case RARE: suffix = "_rare"; break;
-            case EPIQUE: suffix = "_epique"; break;
-            case LEGENDAIRE: suffix = "_legendaire"; break;
-            default: return null;
-        }
+
+        String[] forms = DOWNGRADE_SUFFIXES.get(lower);
+        if (forms == null) return null;
+
+        String masculine = forms[0];
+        String feminine = forms[1];
+        String suffix = t.isFeminine() && feminine != null ? feminine
+                : (masculine != null ? masculine : feminine);
+        if (suffix == null) return null;
         return t.getFamily() + suffix;
     }
 
@@ -351,6 +397,8 @@ public class ForgeManager {
         this.whitelist.clear();
         this.whitelistEnabled = false;
 
+        loadTiersFile();
+
         File file = new File(this.plugin.getDataFolder(), "items.yml");
         if (!file.exists()) {
             writeDefaultItemsFile(file);
@@ -440,6 +488,75 @@ public class ForgeManager {
         } catch (IOException e) {
             this.plugin.getLogger().severe("Could not save default forge_items_whitelist.yml: " + e.getMessage());
         }
+    }
+
+    /**
+     * Load {@code forge_tiers.yml}, which classifies forge ingredients into
+     * rarity tiers via id-suffix matching. When the file is missing the
+     * bundled default is copied from the plugin jar; when the file exists
+     * but is malformed, the historical defaults shipped with PR #17 are
+     * used so the feature keeps working.
+     */
+    private void loadTiersFile() {
+        File tiersFile = new File(this.plugin.getDataFolder(), "forge_tiers.yml");
+        if (!tiersFile.exists()) {
+            tiersFile.getParentFile().mkdirs();
+            try {
+                this.plugin.saveResource("forge_tiers.yml", false);
+            } catch (IllegalArgumentException e) {
+                this.plugin.getLogger().severe("Bundled forge_tiers.yml is missing from the jar: " + e.getMessage());
+                applyDefaultTierTables();
+                return;
+            }
+        }
+
+        YamlConfiguration configuration = YamlConfiguration.loadConfiguration(tiersFile);
+        ConfigurationSection tiersSection = configuration.getConfigurationSection("tiers");
+        if (tiersSection == null) {
+            this.plugin.getLogger().warning("forge_tiers.yml is missing the 'tiers' section; falling back to defaults.");
+            applyDefaultTierTables();
+            return;
+        }
+
+        TIER_SUFFIXES.clear();
+        FEMININE_SUFFIXES.clear();
+        DOWNGRADE_SUFFIXES.clear();
+
+        int loaded = 0;
+        for (String tierKey : tiersSection.getKeys(false)) {
+            Tier tier;
+            try {
+                tier = Tier.valueOf(tierKey.toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException e) {
+                this.plugin.getLogger().warning("Unknown forge tier '" + tierKey + "' in forge_tiers.yml; skipping.");
+                continue;
+            }
+
+            List<Map<?, ?>> entries = tiersSection.getMapList(tierKey + ".suffixes");
+            if (entries.isEmpty()) {
+                this.plugin.getLogger().warning("Forge tier '" + tierKey + "' has no suffixes in forge_tiers.yml; skipping.");
+                continue;
+            }
+            for (Map<?, ?> entry : entries) {
+                Object rawValue = entry.get("value");
+                if (rawValue == null) continue;
+                String suffix = String.valueOf(rawValue);
+                if (suffix.isEmpty()) continue;
+                Object rawFeminine = entry.get("feminine");
+                boolean feminine = rawFeminine instanceof Boolean ? (Boolean) rawFeminine
+                        : Boolean.parseBoolean(String.valueOf(rawFeminine));
+                registerTierSuffix(tier, suffix, feminine);
+                loaded++;
+            }
+        }
+
+        if (loaded == 0) {
+            this.plugin.getLogger().warning("forge_tiers.yml declared no usable suffix; falling back to defaults.");
+            applyDefaultTierTables();
+            return;
+        }
+
+        sortTierSuffixesLongestFirst();
     }
 
     private void writeDefaultItemsFile(File file) {
