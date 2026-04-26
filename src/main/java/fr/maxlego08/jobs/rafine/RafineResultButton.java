@@ -188,7 +188,7 @@ public class RafineResultButton extends Button {
         }
 
         player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                "&a✔ Item raffiné récupéré ! &7(" + roll + "/" + effectivePercent + "%)"));
+                "&a✔ &fItem raffiné récupéré : &e" + getDisplayName(output) + " &7(" + roll + "/" + effectivePercent + "%)"));
         try {
             player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.4f);
         } catch (Throwable ignored) {
@@ -205,5 +205,14 @@ public class RafineResultButton extends Button {
             if (refining == null) refining = deposit;
         }
         return refining;
+    }
+
+    private static String getDisplayName(ItemStack itemStack) {
+        if (itemStack == null) return "?";
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta != null && meta.hasDisplayName()) {
+            return meta.getDisplayName();
+        }
+        return itemStack.getType().name().toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
     }
 }

@@ -235,22 +235,30 @@ public class ForgeResultButton extends Button {
         // Fire the FORGE job action so the player earns xp/money declared in the job yaml.
         this.plugin.getJobManager().action(player, recipe.getOutputId(), JobActionType.FORGE);
 
+        String itemName = getDisplayName(output);
         if (downgraded) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&e⚠ Forgeage partiellement réussi ! &7(" + roll + "/" + chancePercent + "%)"));
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&7Item dégradé : &f" + outputId));
+                    "&e⚠ &fForgeage partiellement réussi : &e" + itemName + " &7(" + roll + "/" + chancePercent + "%)"));
             try {
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_VILLAGER_NO, 0.7f, 1.0f);
             } catch (Throwable ignored) {}
         } else {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    "&a✔ Item forgé récupéré ! &7(" + roll + "/" + chancePercent + "%)"));
+                    "&a✔ &fItem forgé récupéré : &e" + itemName + " &7(" + roll + "/" + chancePercent + "%)"));
             try {
                 player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 0.7f, 1.4f);
             } catch (Throwable ignored) {}
         }
 
         ForgeInputButton.refreshForgeButtons(inventory);
+    }
+
+    private static String getDisplayName(ItemStack itemStack) {
+        if (itemStack == null) return "?";
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta != null && meta.hasDisplayName()) {
+            return meta.getDisplayName();
+        }
+        return itemStack.getType().name().toLowerCase(java.util.Locale.ROOT).replace('_', ' ');
     }
 }
