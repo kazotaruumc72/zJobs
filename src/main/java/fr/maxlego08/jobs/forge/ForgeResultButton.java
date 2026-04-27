@@ -233,7 +233,11 @@ public class ForgeResultButton extends Button {
         leftover.values().forEach(i -> player.getWorld().dropItemNaturally(player.getLocation(), i));
 
         // Fire the FORGE job action so the player earns xp/money declared in the job yaml.
-        this.plugin.getJobManager().action(player, recipe.getOutputId(), JobActionType.FORGE);
+        // The concrete action type is derived from the highest-numbered forge input
+        // button present in the open menu so jobs can grant different rewards per tier
+        // (FORGE for the base ZJOBS_ITEM_FORGE; FORGE_1..FORGE_4 for ZJOBS_ITEM_FORGE_1..4).
+        JobActionType forgeType = ForgeManager.aggregateInputForgeType(inventory);
+        this.plugin.getJobManager().action(player, recipe.getOutputId(), forgeType);
 
         String itemName = getDisplayName(output);
         if (downgraded) {
