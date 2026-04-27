@@ -31,6 +31,7 @@ import org.bukkit.potion.PotionType;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -87,7 +88,10 @@ public class JobLoader implements Loader<Job> {
     private List<JobAction<?>> loadActions(YamlConfiguration configuration) {
         List<JobAction<?>> jobActions = new ArrayList<>();
 
-        configuration.getMapList("actions").forEach(map -> {
+        List<Map<?, ?>> actionMaps = configuration.getMapList("actions");
+        for (int actionIndex = 0; actionIndex < actionMaps.size(); actionIndex++) {
+            Map<?, ?> map = actionMaps.get(actionIndex);
+            int actionNumber = actionIndex + 1;
             TypedMapAccessor accessor = new TypedMapAccessor((Map<String, Object>) map);
             double experience = accessor.getDouble("experience", 0);
             double money = accessor.getDouble("money", 0);
@@ -110,7 +114,20 @@ public class JobLoader implements Loader<Job> {
 
             try {
 
-                JobActionType jobActionType = JobActionType.valueOf(accessor.getString("type").toUpperCase());
+                String typeName = accessor.getString("type");
+                if (typeName == null) {
+                    plugin.getLogger().severe("Missing 'type' for action #" + actionNumber + " in file " + file.getAbsolutePath());
+                    continue;
+                }
+                JobActionType jobActionType;
+                try {
+                    jobActionType = JobActionType.valueOf(typeName.toUpperCase());
+                } catch (IllegalArgumentException unknownType) {
+                    plugin.getLogger().severe("Unknown action type '" + typeName + "' for action #" + actionNumber
+                            + " in file " + file.getAbsolutePath()
+                            + "; skipping this action. Valid types: " + Arrays.toString(JobActionType.values()));
+                    continue;
+                }
                 String displayMaterialName = accessor.getString("display-material", null);
                 String displayMaterial = displayMaterialName == null ? null :
                         (displayMaterialName.toLowerCase().startsWith("nexo:") ? displayMaterialName : displayMaterialName.toUpperCase());
@@ -181,7 +198,7 @@ public class JobLoader implements Loader<Job> {
             } catch (Exception exception) {
                 exception.printStackTrace();
             }
-        });
+        }
         return jobActions;
     }
 
