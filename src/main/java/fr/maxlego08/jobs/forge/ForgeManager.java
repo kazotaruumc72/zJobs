@@ -928,6 +928,52 @@ public class ForgeManager {
     }
 
     /**
+     * Resolve the {@link fr.maxlego08.jobs.api.enums.JobActionType} that should
+     * be fired when a forge completes inside the given inventory.
+     * <p>
+     * The forge tier is inferred from the highest-numbered
+     * {@link ForgeInputButton} subclass present in the engine
+     * ({@link ForgeInputButton1}..{@link ForgeInputButton4} map to
+     * {@link fr.maxlego08.jobs.api.enums.JobActionType#FORGE_1}..{@code FORGE_4};
+     * the base {@link ForgeInputButton} maps to
+     * {@link fr.maxlego08.jobs.api.enums.JobActionType#FORGE}). When the engine
+     * is {@code null} or contains no forge input button, {@code FORGE} is
+     * returned so legacy menus keep firing the base action type.
+     *
+     * @param engine the open inventory engine, may be {@code null}
+     * @return the forge action type matching the inventory's tier
+     */
+    public static fr.maxlego08.jobs.api.enums.JobActionType aggregateInputForgeType(fr.maxlego08.menu.api.engine.InventoryEngine engine) {
+        fr.maxlego08.jobs.api.enums.JobActionType type = fr.maxlego08.jobs.api.enums.JobActionType.FORGE;
+        int bestTier = 0;
+        if (engine != null) {
+            for (fr.maxlego08.menu.api.button.Button btn : engine.getButtons()) {
+                int tier;
+                // Order matters: ForgeInputButton1..4 all extend ForgeInputButton,
+                // so we must check the most specific subclass first to recover the
+                // tier number — otherwise every tier would match the base class.
+                if (btn instanceof ForgeInputButton4) tier = 4;
+                else if (btn instanceof ForgeInputButton3) tier = 3;
+                else if (btn instanceof ForgeInputButton2) tier = 2;
+                else if (btn instanceof ForgeInputButton1) tier = 1;
+                else if (btn instanceof ForgeInputButton) tier = 0;
+                else continue;
+                if (tier > bestTier) {
+                    bestTier = tier;
+                    type = switch (tier) {
+                        case 1 -> fr.maxlego08.jobs.api.enums.JobActionType.FORGE_1;
+                        case 2 -> fr.maxlego08.jobs.api.enums.JobActionType.FORGE_2;
+                        case 3 -> fr.maxlego08.jobs.api.enums.JobActionType.FORGE_3;
+                        case 4 -> fr.maxlego08.jobs.api.enums.JobActionType.FORGE_4;
+                        default -> fr.maxlego08.jobs.api.enums.JobActionType.FORGE;
+                    };
+                }
+            }
+        }
+        return type;
+    }
+
+    /**
      * Human-readable status string used by the {@code %zjobs_forge_status%} placeholder.
      */
     public String getStatus(Player player) {

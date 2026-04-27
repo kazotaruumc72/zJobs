@@ -176,9 +176,13 @@ public class JobLoader implements Loader<Job> {
 
                     jobAction = loadRafineAction(accessor, experience, money, displayMaterial);
 
-                } else if (jobActionType == JobActionType.FORGE) {
+                } else if (jobActionType == JobActionType.FORGE
+                        || jobActionType == JobActionType.FORGE_1
+                        || jobActionType == JobActionType.FORGE_2
+                        || jobActionType == JobActionType.FORGE_3
+                        || jobActionType == JobActionType.FORGE_4) {
 
-                    jobAction = loadForgeAction(accessor, experience, money, displayMaterial);
+                    jobAction = loadForgeAction(accessor, experience, money, displayMaterial, jobActionType);
 
                 } else if (jobActionType == JobActionType.CUSTOM) {
 
@@ -334,7 +338,9 @@ public class JobLoader implements Loader<Job> {
     }
 
     /**
-     * Load a {@link JobAction} of type {@link JobActionType#FORGE} from the given configuration accessor.
+     * Load a {@link JobAction} of type {@link JobActionType#FORGE} (or one of
+     * its tier variants {@link JobActionType#FORGE_1}..{@link JobActionType#FORGE_4})
+     * from the given configuration accessor.
      * <p>
      * Expected keys :
      * <ul>
@@ -344,14 +350,20 @@ public class JobLoader implements Loader<Job> {
      * </ul>
      * The recipe (ingredients and fail chance) is declared separately in {@code items.yml} and
      * resolved at runtime by {@link fr.maxlego08.jobs.forge.ForgeManager}.
+     * <p>
+     * The {@code type} parameter is the concrete action type declared in the
+     * job yaml so jobs can grant different rewards per forge tier (the inventory
+     * tier is detected at runtime from the {@code ZJOBS_ITEM_FORGE_N} input
+     * buttons present in the open menu).
      *
      * @param accessor        the configuration accessor
      * @param experience      experience reward on successful forging
      * @param money           money reward on successful forging
      * @param displayMaterial the display material used for the GUI
+     * @param type            the concrete forge action type (FORGE, FORGE_1..FORGE_4)
      * @return the new FORGE {@link JobAction}, or {@code null} if required fields are missing
      */
-    private JobAction<?> loadForgeAction(TypedMapAccessor accessor, double experience, double money, String displayMaterial) {
+    private JobAction<?> loadForgeAction(TypedMapAccessor accessor, double experience, double money, String displayMaterial, JobActionType type) {
 
         String materialName = accessor.getString("material");
         if (materialName == null) {
@@ -365,6 +377,6 @@ public class JobLoader implements Loader<Job> {
 
         String finalDisplayMaterial = displayMaterial == null ? targetId : displayMaterial;
 
-        return new ForgeAction(targetId, experience, money, finalDisplayMaterial);
+        return new ForgeAction(targetId, experience, money, finalDisplayMaterial, type);
     }
 }
