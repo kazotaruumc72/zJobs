@@ -34,12 +34,14 @@ public enum JobActionType {
     FORGE_1,
     FORGE_2,
     FORGE_3,
-    FORGE_4
+    FORGE_4,
+    ZSHOP_BUY,
+    ZSHOP_SELL
     ;
 
     public ActionInfo<?> toAction(Object target) {
         return switch (this) {
-            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS, ANVIL_REPAIR, SMITHING -> {
+            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS, ANVIL_REPAIR, SMITHING, ZSHOP_BUY, ZSHOP_SELL -> {
                 if (target instanceof String s) yield new CustomAction(this, s);
                 yield new MaterialAction(this, (Material) target);
             }
@@ -58,7 +60,7 @@ public enum JobActionType {
 
     public boolean isMaterial() {
         return switch (this) {
-            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS, ANVIL_REPAIR, SMITHING -> true;
+            case BLOCK_BREAK, BLOCK_PLACE, FARMING, FISHING, SMELT, STRIPLOGS, ANVIL_REPAIR, SMITHING, ZSHOP_BUY, ZSHOP_SELL -> true;
             case COMMAND, KILL_ENTITY, TAME, ENCHANT, BREW, CUSTOM, RAFINE, FORGE, FORGE_1, FORGE_2, FORGE_3, FORGE_4 -> false;
         };
     }

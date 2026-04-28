@@ -145,6 +145,11 @@ public class JobsPlugin extends ZPlugin {
             this.addListener(new MythicMobsListener(this));
         }
 
+        if (isEnable(Plugins.ZSHOP)) {
+            getLogger().info("Using zShop, registering ZSHOP_BUY / ZSHOP_SELL job actions");
+            this.addListener(new fr.maxlego08.jobs.hooks.ZShopListener(this));
+        }
+
         this.loadInventories();
         this.loadCurrencyProvider();
 
