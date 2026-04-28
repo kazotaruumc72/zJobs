@@ -63,7 +63,7 @@ public class ZShopPlaceholderExpansion extends PlaceholderExpansion {
 
         return switch (params.toLowerCase()) {
             case "amount", "amount_sell", "amount_buy" -> String.valueOf(context.getAmount());
-            case "material_price", "unit_price" -> formatDouble(context.getUnitPrice());
+            case "material_price" -> formatDouble(context.getUnitPrice());
             case "total_price", "price" -> formatDouble(context.getTotalPrice());
             default -> null;
         };

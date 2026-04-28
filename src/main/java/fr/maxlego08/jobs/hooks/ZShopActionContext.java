@@ -37,7 +37,7 @@ public final class ZShopActionContext {
      * @param totalPrice total price paid / received for the transaction
      */
     public static void set(int amount, double totalPrice) {
-        double unitPrice = amount > 0 ? totalPrice / amount : totalPrice;
+        double unitPrice = amount > 0 ? totalPrice / amount : 0.0;
         CONTEXT.set(new ZShopActionContext(amount, unitPrice, totalPrice));
     }
 
