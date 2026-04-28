@@ -529,6 +529,30 @@ All placeholders use the `%zjobs_<name>%` format.
   money-formula: "%zjobs_rafine_percent% * 0.1"
 ```
 
+### zShop Placeholders
+
+When zShop **and** PlaceholderAPI are both installed, zJobs registers a
+`zshop` PlaceholderAPI expansion. These placeholders are resolved live during
+the dispatch of a `ZSHOP_BUY` / `ZSHOP_SELL` job action, and reflect the
+exact amount / price of the transaction that just took place. They return
+`0` outside of a zShop action context.
+
+| Placeholder | Description |
+|---|---|
+| `%zshop_amount%` | Number of items in the current zShop transaction |
+| `%zshop_amount_sell%` | Alias of `amount`, intended for `ZSHOP_SELL` actions |
+| `%zshop_amount_buy%` | Alias of `amount`, intended for `ZSHOP_BUY` actions |
+| `%zshop_material_price%` | Per-unit price (`total_price / amount`) for the transaction |
+| `%zshop_total_price%` / `%zshop_price%` | Total price of the transaction |
+
+**Example: reward XP and money proportional to a sell transaction:**
+```yaml
+- type: ZSHOP_SELL
+  material: STONE
+  experience-formula: "%zshop_amount_sell% * %zshop_material_price%"
+  money-formula: "%zshop_amount_sell% * %zshop_material_price%"
+```
+
 ---
 
 ## Storage
