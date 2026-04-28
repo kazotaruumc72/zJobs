@@ -5,7 +5,9 @@ import fr.maxlego08.jobs.api.JobManager;
 import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.menu.api.utils.Placeholders;
 import fr.maxlego08.shop.api.buttons.ItemButton;
+import fr.maxlego08.shop.api.event.ShopAction;
 import fr.maxlego08.shop.api.event.events.ZShopBuyEvent;
+import fr.maxlego08.shop.api.event.events.ZShopSellAllEvent;
 import fr.maxlego08.shop.api.event.events.ZShopSellEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -49,6 +51,20 @@ public class ZShopListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onZShopSell(ZShopSellEvent event) {
         dispatch(event.getPlayer(), event.getItemButton(), JobActionType.ZSHOP_SELL);
+    }
+
+    /**
+     * Forwards each item sold through zShop's "sell all" feature to the
+     * {@link JobManager}. zShop fires a single {@link ZShopSellAllEvent}
+     * carrying every {@link ShopAction} performed during the bulk sell, so we
+     * iterate and dispatch a {@link JobActionType#ZSHOP_SELL} action per item.
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onZShopSellAll(ZShopSellAllEvent event) {
+        Player player = event.getPlayer();
+        for (ShopAction shopAction : event.getShopActions()) {
+            dispatch(player, shopAction.getItemButton(), JobActionType.ZSHOP_SELL);
+        }
     }
 
     /**
