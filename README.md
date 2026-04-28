@@ -35,7 +35,7 @@
 | Vault | ⬜ Optional | Used when `default-economy: VAULT` |
 | BlockTracker | ⬜ Optional | Prevents farming naturally-generated blocks |
 | [Nexo](https://nexomc.com) | ⬜ Optional | Custom items support for Forge/Rafine |
-| [zShop](https://github.com/Maxlego08/zShop) | ⬜ Optional | Enables the `ZSHOP_BUY` / `ZSHOP_SELL` zMenu button types |
+| [zShop](https://github.com/Maxlego08/zShop) | ⬜ Optional | Enables the `ZSHOP_BUY` / `ZSHOP_SELL` job action types (rewards XP / money on shop transactions) |
 
 ---
 
