@@ -22,8 +22,8 @@ import org.bukkit.inventory.ItemStack;
  * actions:
  *   - type: ZSHOP_BUY
  *     material: STICK            # or "nexo:item_id"
- *     experience: "%zshop_amount_buy% * %zshop_material_price%"
- *     money: "%zshop_amount_buy% * %zshop_material_price%"
+ *     experience-formula: "%zshop_amount_buy% * %zshop_material_price%"
+ *     money-formula: "%zshop_amount_buy% * %zshop_material_price%"
  * </pre>
  *
  * The target dispatched to {@link JobManager#action} is either the Bukkit
@@ -31,6 +31,12 @@ import org.bukkit.inventory.ItemStack;
  * Nexo custom item, its {@code "nexo:<id>"} string id. Existing
  * {@link fr.maxlego08.jobs.actions.MaterialAction} / {@link fr.maxlego08.jobs.actions.NexoAction}
  * matching logic in the loader then handles both forms transparently.
+ *
+ * <p>While dispatching, this listener binds a {@link ZShopActionContext} to
+ * the current thread so the {@code %zshop_amount_*%}, {@code %zshop_material_price%}
+ * and {@code %zshop_total_price%} placeholders (registered by
+ * {@link ZShopPlaceholderExpansion}) resolve to the live amount / price of
+ * the current transaction.</p>
  */
 public class ZShopListener implements Listener {
 
@@ -44,12 +50,14 @@ public class ZShopListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onZShopBuy(ZShopBuyEvent event) {
-        dispatch(event.getPlayer(), event.getItemButton(), JobActionType.ZSHOP_BUY);
+        dispatch(event.getPlayer(), event.getItemButton(), JobActionType.ZSHOP_BUY,
+                event.getAmount(), event.getPrice());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onZShopSell(ZShopSellEvent event) {
-        dispatch(event.getPlayer(), event.getItemButton(), JobActionType.ZSHOP_SELL);
+        dispatch(event.getPlayer(), event.getItemButton(), JobActionType.ZSHOP_SELL,
+                event.getAmount(), event.getPrice());
     }
 
     /**
@@ -62,7 +70,8 @@ public class ZShopListener implements Listener {
     public void onZShopSellAll(ZShopSellAllEvent event) {
         Player player = event.getPlayer();
         for (ShopAction shopAction : event.getShopActions()) {
-            dispatch(player, shopAction.getItemButton(), JobActionType.ZSHOP_SELL);
+            dispatch(player, shopAction.getItemButton(), JobActionType.ZSHOP_SELL,
+                    shopAction.getTotalAmount(), shopAction.getPrice());
         }
     }
 
@@ -71,8 +80,15 @@ public class ZShopListener implements Listener {
      * and forward the action to the {@link JobManager}. Resolution prefers the
      * Nexo item id when available so jobs can match Nexo items declared with
      * {@code material: "nexo:<id>"}; otherwise the Bukkit material name is used.
+     *
+     * <p>The {@code amount} and {@code totalPrice} of the transaction are bound
+     * to a thread-local {@link ZShopActionContext} for the duration of the
+     * dispatch so that {@code %zshop_amount_sell%}, {@code %zshop_amount_buy%},
+     * {@code %zshop_material_price%} and {@code %zshop_total_price%} resolve to
+     * the exact values of the transaction during formula evaluation.</p>
      */
-    private void dispatch(Player player, ItemButton itemButton, JobActionType actionType) {
+    private void dispatch(Player player, ItemButton itemButton, JobActionType actionType,
+                          int amount, double totalPrice) {
         if (itemButton == null) return;
 
         ItemStack itemStack;
@@ -85,14 +101,19 @@ public class ZShopListener implements Listener {
         }
         if (itemStack == null) return;
 
-        if (this.plugin.getNexoHook() != null) {
-            String nexoId = this.plugin.getNexoHook().getNexoItemId(itemStack);
-            if (nexoId != null) {
-                this.jobManager.action(player, "nexo:" + nexoId, actionType);
-                return;
+        ZShopActionContext.set(amount, totalPrice);
+        try {
+            if (this.plugin.getNexoHook() != null) {
+                String nexoId = this.plugin.getNexoHook().getNexoItemId(itemStack);
+                if (nexoId != null) {
+                    this.jobManager.action(player, "nexo:" + nexoId, actionType);
+                    return;
+                }
             }
-        }
 
-        this.jobManager.action(player, itemStack.getType(), actionType);
+            this.jobManager.action(player, itemStack.getType(), actionType);
+        } finally {
+            ZShopActionContext.clear();
+        }
     }
 }

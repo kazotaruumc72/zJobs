@@ -148,6 +148,19 @@ public class JobsPlugin extends ZPlugin {
         if (isEnable(Plugins.ZSHOP)) {
             getLogger().info("Using zShop, registering ZSHOP_BUY / ZSHOP_SELL job actions");
             this.addListener(new fr.maxlego08.jobs.hooks.ZShopListener(this));
+            if (isEnable(Plugins.PLACEHOLDER)) {
+                try {
+                    fr.maxlego08.jobs.hooks.ZShopPlaceholderExpansion expansion =
+                            new fr.maxlego08.jobs.hooks.ZShopPlaceholderExpansion(this);
+                    if (expansion.register()) {
+                        getLogger().info("Registered PlaceholderAPI expansion 'zshop' (amount_sell, amount_buy, material_price, total_price)");
+                    } else {
+                        getLogger().warning("Could not register PlaceholderAPI expansion 'zshop' (already registered?). %zshop_amount_sell% / %zshop_material_price% may not work in job formulas.");
+                    }
+                } catch (Throwable throwable) {
+                    getLogger().warning("Failed to register PlaceholderAPI expansion 'zshop': " + throwable.getMessage());
+                }
+            }
         }
 
         this.loadInventories();
