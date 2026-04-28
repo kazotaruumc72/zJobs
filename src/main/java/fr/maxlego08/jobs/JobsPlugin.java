@@ -46,6 +46,8 @@ import fr.maxlego08.jobs.zmenu.loader.HasPointLoader;
 import fr.maxlego08.jobs.zmenu.loader.HasPrestigeLoader;
 import fr.maxlego08.jobs.zmenu.loader.JobInfoLoader;
 import fr.maxlego08.jobs.zmenu.loader.RemovePointLoader;
+import fr.maxlego08.jobs.zmenu.loader.ZShopBuyLoader;
+import fr.maxlego08.jobs.zmenu.loader.ZShopSellLoader;
 import fr.maxlego08.menu.api.ButtonManager;
 import fr.maxlego08.menu.api.InventoryManager;
 import fr.maxlego08.menu.api.exceptions.InventoryException;
@@ -257,6 +259,14 @@ public class JobsPlugin extends ZPlugin {
         this.buttonManager.register(new NoneLoader(this, ForgeResultButton.class, "ZJOBS_ITEM_FORGE_RESULT"));
         this.buttonManager.register(new NoneLoader(this, ForgeTimerButton.class, "ZJOBS_ITEM_FORGE_TIMER"));
         this.buttonManager.register(new NoneLoader(this, ForgeValidateButton.class, "ZJOBS_ITEM_FORGE_VALIDATE"));
+
+        // zShop integration: only register these button types when zShop is installed
+        // (zShop is a soft dependency, see plugin.yml).
+        if (isEnable(Plugins.ZSHOP)) {
+            getLogger().info("Using zShop, registering ZSHOP_BUY / ZSHOP_SELL button types");
+            this.buttonManager.register(new ZShopBuyLoader(this));
+            this.buttonManager.register(new ZShopSellLoader(this));
+        }
     }
 
     public void loadInventories() {

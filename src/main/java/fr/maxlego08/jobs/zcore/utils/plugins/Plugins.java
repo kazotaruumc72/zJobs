@@ -12,6 +12,7 @@ public enum Plugins {
 	BLOCKTRACKER("BlockTracker"),
 	NEXO("Nexo"),
 	MYTHICMOBS("MythicMobs"),
+	ZSHOP("zShop"),
 
 	;
 

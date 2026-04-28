@@ -58,6 +58,7 @@ allprojects {
         compileOnly("io.lumine:Mythic-Dist:5.7.2")
 
         compileOnly("fr.maxlego08.menu:zmenu-api:1.1.0.4")
+        compileOnly("fr.maxlego08.shop:zshop-api:3.3.0")
         implementation("fr.maxlego08.sarah:sarah:1.20")
     }
 }
