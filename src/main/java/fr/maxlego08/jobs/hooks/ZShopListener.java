@@ -71,7 +71,7 @@ public class ZShopListener implements Listener {
         Player player = event.getPlayer();
         for (ShopAction shopAction : event.getShopActions()) {
             dispatch(player, shopAction.getItemButton(), JobActionType.ZSHOP_SELL,
-                    shopAction.getTotalAmount(), shopAction.getPrice());
+                    shopAction.getItemStack().getAmount(), shopAction.getPrice());
         }
     }
 
