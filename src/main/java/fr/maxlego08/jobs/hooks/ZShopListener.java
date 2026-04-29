@@ -61,17 +61,36 @@ public class ZShopListener implements Listener {
     }
 
     /**
-     * Forwards each item sold through zShop's "sell all" feature to the
-     * {@link JobManager}. zShop fires a single {@link ZShopSellAllEvent}
-     * carrying every {@link ShopAction} performed during the bulk sell, so we
-     * iterate and dispatch a {@link JobActionType#ZSHOP_SELL} action per item.
+     * Forwards each item sold through zShop's "sell all" feature (triggered
+     * by a middle-click in the zShop menu) to the {@link JobManager}. zShop
+     * fires a single {@link ZShopSellAllEvent} carrying every
+     * {@link ShopAction} performed during the bulk sell. Each {@code ShopAction}
+     * represents a stack of items of the same type, with its
+     * {@link ItemStack#getAmount() amount} being the number of items sold from
+     * that stack.
+     *
+     * <p>To make sure <b>every individual item</b> sold by the player is
+     * counted as a {@link JobActionType#ZSHOP_SELL} action (and not just one
+     * action per stack), this method dispatches one action per item: for a
+     * {@code ShopAction} of amount {@code N} with total price {@code P}, we
+     * dispatch the action {@code N} times with {@code amount = 1} and
+     * {@code unitPrice = P / N}. This keeps formula evaluation consistent
+     * regardless of how many items were stacked together when sold.</p>
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onZShopSellAll(ZShopSellAllEvent event) {
         Player player = event.getPlayer();
         for (ShopAction shopAction : event.getShopActions()) {
-            dispatch(player, shopAction.getItemButton(), JobActionType.ZSHOP_SELL,
-                    shopAction.getItemStack().getAmount(), shopAction.getPrice());
+            int totalAmount = shopAction.getItemStack().getAmount();
+            if (totalAmount <= 0) continue;
+
+            double totalPrice = shopAction.getPrice();
+            double unitPrice = totalPrice / totalAmount;
+
+            for (int i = 0; i < totalAmount; i++) {
+                dispatch(player, shopAction.getItemButton(), JobActionType.ZSHOP_SELL,
+                        1, unitPrice);
+            }
         }
     }
 
