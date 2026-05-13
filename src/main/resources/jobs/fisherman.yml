@@ -36,6 +36,11 @@ actions:
     experience: 5
     money: 2
 
+  - type: FISHING
+    material: 'nexo:pearl'
+    experience: 5
+    money: 2
+
 rewards:
 
   - level: -1

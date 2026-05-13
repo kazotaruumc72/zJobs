@@ -129,6 +129,16 @@ public class JobListener implements Listener {
         if (event.getState() == PlayerFishEvent.State.CAUGHT_FISH && event.getCaught() instanceof Item item) {
 
             ItemStack itemStack = item.getItemStack();
+
+            NexoHook nexoHook = this.plugin.getNexoHook();
+            if (nexoHook != null) {
+                String nexoId = nexoHook.getNexoItemId(itemStack);
+                if (nexoId != null) {
+                    this.jobManager.action(player, "nexo:" + nexoId, JobActionType.FISHING);
+                    return;
+                }
+            }
+
             this.jobManager.action(player, itemStack.getType(), JobActionType.FISHING);
         }
     }

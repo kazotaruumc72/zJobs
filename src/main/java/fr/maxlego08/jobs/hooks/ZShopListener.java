@@ -50,13 +50,13 @@ public class ZShopListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onZShopBuy(ZShopBuyEvent event) {
-        dispatch(event.getPlayer(), event.getItemButton(), JobActionType.ZSHOP_BUY,
+        dispatchPerItem(event.getPlayer(), event.getItemButton(), JobActionType.ZSHOP_BUY,
                 event.getAmount(), event.getPrice());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onZShopSell(ZShopSellEvent event) {
-        dispatch(event.getPlayer(), event.getItemButton(), JobActionType.ZSHOP_SELL,
+        dispatchPerItem(event.getPlayer(), event.getItemButton(), JobActionType.ZSHOP_SELL,
                 event.getAmount(), event.getPrice());
     }
 
@@ -67,30 +67,40 @@ public class ZShopListener implements Listener {
      * {@link ShopAction} performed during the bulk sell. Each {@code ShopAction}
      * represents a stack of items of the same type, with its
      * {@link ItemStack#getAmount() amount} being the number of items sold from
-     * that stack.
-     *
-     * <p>To make sure <b>every individual item</b> sold by the player is
-     * counted as a {@link JobActionType#ZSHOP_SELL} action (and not just one
-     * action per stack), this method dispatches one action per item: for a
-     * {@code ShopAction} of amount {@code N} with total price {@code P}, we
-     * dispatch the action {@code N} times with {@code amount = 1} and
-     * {@code unitPrice = P / N}. This keeps formula evaluation consistent
-     * regardless of how many items were stacked together when sold.</p>
+     * that stack. Each individual item is dispatched as its own action via
+     * {@link #dispatchPerItem(Player, ItemButton, JobActionType, int, double)}.
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onZShopSellAll(ZShopSellAllEvent event) {
         Player player = event.getPlayer();
         for (ShopAction shopAction : event.getShopActions()) {
             int totalAmount = shopAction.getItemStack().getAmount();
-            if (totalAmount <= 0) continue;
+            dispatchPerItem(player, shopAction.getItemButton(), JobActionType.ZSHOP_SELL,
+                    totalAmount, shopAction.getPrice());
+        }
+    }
 
-            double totalPrice = shopAction.getPrice();
-            double unitPrice = totalPrice / totalAmount;
+    /**
+     * Dispatches one {@link JobActionType} action <b>per individual item</b>
+     * involved in the given zShop transaction.
+     *
+     * <p>zShop buy / sell events carry a stack-level amount {@code N} and a
+     * total price {@code P} (the price for the whole stack). To make sure
+     * every individual item bought or sold by the player is counted as its
+     * own action — and not a single action for the whole stack — we forward
+     * the action {@code N} times with {@code amount = 1} and
+     * {@code unitPrice = P / N}. This keeps formula evaluation
+     * (e.g. {@code %zshop_material_price% * %zshop_amount_buy%}) consistent
+     * regardless of how many items were grouped in the transaction (single
+     * click, shift-click, middle-click sell-all, etc.).</p>
+     */
+    private void dispatchPerItem(Player player, ItemButton itemButton, JobActionType actionType,
+                                 int totalAmount, double totalPrice) {
+        if (itemButton == null || totalAmount <= 0) return;
 
-            for (int i = 0; i < totalAmount; i++) {
-                dispatch(player, shopAction.getItemButton(), JobActionType.ZSHOP_SELL,
-                        1, unitPrice);
-            }
+        double unitPrice = totalPrice / totalAmount;
+        for (int i = 0; i < totalAmount; i++) {
+            dispatch(player, itemButton, actionType, 1, unitPrice);
         }
     }
 
