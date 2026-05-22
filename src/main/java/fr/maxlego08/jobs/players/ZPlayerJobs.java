@@ -149,6 +149,15 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
                 this.plugin.getLogger().info("[ACTION DEBUG] Matched action in job " + job.getFileName() + " for type=" + type + ", target=" + target);
             }
 
+            // Skip the action entirely if its `requirements:` block (zMenu permissibles)
+            // does not pass for this player. No exp / no money are granted.
+            if (action instanceof fr.maxlego08.jobs.actions.ZJobAction<?> zAction && !zAction.meetsRequirements(player)) {
+                if (debug) {
+                    this.plugin.getLogger().info("[ACTION DEBUG] Requirements not met for player " + player.getName() + " on action " + type + " in job " + job.getFileName());
+                }
+                continue;
+            }
+
             elapsedTime.endDisplay();
 
             var actionInfo = type.toAction(target);

@@ -3,9 +3,14 @@ package fr.maxlego08.jobs.actions;
 import fr.maxlego08.jobs.api.JobAction;
 import fr.maxlego08.jobs.api.utils.ValueInformation;
 import fr.maxlego08.jobs.placeholder.Placeholder;
+import fr.maxlego08.menu.api.requirement.Permissible;
+import fr.maxlego08.menu.api.utils.Placeholders;
 import fr.maxlego08.menu.hooks.exp4j.ExpressionBuilder;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.Collections;
+import java.util.List;
 
 public abstract class ZJobAction<T> implements JobAction<T> {
 
@@ -16,6 +21,7 @@ public abstract class ZJobAction<T> implements JobAction<T> {
     private String displayName;
     private String experienceFormula;
     private String moneyFormula;
+    private List<Permissible> requirements = Collections.emptyList();
 
     public ZJobAction(T target, double experience, double money, String displayMaterial) {
         this.target = target;
@@ -82,6 +88,33 @@ public abstract class ZJobAction<T> implements JobAction<T> {
 
     public void setMoneyFormula(String moneyFormula) {
         this.moneyFormula = moneyFormula;
+    }
+
+    public void setRequirements(List<Permissible> requirements) {
+        this.requirements = requirements == null ? Collections.emptyList() : requirements;
+    }
+
+    public List<Permissible> getRequirements() {
+        return this.requirements;
+    }
+
+    /**
+     * Check that every loaded requirement (zMenu permissible) passes for the given player.
+     * Used to gate per-action experience/money on placeholder conditions declared in the job yaml.
+     */
+    public boolean meetsRequirements(Player player) {
+        if (this.requirements.isEmpty() || player == null) return true;
+        Placeholders placeholders = new Placeholders();
+        for (Permissible permissible : this.requirements) {
+            try {
+                if (!permissible.hasPermission(player, null, null, placeholders)) {
+                    return false;
+                }
+            } catch (Throwable throwable) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override

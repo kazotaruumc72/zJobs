@@ -22,6 +22,7 @@ import fr.maxlego08.jobs.zcore.utils.loader.Loader;
 import fr.maxlego08.menu.api.enchantment.Enchantments;
 import fr.maxlego08.menu.api.enchantment.MenuEnchantment;
 import fr.maxlego08.menu.api.requirement.Action;
+import fr.maxlego08.menu.api.requirement.Permissible;
 import fr.maxlego08.menu.api.utils.TypedMapAccessor;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -200,6 +201,21 @@ public class JobLoader implements Loader<Job> {
                     ((ZJobAction<?>) jobAction).setDisplayName(displayName);
                     if (experienceFormula != null) ((ZJobAction<?>) jobAction).setExperienceFormula(experienceFormula);
                     if (moneyFormula != null) ((ZJobAction<?>) jobAction).setMoneyFormula(moneyFormula);
+
+                    // Load per-action requirements using the zMenu permissible system
+                    // (e.g. `type: placeholder`, `action: SUPERIOR_OR_EQUAL`, `value: 15`).
+                    Object rawRequirements = map.get("requirements");
+                    if (rawRequirements instanceof List<?> list && !list.isEmpty()) {
+                        List<Map<String, Object>> requirementMaps = new ArrayList<>();
+                        for (Object entry : list) {
+                            if (entry instanceof Map<?, ?> m) {
+                                requirementMaps.add((Map<String, Object>) m);
+                            }
+                        }
+                        List<Permissible> permissibles = plugin.getButtonManager().loadPermissible(requirementMaps, "actions[" + actionIndex + "].requirements", file);
+                        ((ZJobAction<?>) jobAction).setRequirements(permissibles);
+                    }
+
                     jobActions.add(jobAction);
                 }
 
