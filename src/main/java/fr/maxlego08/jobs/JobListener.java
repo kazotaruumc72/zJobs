@@ -3,6 +3,7 @@ package fr.maxlego08.jobs;
 import fr.maxlego08.jobs.api.JobManager;
 import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.hooks.NexoHook;
+import fr.maxlego08.jobs.hooks.OrestackHook;
 import fr.maxlego08.jobs.save.Config;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -90,12 +91,22 @@ public class JobListener implements Listener {
                 return;
             }
 
+            OrestackHook orestackHook = this.plugin.getOrestackHook();
+            if (orestackHook != null && orestackHook.isGenerator(block)) {
+                return;
+            }
+
             this.jobManager.action(player, material, JobActionType.BLOCK_BREAK);
 
         } else if (block.getBlockData() instanceof Ageable ageable && ((material == Material.SUGAR_CANE || material == Material.KELP || material == Material.BAMBOO) || ageable.getAge() == ageable.getMaximumAge())) {
 
             NexoHook nexoHook = this.plugin.getNexoHook();
             if (nexoHook != null && nexoHook.isNexoBlock(block)) {
+                return;
+            }
+
+            OrestackHook orestackHook = this.plugin.getOrestackHook();
+            if (orestackHook != null && orestackHook.isGenerator(block)) {
                 return;
             }
 
@@ -116,6 +127,11 @@ public class JobListener implements Listener {
 
         NexoHook nexoHook = this.plugin.getNexoHook();
         if (nexoHook != null && nexoHook.isNexoBlock(block)) {
+            return;
+        }
+
+        OrestackHook orestackHook = this.plugin.getOrestackHook();
+        if (orestackHook != null && orestackHook.isGenerator(block)) {
             return;
         }
 

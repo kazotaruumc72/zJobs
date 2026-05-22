@@ -13,6 +13,8 @@ import fr.maxlego08.jobs.hooks.MythicMobsHook;
 import fr.maxlego08.jobs.hooks.MythicMobsListener;
 import fr.maxlego08.jobs.hooks.NexoHook;
 import fr.maxlego08.jobs.hooks.NexoListener;
+import fr.maxlego08.jobs.hooks.OrestackHook;
+import fr.maxlego08.jobs.hooks.OrestackListener;
 import fr.maxlego08.jobs.placeholder.LocalPlaceholder;
 import fr.maxlego08.jobs.forge.ForgeClickListener;
 import fr.maxlego08.jobs.forge.ForgeInputButton;
@@ -86,6 +88,7 @@ public class JobsPlugin extends ZPlugin {
     private ButtonManager buttonManager;
     private BlockHook blockHook = new EmptyHook();
     private NexoHook nexoHook;
+    private OrestackHook orestackHook;
     private MythicMobsHook mythicMobsHook;
     private CurrencyProvider currencyProvider;
 
@@ -137,6 +140,12 @@ public class JobsPlugin extends ZPlugin {
             getLogger().info("Using Nexo");
             this.nexoHook = new NexoHook();
             this.addListener(new NexoListener(this));
+        }
+
+        if (isEnable(Plugins.ORESTACK)) {
+            getLogger().info("Using Orestack");
+            this.orestackHook = new OrestackHook();
+            this.addListener(new OrestackListener(this));
         }
 
         if (isEnable(Plugins.MYTHICMOBS)) {
@@ -242,6 +251,10 @@ public class JobsPlugin extends ZPlugin {
 
     public NexoHook getNexoHook() {
         return nexoHook;
+    }
+
+    public OrestackHook getOrestackHook() {
+        return orestackHook;
     }
 
     public MythicMobsHook getMythicMobsHook() {

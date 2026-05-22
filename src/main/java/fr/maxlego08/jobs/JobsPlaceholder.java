@@ -1,7 +1,9 @@
 package fr.maxlego08.jobs;
 
 import fr.maxlego08.jobs.api.Job;
+import fr.maxlego08.jobs.api.JobAction;
 import fr.maxlego08.jobs.api.JobManager;
+import fr.maxlego08.jobs.api.enums.JobActionType;
 import fr.maxlego08.jobs.api.players.PlayerJob;
 import fr.maxlego08.jobs.api.players.PlayerJobs;
 import fr.maxlego08.jobs.placeholder.BoostPlaceholder;
@@ -9,7 +11,10 @@ import fr.maxlego08.jobs.placeholder.LocalPlaceholder;
 import fr.maxlego08.jobs.placeholder.ReturnConsumer;
 import fr.maxlego08.jobs.rafine.RafineManager;
 import fr.maxlego08.jobs.save.Config;
+import fr.maxlego08.jobs.zcore.utils.TagRegistry;
 import fr.maxlego08.jobs.zcore.utils.ZUtils;
+import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.entity.Player;
 
 import java.util.stream.Collectors;
@@ -64,8 +69,126 @@ public class JobsPlaceholder extends ZUtils {
         // Boosts
         placeholder.register("boosts", this.placeholderBoosts(manager));
 
+        // %zjobs_baseExperience_<id>% : returns the base experience configured for
+        // the given material/tag/nexo id across the player's jobs, and refreshes
+        // the progression bossbar of the matching job as a side effect.
+        placeholder.register("baseExperience_", (player, rawId) -> this.placeholderBaseExperience(plugin, manager, player, rawId));
+
         // Refine system
         registerRafinePlaceholders(placeholder, plugin);
+    }
+
+    /**
+     * Resolves {@code %zjobs_baseExperience_<id>%}.
+     * <p>
+     * The {@code <id>} part can be:
+     * <ul>
+     *     <li>a vanilla material name (e.g. {@code DIAMOND_ORE}),</li>
+     *     <li>a {@link Tag} name (e.g. {@code LOGS}),</li>
+     *     <li>a Nexo block / item id prefixed with {@code nexo:} (e.g. {@code nexo:ruby_ore}).</li>
+     * </ul>
+     * The lookup walks the player's jobs and returns the experience of the first
+     * matching action it finds. As side effects:
+     * <ul>
+     *     <li>the player is credited with the returned experience on the
+     *     matching job (and his progression bossbar is refreshed),</li>
+     *     <li>boosts and money rewards configured on the matched action are
+     *     applied just like if he had performed the action himself.</li>
+     * </ul>
+     * <b>Warning:</b> the placeholder grants experience every time it is
+     * parsed. Avoid putting it in lores / messages that get re-rendered on a
+     * timer — typically use it in zShop {@code sell}/{@code buy} formulas or
+     * in one-shot reward actions.
+     *
+     * @param plugin  plugin instance
+     * @param manager job manager
+     * @param player  the parsing player
+     * @param rawId   the material/tag/nexo identifier appended to the placeholder
+     * @return the action experience formatted as a string, or {@code "0"} if no
+     * action matches.
+     */
+    private String placeholderBaseExperience(JobsPlugin plugin, JobManager manager, Player player, String rawId) {
+        if (rawId == null || rawId.isEmpty()) return "0";
+
+        var optional = manager.getPlayerJobs(player.getUniqueId());
+        if (optional.isEmpty()) return "0";
+        PlayerJobs playerJobs = optional.get();
+
+        Object target = resolvePlaceholderTarget(rawId);
+        if (target == null) return "0";
+
+        for (PlayerJob playerJob : playerJobs.getJobs()) {
+            var jobOptional = manager.getJob(playerJob.getJobId());
+            if (jobOptional.isEmpty()) continue;
+            Job job = jobOptional.get();
+
+            JobAction<?> matched = findAction(job, target);
+            if (matched == null) continue;
+
+            double experience = matched.getExperience(player);
+            // Run the full action pipeline: boosts, money, exp gain, bossbar,
+            // action bar notification. We dispatch the matched action's own
+            // type (e.g. BLOCK_BREAK) with the resolved target so every job
+            // that listens for that target gets credited consistently.
+            manager.action(player, target, matched.getType());
+            return Config.decimalFormat.format(experience);
+        }
+        return "0";
+    }
+
+    /**
+     * Convert the textual identifier appended to {@code %zjobs_baseExperience_%}
+     * to the concrete object job actions match against.
+     * <ul>
+     *     <li>{@code nexo:<id>} → the lowercase {@code nexo:<id>} String matched
+     *     by {@link fr.maxlego08.jobs.actions.NexoAction}.</li>
+     *     <li>otherwise → a {@link Material} if the name resolves to one, or a
+     *     {@link Tag} if it matches a registered material tag (used by
+     *     {@link fr.maxlego08.jobs.actions.TagAction}).</li>
+     * </ul>
+     * Returns {@code null} when nothing matches.
+     */
+    private Object resolvePlaceholderTarget(String rawId) {
+        String id = rawId.trim();
+        if (id.isEmpty()) return null;
+
+        String lower = id.toLowerCase();
+        if (lower.startsWith("nexo:") || lower.startsWith("orestack:")) {
+            return lower;
+        }
+
+        try {
+            return Material.valueOf(id.toUpperCase());
+        } catch (IllegalArgumentException ignored) {
+            // not a vanilla material — fall through to tag lookup
+        }
+
+        Tag<Material> tag = TagRegistry.getTag(id.toUpperCase());
+        return tag;
+    }
+
+    /**
+     * Find the first {@link JobAction} of the given job that matches the
+     * resolved target. Nexo actions (which match against a String) and
+     * material / tag actions are all covered.
+     */
+    private JobAction<?> findAction(Job job, Object target) {
+        for (JobAction<?> action : job.getActions()) {
+            JobActionType type = action.getType();
+            if (type == null || !type.isMaterial()) continue;
+            if (action.isAction(target)) return action;
+            if (target instanceof Tag<?> tag) {
+                // TagAction matches Material — when the placeholder was a Tag we
+                // want any MaterialAction whose target is in the tag (and the
+                // TagAction itself, which fully equals the registered tag).
+                Object actionTarget = action.getTarget();
+                if (actionTarget == tag) return action;
+                if (actionTarget instanceof Material material && ((Tag<Material>) tag).isTagged(material)) {
+                    return action;
+                }
+            }
+        }
+        return null;
     }
 
     /**

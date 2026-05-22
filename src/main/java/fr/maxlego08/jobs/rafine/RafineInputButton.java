@@ -88,7 +88,7 @@ public class RafineInputButton extends Button {
     private ItemStack computeStack(Player player) {
         RafineManager.Deposit deposit = manager().getDeposit(player, getSlot());
         if (deposit == null || deposit.isReady()) {
-            return getCustomItemStack(player);
+            return getCustomItemStack(player, false, new Placeholders());
         }
 
         ItemStack itemStack = deposit.getItemStack().clone();

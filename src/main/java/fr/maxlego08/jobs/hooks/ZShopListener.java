@@ -122,7 +122,7 @@ public class ZShopListener implements Listener {
 
         ItemStack itemStack;
         try {
-            itemStack = itemButton.getCustomItemStack(player);
+            itemStack = itemButton.getCustomItemStack(player, false, new fr.maxlego08.menu.api.utils.Placeholders());
         } catch (Throwable throwable) {
             // Defensive: never let a broken item rendering kill the buy / sell flow.
             this.plugin.getLogger().warning("Unable to resolve item for zShop " + actionType + " action: " + throwable.getMessage());

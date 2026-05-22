@@ -63,7 +63,7 @@ public class RafineResultButton extends Button {
         RafineManager.Deposit deposit = findDeposit(player);
         if (deposit == null) {
             // No active deposit - fall back to yaml placeholder (barrier)
-            return getCustomItemStack(player);
+            return getCustomItemStack(player, false, new Placeholders());
         }
 
         if (deposit.isRefining()) {

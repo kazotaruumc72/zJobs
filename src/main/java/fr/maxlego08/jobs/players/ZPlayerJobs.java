@@ -317,6 +317,13 @@ public class ZPlayerJobs extends ZUtils implements PlayerJobs {
         }
     }
 
+    @Override
+    public void showBossBar(Player player, Job job) {
+        if (player == null || job == null) return;
+        PlayerJob playerJob = this.get(job).orElseGet(() -> new ZPlayerJob(job.getFileName(), 0, 0, 0.0));
+        this.updateBossBar(player, playerJob, job);
+    }
+
     private void updateBossBar(Player player, PlayerJob playerJob, Job job) {
         if (player == null) return;
 

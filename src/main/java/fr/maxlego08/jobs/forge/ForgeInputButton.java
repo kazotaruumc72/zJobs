@@ -86,10 +86,10 @@ public class ForgeInputButton extends Button {
 
     private ItemStack computeStack(Player player) {
         ForgeManager.Session session = manager().getSession(player);
-        if (session == null) return getCustomItemStack(player);
+        if (session == null) return getCustomItemStack(player, false, new Placeholders());
 
         ItemStack deposited = session.getDeposits().get(getSlot());
-        if (deposited == null) return getCustomItemStack(player);
+        if (deposited == null) return getCustomItemStack(player, false, new Placeholders());
 
         ItemStack itemStack = deposited.clone();
         ItemMeta meta = itemStack.getItemMeta();

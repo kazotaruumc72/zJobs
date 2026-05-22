@@ -57,7 +57,7 @@ public class ForgeResultButton extends Button {
     private ItemStack computeStack(Player player) {
         ForgeManager.Session session = manager().getSession(player);
         if (session == null || !session.hasTimer()) {
-            return getCustomItemStack(player);
+            return getCustomItemStack(player, false, new Placeholders());
         }
 
         if (session.isForging()) {

@@ -155,4 +155,15 @@ public interface PlayerJobs {
      * @param boost the boost to add.
      */
     void addBoost(Boost boost);
+
+    /**
+     * Show (or refresh) the experience bossbar for the given job. Creates a fresh
+     * bossbar if none is currently visible, otherwise just resets its expiration
+     * timer so it stays on screen.
+     *
+     * @param player the online player.
+     * @param job    the job whose progression should be shown.
+     */
+    default void showBossBar(Player player, Job job) {
+    }
 }

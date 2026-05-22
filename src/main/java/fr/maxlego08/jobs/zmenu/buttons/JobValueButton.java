@@ -1,16 +1,14 @@
 package fr.maxlego08.jobs.zmenu.buttons;
 
 import fr.maxlego08.jobs.JobsPlugin;
-import fr.maxlego08.jobs.api.utils.ValueInformation;
 import fr.maxlego08.jobs.zcore.utils.FormatUtils;
 import fr.maxlego08.menu.api.button.PaginateButton;
 import fr.maxlego08.menu.api.engine.InventoryEngine;
 import fr.maxlego08.menu.api.utils.Placeholders;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.Plugin;
-
-import java.util.Comparator;
 
 public class JobValueButton extends PaginateButton {
 
@@ -39,16 +37,21 @@ public class JobValueButton extends PaginateButton {
         var targetJobs = plugin.getJobManager().getTargetJob(player);
         if (targetJobs == null) return;
 
-        var jobActions = targetJobs.getValues().stream().sorted(Comparator.comparingDouble(ValueInformation::experience).reversed()).toList();
+        // Display values in the order declared by the config — the user is
+        // expected to order them from "least rewarding" (top) to "most
+        // rewarding" (bottom), so we do not re-sort here.
+        var jobActions = targetJobs.getValues();
         paginate(jobActions, inventory, (slot, value) -> {
 
             String materialStr = value.material();
-            boolean isNexo = materialStr != null && materialStr.toLowerCase().startsWith("nexo:");
+            String lowerMaterial = materialStr == null ? "" : materialStr.toLowerCase();
+            boolean isNexo = lowerMaterial.startsWith("nexo:");
+            boolean isOrestack = lowerMaterial.startsWith("orestack:");
 
             Placeholders placeholders = new Placeholders();
             placeholders.register("experience", FormatUtils.format(value.experience()));
             placeholders.register("money", FormatUtils.format(value.money()));
-            placeholders.register("material", isNexo ? "PAPER" : materialStr);
+            placeholders.register("material", (isNexo || isOrestack) ? "PAPER" : materialStr);
             placeholders.register("name", value.name());
 
             ItemStack itemStack = getItemStack().build(player, false, placeholders);
@@ -57,15 +60,24 @@ public class JobValueButton extends PaginateButton {
                 String nexoId = materialStr.substring(5);
                 ItemStack nexoItem = plugin.getNexoHook().getItemStack(nexoId);
                 if (nexoItem != null) {
-                    itemStack.setType(nexoItem.getType());
-                    var displayMeta = itemStack.getItemMeta();
-                    var nexoMeta = nexoItem.getItemMeta();
-                    if (nexoMeta != null && displayMeta != null) {
-                        if (nexoMeta.hasCustomModelData()) {
-                            displayMeta.setCustomModelData(nexoMeta.getCustomModelData());
+                    // Start from the actual Nexo item so we keep every visual
+                    // component (type, custom model data, item-model, dyed
+                    // color, trim, ...), then overlay the template's
+                    // display-name and lore so the placeholders configured in
+                    // job_info.yml still show through.
+                    ItemStack display = nexoItem.clone();
+                    ItemMeta templateMeta = itemStack.getItemMeta();
+                    ItemMeta nexoMeta = display.getItemMeta();
+                    if (templateMeta != null && nexoMeta != null) {
+                        if (templateMeta.hasDisplayName()) {
+                            nexoMeta.setDisplayName(templateMeta.getDisplayName());
                         }
-                        itemStack.setItemMeta(displayMeta);
+                        if (templateMeta.hasLore()) {
+                            nexoMeta.setLore(templateMeta.getLore());
+                        }
+                        display.setItemMeta(nexoMeta);
                     }
+                    itemStack = display;
                 }
             }
 

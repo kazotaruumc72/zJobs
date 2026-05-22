@@ -7,6 +7,7 @@ import fr.maxlego08.jobs.actions.EntityAction;
 import fr.maxlego08.jobs.actions.ForgeAction;
 import fr.maxlego08.jobs.actions.MaterialAction;
 import fr.maxlego08.jobs.actions.NexoAction;
+import fr.maxlego08.jobs.actions.OrestackAction;
 import fr.maxlego08.jobs.actions.RafineAction;
 import fr.maxlego08.jobs.actions.TagAction;
 import fr.maxlego08.jobs.actions.ZJobAction;
@@ -130,7 +131,7 @@ public class JobLoader implements Loader<Job> {
                 }
                 String displayMaterialName = accessor.getString("display-material", null);
                 String displayMaterial = displayMaterialName == null ? null :
-                        (displayMaterialName.toLowerCase().startsWith("nexo:") ? displayMaterialName : displayMaterialName.toUpperCase());
+                        (isCustomDisplayMaterial(displayMaterialName) ? displayMaterialName.toLowerCase() : displayMaterialName.toUpperCase());
                 String displayName = accessor.getString("display-name", "Name not found");
                 JobAction<?> jobAction = null;
 
@@ -141,6 +142,9 @@ public class JobLoader implements Loader<Job> {
                         if (materialName.toLowerCase().startsWith("nexo:")) {
                             String nexoId = "nexo:" + materialName.substring(5);
                             jobAction = new NexoAction(nexoId, experience, money, jobActionType, displayMaterial == null ? "PAPER" : displayMaterial);
+                        } else if (materialName.toLowerCase().startsWith("orestack:")) {
+                            String orestackId = ("orestack:" + materialName.substring(9)).toLowerCase();
+                            jobAction = new OrestackAction(orestackId, experience, money, jobActionType, displayMaterial == null ? "PAPER" : displayMaterial);
                         } else {
                             Material material = Material.valueOf(materialName.toUpperCase());
                             jobAction = new MaterialAction(material, experience, money, jobActionType, displayMaterial == null ? material.name() : displayMaterial);
@@ -234,6 +238,18 @@ public class JobLoader implements Loader<Job> {
      *     (e.g. {@code "100 - 25"} or {@code "%zjobs_rafine_percent_inverse% * 5"}).</li>
      * </ul>
      */
+    /**
+     * Returns {@code true} when the given display-material is a custom
+     * identifier (e.g. {@code nexo:xxx} or {@code orestack:xxx}) rather than a
+     * vanilla {@link Material} name. Custom identifiers keep their original
+     * case so the matching hook can resolve them as-is.
+     */
+    private boolean isCustomDisplayMaterial(String value) {
+        if (value == null) return false;
+        String lower = value.toLowerCase();
+        return lower.startsWith("nexo:") || lower.startsWith("orestack:");
+    }
+
     private boolean isFormulaString(String value) {
         if (value == null) return false;
         String trimmed = value.trim();

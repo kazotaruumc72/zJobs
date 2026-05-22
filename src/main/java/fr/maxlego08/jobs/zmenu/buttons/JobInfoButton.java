@@ -32,19 +32,18 @@ public class JobInfoButton extends Button {
     }
 
     @Override
-    public ItemStack getCustomItemStack(Player player) {
+    public ItemStack getCustomItemStack(Player player, boolean useCache, Placeholders placeholders) {
 
         if (this.job == null) {
             this.plugin.getLogger().severe("Impossible to find the job !");
-            return super.getCustomItemStack(player);
+            return super.getCustomItemStack(player, useCache, placeholders);
         }
-
-        Placeholders placeholders = new Placeholders();
 
         PlayerJobs playerJobs = this.jobManager.getPlayerJobs(player.getUniqueId()).orElse(new ZPlayerJobs(this.plugin, player.getUniqueId(), List.of(), 0, new HashSet<>()));
         PlayerJob playerJob = playerJobs.get(this.job).orElse(new ZPlayerJob(this.job.getFileName(), 0, 0, 0.0));
 
         double maxExperience = this.job.getExperience(playerJob.getLevel(), playerJob.getPrestige());
+        placeholders.register("job-name", this.job.getName());
         placeholders.register("experience", FormatUtils.format(playerJob.getExperience()));
         placeholders.register("max-experience", FormatUtils.format(maxExperience));
 
@@ -58,7 +57,7 @@ public class JobInfoButton extends Button {
         placeholders.register("level-progressbar", Config.progressBarLevel.getProgressBar(playerJob.getLevel(), this.job.getMaxLevels()));
         placeholders.register("prestige-progressbar", Config.progressBarPrestige.getProgressBar(playerJob.getPrestige(), this.job.getMaxPrestiges()));
 
-        return getItemStack().build(player, false, placeholders);
+        return getItemStack().build(player, useCache, placeholders);
     }
 
     @Override

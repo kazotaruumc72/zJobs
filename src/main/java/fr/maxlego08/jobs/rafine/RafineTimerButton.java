@@ -47,7 +47,7 @@ public class RafineTimerButton extends Button {
     }
 
     private ItemStack computeStack(Player player) {
-        ItemStack base = getCustomItemStack(player);
+        ItemStack base = getCustomItemStack(player, false, new Placeholders());
         if (base == null) return null;
 
         long shortest = Long.MAX_VALUE;
