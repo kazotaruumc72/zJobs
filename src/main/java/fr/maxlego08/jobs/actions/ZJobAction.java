@@ -3,12 +3,17 @@ package fr.maxlego08.jobs.actions;
 import fr.maxlego08.jobs.api.JobAction;
 import fr.maxlego08.jobs.api.utils.ValueInformation;
 import fr.maxlego08.jobs.placeholder.Placeholder;
+import fr.maxlego08.menu.api.MenuPlugin;
+import fr.maxlego08.menu.api.engine.InventoryEngine;
 import fr.maxlego08.menu.api.requirement.Permissible;
 import fr.maxlego08.menu.api.utils.Placeholders;
 import fr.maxlego08.menu.hooks.exp4j.ExpressionBuilder;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 
+import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.List;
 
@@ -105,16 +110,43 @@ public abstract class ZJobAction<T> implements JobAction<T> {
     public boolean meetsRequirements(Player player) {
         if (this.requirements.isEmpty() || player == null) return true;
         Placeholders placeholders = new Placeholders();
+        InventoryEngine engine = getRequirementEngine();
         for (Permissible permissible : this.requirements) {
             try {
-                if (!permissible.hasPermission(player, null, null, placeholders)) {
+                if (!permissible.hasPermission(player, null, engine, placeholders)) {
                     return false;
                 }
             } catch (Throwable throwable) {
+                throwable.printStackTrace();
                 return false;
             }
         }
         return true;
+    }
+
+    private static volatile InventoryEngine requirementEngine;
+
+    // zMenu permissibles like ZPlaceholderPermissible call inventoryEngine.getPlugin() to
+    // resolve the MenuPlugin and parse PlaceholderAPI placeholders. Outside any open menu
+    // (action processing happens on raw Bukkit events) we still need to provide one, so
+    // we expose a dynamic proxy that only services getPlugin() and no-ops the rest.
+    private static InventoryEngine getRequirementEngine() {
+        InventoryEngine cached = requirementEngine;
+        if (cached != null) return cached;
+        Plugin zMenu = Bukkit.getPluginManager().getPlugin("zMenu");
+        if (!(zMenu instanceof MenuPlugin menuPlugin)) return null;
+        cached = (InventoryEngine) Proxy.newProxyInstance(
+                InventoryEngine.class.getClassLoader(),
+                new Class[]{InventoryEngine.class},
+                (proxy, method, args) -> {
+                    if ("getPlugin".equals(method.getName())) return menuPlugin;
+                    Class<?> returnType = method.getReturnType();
+                    if (returnType == boolean.class) return false;
+                    if (returnType.isPrimitive()) return 0;
+                    return null;
+                });
+        requirementEngine = cached;
+        return cached;
     }
 
     @Override
