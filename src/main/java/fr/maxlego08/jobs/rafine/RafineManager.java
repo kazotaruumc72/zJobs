@@ -2,6 +2,7 @@ package fr.maxlego08.jobs.rafine;
 
 import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.hooks.NexoHook;
+import fr.maxlego08.menu.hooks.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -11,7 +12,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -185,7 +185,7 @@ public class RafineManager {
         }
     }
 
-    private BukkitTask completionTask;
+    private WrappedTask completionTask;
 
     public RafineManager(JobsPlugin plugin) {
         this.plugin = plugin;
@@ -198,7 +198,9 @@ public class RafineManager {
      */
     public void startCompletionWatcher() {
         if (this.completionTask != null) return;
-        this.completionTask = Bukkit.getScheduler().runTaskTimer(this.plugin, this::tickCompletion, 20L, 20L);
+        // Folia-safe: a global repeating task that dispatches the per-player work
+        // to each player's own region thread (see tickCompletion).
+        this.completionTask = this.plugin.getScheduler().runTimer(this::tickCompletion, 20L, 20L);
     }
 
     public void stopCompletionWatcher() {
@@ -209,16 +211,20 @@ public class RafineManager {
     }
 
     private void tickCompletion() {
-        for (Map.Entry<UUID, Map<Integer, Deposit>> entry : this.deposited.entrySet()) {
+        for (Map.Entry<UUID, Map<Integer, Deposit>> entry : new ArrayList<>(this.deposited.entrySet())) {
             Player player = Bukkit.getPlayer(entry.getKey());
             if (player == null || !player.isOnline()) continue;
-            for (Deposit deposit : entry.getValue().values()) {
-                if (deposit.isReady() && !deposit.isCompletionNotified()) {
-                    deposit.markCompletionNotified();
-                    notifyCompletion(player, deposit);
-                    forceRefineRedraw(player);
+            Map<Integer, Deposit> deposits = entry.getValue();
+            // Inventory / message access must happen on the player's region thread on Folia.
+            this.plugin.getScheduler().runAtEntity(player, wrappedTask -> {
+                for (Deposit deposit : deposits.values()) {
+                    if (deposit.isReady() && !deposit.isCompletionNotified()) {
+                        deposit.markCompletionNotified();
+                        notifyCompletion(player, deposit);
+                        forceRefineRedraw(player);
+                    }
                 }
-            }
+            });
         }
     }
 

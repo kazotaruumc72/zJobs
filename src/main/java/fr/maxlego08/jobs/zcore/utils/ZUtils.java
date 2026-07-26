@@ -385,7 +385,7 @@ public abstract class ZUtils extends MessageUtils {
                 }
 
                 tmpCount++;
-                Bukkit.getScheduler().runTask(plugin, runnable);
+                ((JobsPlugin) plugin).getScheduler().runNextTick(w -> runnable.run());
             }
         }, 0, delay);
     }
@@ -442,7 +442,7 @@ public abstract class ZUtils extends MessageUtils {
                     consumer.accept(this, false);
                     return;
                 }
-                Bukkit.getScheduler().runTask(plugin, () -> consumer.accept(this, true));
+                ((JobsPlugin) plugin).getScheduler().runNextTick(w -> consumer.accept(this, true));
             }
         };
         new Timer().scheduleAtFixedRate(task, startAt, delay);
@@ -920,7 +920,7 @@ public abstract class ZUtils extends MessageUtils {
      * @param runnable the runnable to execute.
      */
     protected void runAsync(Plugin plugin, Runnable runnable) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable);
+        ((JobsPlugin) plugin).getScheduler().runAsync(w -> runnable.run());
     }
 
 

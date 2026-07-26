@@ -72,23 +72,13 @@ events:
 disabled-worlds:
   - "world_the_end"
 
-progress-bar-level:
-  icon: '|'
-  progress-color: "#0ff216"
-  color: "#828282"
-  size: 30
-
-progress-bar-prestige:
-  icon: '|'
-  progress-color: "#0ff216"
-  color: "#828282"
-  size: 30
-
-progress-bar-experience:
-  icon: '|'
-  progress-color: "#0ff216"
-  color: "#828282"
-  size: 30
+# Progress bar used by the %experience-progressbar%, %level-progressbar% and %prestige-progressbar% placeholders
+progress-bar:
+  filled: <glyph:iconic_utils_check>
+  empty: <glyph:iconic_utils_cross>
+  filled-color: <white>
+  empty-color: <white>
+  width: 10
 
 placeholder-boosts:
   empty: "&cAucun boosts actifs"
@@ -107,3 +97,16 @@ force-block-check:
 
 # 30 secondes
 update-jobs-ticks: 600
+
+# Anti-farming: prevents the "place / break / place / break" exploit where a
+# player places a block then immediately breaks it to farm points and money.
+# A block placed by a player is remembered for a short time; breaking it while
+# it is still in this temporary history gives no reward.
+place-break-protection:
+  # Enable or disable the protection.
+  enable: true
+  # How long (in seconds) a placed block stays protected. After this delay the
+  # block is considered legitimate again and breaking it rewards normally.
+  # Column plants (sugar cane, bamboo, kelp) grow over time, so their upper
+  # blocks are never affected once the delay has passed.
+  duration-seconds: 300

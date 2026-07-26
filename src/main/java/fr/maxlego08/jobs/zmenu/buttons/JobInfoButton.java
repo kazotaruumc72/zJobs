@@ -53,9 +53,9 @@ public class JobInfoButton extends Button {
         placeholders.register("prestige", FormatUtils.format(playerJob.getPrestige()));
         placeholders.register("max-prestige", FormatUtils.format(this.job.getMaxPrestiges()));
 
-        placeholders.register("experience-progressbar", Config.progressBarExperience.getProgressBar(playerJob.getExperience(), maxExperience));
-        placeholders.register("level-progressbar", Config.progressBarLevel.getProgressBar(playerJob.getLevel(), this.job.getMaxLevels()));
-        placeholders.register("prestige-progressbar", Config.progressBarPrestige.getProgressBar(playerJob.getPrestige(), this.job.getMaxPrestiges()));
+        placeholders.register("experience-progressbar", Config.progressBar.getProgressBar(playerJob.getExperience(), maxExperience));
+        placeholders.register("level-progressbar", Config.progressBar.getProgressBar(playerJob.getLevel(), this.job.getMaxLevels()));
+        placeholders.register("prestige-progressbar", Config.progressBar.getProgressBar(playerJob.getPrestige(), this.job.getMaxPrestiges()));
 
         return getItemStack().build(player, useCache, placeholders);
     }

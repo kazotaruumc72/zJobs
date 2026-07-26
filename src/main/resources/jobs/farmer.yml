@@ -77,6 +77,34 @@ actions:
     experience: 2
     money: 0.2
 
+  - type: FARMING
+    material: COCOA
+    display-material: COCOA_BEANS
+    experience: 2
+    money: 0.2
+
+  - type: FARMING
+    material: BAMBOO
+    experience: 0.5
+    money: 0.1
+
+  - type: BLOCK_BREAK
+    material: RED_MUSHROOM_BLOCK
+    display-material: RED_MUSHROOM
+    experience: 1
+    money: 0.2
+
+  - type: BLOCK_BREAK
+    material: BROWN_MUSHROOM_BLOCK
+    display-material: BROWN_MUSHROOM
+    experience: 1
+    money: 0.2
+
+  - type: BLOCK_BREAK
+    material: MUSHROOM_STEM
+    experience: 0.5
+    money: 0.1
+
   - type: TAME
     entity: WOLF
     experience: 2

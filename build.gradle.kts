@@ -36,6 +36,9 @@ allprojects {
     }
 
     java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(25))
+        }
         withSourcesJar()
         withJavadocJar()
     }
@@ -50,7 +53,7 @@ allprojects {
 
     dependencies {
 
-        compileOnly("io.papermc.paper:paper-api:1.21.3-R0.1-SNAPSHOT")
+        compileOnly("io.papermc.paper:paper-api:26.1.2.build.66-stable")
         compileOnly("me.clip:placeholderapi:2.11.6")
         compileOnly("com.mojang:authlib:3.11.50")
         compileOnly("dev.krakenied:blocktracker:1.0.6")
@@ -58,9 +61,9 @@ allprojects {
         compileOnly("io.github.pigaut.orestack.api:OrestackAPI:2.0")
         compileOnly("io.lumine:Mythic-Dist:5.7.2")
 
-        compileOnly("fr.maxlego08.menu:zmenu-api:1.1.1.3")
+        compileOnly("fr.maxlego08.menu:zmenu-api:1.1.1.4")
         compileOnly("fr.maxlego08.shop:zshop-api:3.3.0")
-        implementation("fr.maxlego08.sarah:sarah:1.20")
+        implementation("fr.maxlego08.sarah:sarah:1.22")
     }
 }
 
@@ -83,10 +86,6 @@ tasks {
 
     build {
         dependsOn(shadowJar)
-    }
-
-    compileJava {
-        options.release = 21
     }
 
     processResources {

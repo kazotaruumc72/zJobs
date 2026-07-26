@@ -96,6 +96,8 @@ public class JobListener implements Listener {
                 return;
             }
 
+            if (isPlaceBreakFarming(block)) return;
+
             this.jobManager.action(player, material, JobActionType.BLOCK_BREAK);
 
         } else if (block.getBlockData() instanceof Ageable ageable && ((material == Material.SUGAR_CANE || material == Material.KELP || material == Material.BAMBOO) || ageable.getAge() == ageable.getMaximumAge())) {
@@ -115,7 +117,19 @@ public class JobListener implements Listener {
                 if (this.plugin.getBlockHook().isTracked(block)) return;
             }
 
-            this.jobManager.action(player, material, JobActionType.FARMING);
+            if (isPlaceBreakFarming(block)) return;
+
+            // Column plants (sugar cane, kelp, bamboo) drop as a whole stack when
+            // the base is broken, but only the base fires a BlockBreakEvent.
+            // Reward every block of the column so breaking the "pied" counts them all.
+            int rewards = 1;
+            if (material == Material.SUGAR_CANE || material == Material.KELP || material == Material.BAMBOO) {
+                rewards += countColumnAbove(block, material);
+            }
+
+            for (int i = 0; i < rewards; i++) {
+                this.jobManager.action(player, material, JobActionType.FARMING);
+            }
         }
     }
 
@@ -135,7 +149,36 @@ public class JobListener implements Listener {
             return;
         }
 
+        // Remember the placement so a quick break of this same block is not rewarded.
+        if (Config.enablePlaceBreakProtection) {
+            this.plugin.getPlacedBlockTracker().trackPlace(block);
+        }
+
         this.jobManager.action(player, material, JobActionType.BLOCK_PLACE);
+    }
+
+    /**
+     * Returns true when the block was placed by a player recently and breaking
+     * it must therefore not be rewarded (place/break farming protection).
+     */
+    private boolean isPlaceBreakFarming(Block block) {
+        if (!Config.enablePlaceBreakProtection) return false;
+        return this.plugin.getPlacedBlockTracker().wasRecentlyPlaced(block, Config.placeBreakProtectionSeconds * 1000L);
+    }
+
+    /**
+     * Counts how many extra same-type blocks stack directly above the given
+     * block. Used for column plants (sugar cane, kelp, bamboo, cactus) so that
+     * breaking the base rewards the whole column that pops off, not just one.
+     */
+    private int countColumnAbove(Block block, Material material) {
+        int extra = 0;
+        Block above = block.getRelative(0, 1, 0);
+        while (above.getType() == material) {
+            extra++;
+            above = above.getRelative(0, 1, 0);
+        }
+        return extra;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)

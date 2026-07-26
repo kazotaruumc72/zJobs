@@ -64,9 +64,10 @@ public class ZStorageManager implements StorageManager {
         DatabaseType storageType = DatabaseType.valueOf(configuration.getString("storage-type", "SQLITE").toUpperCase());
 
         DatabaseConfiguration databaseConfiguration = getDatabaseConfiguration(configuration, storageType);
+        var logger = JULogger.from(this.plugin.getLogger());
         DatabaseConnection connection = switch (storageType) {
-            case SQLITE -> new SqliteConnection(databaseConfiguration, this.plugin.getDataFolder());
-            case MARIADB, MYSQL -> new HikariDatabaseConnection(databaseConfiguration);
+            case SQLITE -> new SqliteConnection(databaseConfiguration, this.plugin.getDataFolder(), logger);
+            case MARIADB, MYSQL -> new HikariDatabaseConnection(databaseConfiguration, logger);
         };
         this.requestHelper = new RequestHelper(connection, JULogger.from(plugin.getLogger()));
 

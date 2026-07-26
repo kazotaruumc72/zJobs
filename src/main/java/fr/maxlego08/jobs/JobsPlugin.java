@@ -38,6 +38,7 @@ import fr.maxlego08.jobs.rafine.RafineTimerButton;
 import fr.maxlego08.jobs.save.Config;
 import fr.maxlego08.jobs.save.MessageLoader;
 import fr.maxlego08.jobs.storage.ZStorageManager;
+import fr.maxlego08.menu.hooks.folialib.wrapper.task.WrappedTask;
 import fr.maxlego08.jobs.zcore.ZPlugin;
 import fr.maxlego08.jobs.zcore.utils.plugins.Plugins;
 import fr.maxlego08.jobs.zmenu.buttons.JobValueButton;
@@ -83,6 +84,8 @@ public class JobsPlugin extends ZPlugin {
     private final RafineManager rafineManager = new RafineManager(this);
     private final ForgeManager forgeManager = new ForgeManager(this);
     private final Set<String> knowRewards = new HashSet<>();
+    private final PlacedBlockTracker placedBlockTracker = new PlacedBlockTracker();
+    private WrappedTask placedBlockCleanupTask;
     private PatternManager patternManager;
     private InventoryManager inventoryManager;
     private ButtonManager buttonManager;
@@ -175,6 +178,10 @@ public class JobsPlugin extends ZPlugin {
         this.loadInventories();
         this.loadCurrencyProvider();
 
+        // Periodically drop expired entries from the place/break history (every 30s).
+        this.placedBlockCleanupTask = this.getScheduler().runTimer(() ->
+                this.placedBlockTracker.cleanup(Config.placeBreakProtectionSeconds * 1000L), 600L, 600L);
+
         this.postEnable();
     }
 
@@ -185,6 +192,10 @@ public class JobsPlugin extends ZPlugin {
 
         this.rafineManager.stopCompletionWatcher();
         this.forgeManager.stopCompletionWatcher();
+        if (this.placedBlockCleanupTask != null) {
+            this.placedBlockCleanupTask.cancel();
+            this.placedBlockTracker.clear();
+        }
         this.storageManager.onDisable();
         this.saveFiles();
 
@@ -247,6 +258,10 @@ public class JobsPlugin extends ZPlugin {
 
     public BlockHook getBlockHook() {
         return blockHook;
+    }
+
+    public PlacedBlockTracker getPlacedBlockTracker() {
+        return placedBlockTracker;
     }
 
     public NexoHook getNexoHook() {

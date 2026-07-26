@@ -4,7 +4,7 @@ main: fr.maxlego08.jobs.JobsPlugin
 website: https://groupez.dev
 description: Make your own jobs
 version: ${version}
-api-version: 1.13
+api-version: '1.21'
 folia-supported: true
 depend:
   - zMenu

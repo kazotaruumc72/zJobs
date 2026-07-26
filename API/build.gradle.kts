@@ -6,10 +6,6 @@ rootProject.extra.properties["sha"]?.let { sha ->
     version = sha
 }
 
-dependencies {
-    compileOnly(files("../libs/zMenu-API-1.1.0.0.jar"))
-}
-
 tasks {
     shadowJar {
         // relocate("com.tcoded.folialib", "fr.maxlego08.quests.libs.folia")

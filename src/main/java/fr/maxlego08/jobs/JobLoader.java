@@ -151,7 +151,14 @@ public class JobLoader implements Loader<Job> {
                             jobAction = new MaterialAction(material, experience, money, jobActionType, displayMaterial == null ? material.name() : displayMaterial);
                         }
                     } else if (accessor.contains("tag")) {
-                        Tag<Material> tag = TagRegistry.getTag(accessor.getString("tag").toUpperCase());
+                        String tagName = accessor.getString("tag").toUpperCase();
+                        Tag<Material> tag = TagRegistry.getTag(tagName);
+                        if (tag == null) {
+                            plugin.getLogger().severe("Unknown tag '" + tagName + "' for action #" + actionNumber
+                                    + " in file " + file.getAbsolutePath()
+                                    + "; skipping this action. Tag names must match the constants of org.bukkit.Tag (e.g. LOGS, PLANKS, MINEABLE_PICKAXE).");
+                            continue;
+                        }
                         jobAction = new TagAction(tag, experience, money, jobActionType, displayMaterial == null ? "PAPER" : displayMaterial);
                     } else {
                         this.plugin.getLogger().severe("Impossible to find the tag or material for " + jobActionType + " in file " + file.getAbsolutePath());

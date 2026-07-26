@@ -2,6 +2,7 @@ package fr.maxlego08.jobs.forge;
 
 import fr.maxlego08.jobs.JobsPlugin;
 import fr.maxlego08.jobs.hooks.NexoHook;
+import fr.maxlego08.menu.hooks.folialib.wrapper.task.WrappedTask;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -10,7 +11,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -321,7 +321,7 @@ public class ForgeManager {
     private boolean whitelistEnabled = false;
     private final Map<UUID, Session> sessions = new HashMap<>();
 
-    private BukkitTask completionTask;
+    private WrappedTask completionTask;
 
     public ForgeManager(JobsPlugin plugin) {
         this.plugin = plugin;
@@ -333,7 +333,9 @@ public class ForgeManager {
 
     public void startCompletionWatcher() {
         if (this.completionTask != null) return;
-        this.completionTask = Bukkit.getScheduler().runTaskTimer(this.plugin, this::tickCompletion, 20L, 20L);
+        // Folia-safe: a global repeating task that dispatches the per-player work
+        // to each player's own region thread (see tickCompletion).
+        this.completionTask = this.plugin.getScheduler().runTimer(this::tickCompletion, 20L, 20L);
     }
 
     public void stopCompletionWatcher() {
@@ -344,15 +346,18 @@ public class ForgeManager {
     }
 
     private void tickCompletion() {
-        for (Map.Entry<UUID, Session> entry : this.sessions.entrySet()) {
+        for (Map.Entry<UUID, Session> entry : new ArrayList<>(this.sessions.entrySet())) {
             Player player = Bukkit.getPlayer(entry.getKey());
             if (player == null || !player.isOnline()) continue;
             Session session = entry.getValue();
-            if (session.isReady() && !session.isCompletionNotified()) {
-                session.markCompletionNotified();
-                notifyCompletion(player, session);
-                forceForgeRedraw(player);
-            }
+            // Inventory / message access must happen on the player's region thread on Folia.
+            this.plugin.getScheduler().runAtEntity(player, wrappedTask -> {
+                if (session.isReady() && !session.isCompletionNotified()) {
+                    session.markCompletionNotified();
+                    notifyCompletion(player, session);
+                    forceForgeRedraw(player);
+                }
+            });
         }
     }
 

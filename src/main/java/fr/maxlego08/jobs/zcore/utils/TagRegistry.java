@@ -27,6 +27,7 @@ public class TagRegistry {
     }
 
     public static void register(String key, Tag<Material> tag) {
+        if (tag == null) return;
         tagMap.put(key, tag);
     }
 

@@ -30,13 +30,15 @@ public class Config {
     public static Map<String, Integer> jobLimitPermissions = new HashMap<>();
     public static Map<String, Boolean> eventInformations = new HashMap<>();
     public static List<String> disabledWorlds = new ArrayList<>();
-    public static ProgressBarConfig progressBarLevel;
-    public static ProgressBarConfig progressBarPrestige;
-    public static ProgressBarConfig progressBarExperience;
+    public static ProgressBarConfig progressBar;
     public static BoostPlaceholderConfig boostPlaceholderConfig;
     public static String moneyReason = "Job money";
     public static List<Material> forceBlockCheck = List.of(Material.SUGAR_CANE);
     public static boolean enableBoostFinishMessage;
+    // Prevents the place/break farming exploit: a block placed by a player is
+    // remembered for this many seconds, during which breaking it gives no reward.
+    public static boolean enablePlaceBreakProtection = true;
+    public static int placeBreakProtectionSeconds = 300;
 
     /**
      * static Singleton instance.
@@ -114,9 +116,7 @@ public class Config {
         disabledWorlds = configuration.getStringList("disabled-worlds");
         moneyReason = configuration.getString("money-reason", "Job Money");
 
-        progressBarLevel = loadProgressBarConfig(configuration, "progress-bar-level");
-        progressBarPrestige = loadProgressBarConfig(configuration, "progress-bar-prestige");
-        progressBarExperience = loadProgressBarConfig(configuration, "progress-bar-experience");
+        progressBar = loadProgressBarConfig(configuration, "progress-bar");
         forceBlockCheck = configuration.getStringList("force-block-check").stream().map(Material::matchMaterial).toList();
 
         boostPlaceholderConfig = new BoostPlaceholderConfig(
@@ -128,16 +128,19 @@ public class Config {
                 configuration.getString("placeholder-boosts.every-targets", "All targets")
         );
         enableBoostFinishMessage = configuration.getBoolean("enable-boost-finish-message");
+
+        enablePlaceBreakProtection = configuration.getBoolean("place-break-protection.enable", true);
+        placeBreakProtectionSeconds = configuration.getInt("place-break-protection.duration-seconds", 300);
     }
 
     private ProgressBarConfig loadProgressBarConfig(FileConfiguration configuration, String path) {
-        String icon = configuration.getString(path + ".icon", "|");
-        String notCompletedIcon = configuration.getString(path + ".not-completed-icon", icon);
-        String progressColor = configuration.getString(path + ".progress-color", "&a");
-        String color = configuration.getString(path + ".color", "&7");
-        int size = configuration.getInt(path + ".size", 10);
+        String filled = configuration.getString(path + ".filled", "|");
+        String empty = configuration.getString(path + ".empty", filled);
+        String filledColor = configuration.getString(path + ".filled-color", "&a");
+        String emptyColor = configuration.getString(path + ".empty-color", "&7");
+        int width = configuration.getInt(path + ".width", 10);
 
-        return new ProgressBarConfig(icon, notCompletedIcon, progressColor, color, size);
+        return new ProgressBarConfig(filled, empty, filledColor, emptyColor, width);
     }
 
 }
